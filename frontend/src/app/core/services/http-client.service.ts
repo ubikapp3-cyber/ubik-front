@@ -26,6 +26,20 @@ export interface ApiError {
   details?: any;
 }
 
+/**
+ * HTTP error messages configuration
+ * Externalized for easy maintenance and i18n support
+ */
+const HTTP_ERROR_MESSAGES: Record<number, string> = {
+  0: 'No se pudo conectar al servidor. Verifique su conexión.',
+  400: 'Solicitud inválida. Verifique los datos ingresados.',
+  401: 'No autorizado. Por favor, inicie sesión.',
+  403: 'Acceso denegado.',
+  404: 'Recurso no encontrado.',
+  500: 'Error interno del servidor.',
+  503: 'Servicio no disponible. Intente más tarde.',
+};
+
 @Injectable({
   providedIn: 'root',
 })
@@ -182,6 +196,7 @@ export class HttpClientService {
   /**
    * Extract user-friendly error message from HTTP error
    * Uses early returns for different error scenarios
+   * Uses externalized error messages for maintainability
    * @param error - HTTP error response
    * @returns User-friendly error message
    */
@@ -196,24 +211,7 @@ export class HttpClientService {
       return error.error;
     }
 
-    // Default messages based on status code
-    switch (error.status) {
-      case 0:
-        return 'No se pudo conectar al servidor. Verifique su conexión.';
-      case 400:
-        return 'Solicitud inválida. Verifique los datos ingresados.';
-      case 401:
-        return 'No autorizado. Por favor, inicie sesión.';
-      case 403:
-        return 'Acceso denegado.';
-      case 404:
-        return 'Recurso no encontrado.';
-      case 500:
-        return 'Error interno del servidor.';
-      case 503:
-        return 'Servicio no disponible. Intente más tarde.';
-      default:
-        return `Error del servidor (${error.status})`;
-    }
+    // Get message from configuration or use default
+    return HTTP_ERROR_MESSAGES[error.status] || `Error del servidor (${error.status})`;
   }
 }

@@ -105,7 +105,7 @@ export class LoginService {
     // OAuth not yet implemented - return error
     return throwError(() => ({
       success: false,
-      message: `OAuth con ${provider} próximamente disponible`,
+      message: `Autenticación con ${provider} próximamente disponible`,
     }));
   }
 

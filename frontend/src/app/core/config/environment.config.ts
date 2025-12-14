@@ -94,6 +94,7 @@ export class EnvironmentService {
   /**
    * Determine if environment is production
    * Uses early returns for clarity
+   * Checks for specific production indicators
    * @returns true if production environment detected
    */
   private isProductionEnvironment(): boolean {
@@ -110,7 +111,26 @@ export class EnvironmentService {
       return false;
     }
 
-    // Consider anything else as production
-    return true;
+    // Check for common development/staging indicators
+    const isDevelopment = hostname.includes('dev.') || 
+                          hostname.includes('staging.') ||
+                          hostname.includes('test.') ||
+                          hostname.includes('.local');
+    
+    if (isDevelopment) {
+      return false;
+    }
+
+    // Check for production domain indicators
+    // TODO: Update this list with your actual production domains
+    const productionDomains = [
+      'ubikapp.com',
+      'ubik-app.com',
+      // Add your production domains here
+    ];
+
+    const isProduction = productionDomains.some(domain => hostname.includes(domain));
+    
+    return isProduction;
   }
 }

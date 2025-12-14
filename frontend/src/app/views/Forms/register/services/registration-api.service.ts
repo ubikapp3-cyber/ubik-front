@@ -1,14 +1,13 @@
 /**
  * Registration API Service
  * Follows Single Responsibility Principle (SRP) - handles registration API communication only
- * Follows Dependency Inversion Principle (DIP) - depends on HttpClientService abstraction
+ * Follows Dependency Inversion Principle (DIP) - depends on AuthApiService abstraction
  * 
  * Provides methods for all registration-related API calls
  */
 
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpClientService } from '../../../../core/services/http-client.service';
 import {
   RegisterClientRequestDto,
   RegisterEstablishmentRequestDto,
@@ -20,10 +19,7 @@ import { AuthApiService } from '../../login/services/auth-api.service';
   providedIn: 'root',
 })
 export class RegistrationApiService {
-  constructor(
-    private httpClient: HttpClientService,
-    private authApiService: AuthApiService
-  ) {}
+  constructor(private authApiService: AuthApiService) {}
 
   /**
    * Register a new client user

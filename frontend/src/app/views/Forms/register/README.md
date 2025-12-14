@@ -3,6 +3,16 @@
 ## Overview
 This document describes the refactored register view architecture that consolidates multiple separate components into a single, optimized, and maintainable component following SOLID principles.
 
+**Status:** ✅ Integrated with User Management Service
+
+The registration functionality is now fully integrated with the backend API:
+- Real client registration via POST `/api/auth/register`
+- Real establishment registration via POST `/api/auth/register-establishment`
+- Proper error handling with user-friendly messages
+- Type-safe API communication
+
+See [BACKEND_INTEGRATION.md](../../../../BACKEND_INTEGRATION.md) for detailed integration documentation.
+
 ## Architecture
 
 ### Before Refactoring
@@ -19,7 +29,8 @@ All functionality is now consolidated into:
 - **One unified component** (`RegisterComponent`)
 - **Reusable validation utilities** (`validation.utils.ts`)
 - **Type-safe interfaces** (`register.types.ts`)
-- **Service layer** (`register.service.ts`)
+- **Service layer** (`register.service.ts`) ✨ (Integrated with backend)
+- **API communication layer** (`registration-api.service.ts`) ✨ (New)
 
 ## SOLID Principles Applied
 
