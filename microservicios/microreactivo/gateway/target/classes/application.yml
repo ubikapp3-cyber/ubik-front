@@ -29,7 +29,7 @@ spring:
       routes:
         # MICROSERVICIO userManagement (autenticación: login, register)
         - id: userManagement-auth
-          uri: http://localhost:8081
+          uri: http://usermanagement:8081
           predicates:
             - Path=/api/auth/**
           filters:
@@ -37,7 +37,7 @@ spring:
 
         # MICROSERVICIO userManagement (datos del usuario)
         - id: userManagement-profile
-          uri: http://localhost:8081
+          uri: http://usermanagement:8081
           predicates:
             - Path=/api/user/**
           filters:
@@ -93,8 +93,8 @@ spring:
 
 # JWT Configuration
 jwt:
-  secret: mySecretKey1234567890abcdef1234567890abcdef
-  expiration: 86400000
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
 
 # Logging configuration
 logging:
