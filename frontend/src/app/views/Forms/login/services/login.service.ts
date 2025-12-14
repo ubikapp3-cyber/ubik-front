@@ -6,7 +6,7 @@
 
 import { Injectable } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
-import { delay, catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import {
   LoginFormData,
   AuthResult,
@@ -14,11 +14,15 @@ import {
   OAuthProvider,
 } from '../types/login.types';
 import { validateLoginForm } from '../utils/login-validation.utils';
+import { AuthApiService } from './auth-api.service';
+import { LoginRequestDto } from '../../../../core/models/api.models';
+import { ApiError } from '../../../../core/services/http-client.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LoginService {
+  constructor(private authApiService: AuthApiService) {}
   /**
    * Validates login form data
    * Uses early returns for cleaner validation flow
@@ -37,7 +41,7 @@ export class LoginService {
   /**
    * Authenticates user with email and password
    * Uses early returns for validation
-   * Mock implementation - replace with actual API call
+   * Integrated with backend API
    * @param data - Login credentials
    * @returns Observable with authentication result
    */
@@ -53,17 +57,27 @@ export class LoginService {
       }));
     }
 
-    // Mock API call - simulate network delay
-    // TODO: Replace with actual HTTP call to backend
-    return of({
-      success: true,
-      message: 'Inicio de sesión exitoso',
-      token: 'mock-jwt-token-' + Date.now(),
-      userId: 'mock-user-id',
-      redirectUrl: '/home',
-    }).pipe(
-      delay(1000),
-      catchError((error) => {
+    // Create request DTO
+    const loginRequest: LoginRequestDto = {
+      email: data.email,
+      password: data.password,
+    };
+
+    // Call backend API
+    return this.authApiService.login(loginRequest).pipe(
+      map((response) => {
+        // Transform API response to AuthResult
+        const authResult: AuthResult = {
+          success: true,
+          message: 'Inicio de sesión exitoso',
+          token: response.token,
+          userId: response.userId,
+          redirectUrl: '/home',
+        };
+        return authResult;
+      }),
+      catchError((error: ApiError) => {
+        // Transform API error to AuthResult
         return throwError(() => ({
           success: false,
           message: error.message || 'Error al iniciar sesión',
@@ -75,7 +89,7 @@ export class LoginService {
   /**
    * Authenticates user with OAuth provider
    * Uses early returns for validation
-   * Mock implementation - replace with actual OAuth flow
+   * TODO: Implement OAuth flow with backend
    * @param provider - OAuth provider (Google, Facebook)
    * @returns Observable with authentication result
    */
@@ -88,29 +102,17 @@ export class LoginService {
       }));
     }
 
-    // Mock OAuth flow - simulate network delay
-    // TODO: Replace with actual OAuth implementation
-    return of({
-      success: true,
-      message: `Inicio de sesión exitoso con ${provider}`,
-      token: `mock-oauth-token-${provider}-${Date.now()}`,
-      userId: `mock-oauth-user-${provider}`,
-      redirectUrl: '/home',
-    }).pipe(
-      delay(1500),
-      catchError((error) => {
-        return throwError(() => ({
-          success: false,
-          message: error.message || `Error al iniciar sesión con ${provider}`,
-        }));
-      })
-    );
+    // OAuth not yet implemented - return error
+    return throwError(() => ({
+      success: false,
+      message: `OAuth con ${provider} próximamente disponible`,
+    }));
   }
 
   /**
    * Sends password reset email
    * Uses early returns for validation
-   * Mock implementation - replace with actual API call
+   * Integrated with backend API
    * @param email - User's email address
    * @returns Observable with result
    */
@@ -123,14 +125,13 @@ export class LoginService {
       }));
     }
 
-    // Mock API call
-    // TODO: Replace with actual HTTP call to backend
-    return of({
-      success: true,
-      message: 'Se ha enviado un correo de recuperación',
-    }).pipe(
-      delay(1000),
-      catchError((error) => {
+    // Call backend API
+    return this.authApiService.requestPasswordReset(email).pipe(
+      map((response) => ({
+        success: true,
+        message: response.message || 'Se ha enviado un correo de recuperación',
+      })),
+      catchError((error: ApiError) => {
         return throwError(() => ({
           success: false,
           message: error.message || 'Error al enviar correo de recuperación',

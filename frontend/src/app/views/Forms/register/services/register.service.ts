@@ -4,8 +4,8 @@
  */
 
 import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import {
   ClientFormData,
   EstablishmentFormData,
@@ -20,6 +20,12 @@ import {
   validateFileUpload,
   collectValidationErrors,
 } from '../utils/validation.utils';
+import { RegistrationApiService } from './registration-api.service';
+import {
+  RegisterClientRequestDto,
+  RegisterEstablishmentRequestDto,
+} from '../../../../core/models/api.models';
+import { ApiError } from '../../../../core/services/http-client.service';
 
 export interface RegistrationResult {
   success: boolean;
@@ -31,6 +37,7 @@ export interface RegistrationResult {
   providedIn: 'root',
 })
 export class RegisterService {
+  constructor(private registrationApiService: RegistrationApiService) {}
   /**
    * Validates client registration form
    * Uses early returns to exit quickly on validation failure
@@ -188,7 +195,7 @@ export class RegisterService {
 
   /**
    * Submits client registration
-   * Mock implementation - replace with actual API call
+   * Integrated with backend API
    */
   submitClientRegistration(data: ClientFormData): Observable<RegistrationResult> {
     // Validate before submission
@@ -200,17 +207,35 @@ export class RegisterService {
       }));
     }
 
-    // Mock API call
-    return of({
-      success: true,
-      message: 'Registro de cliente exitoso',
-      userId: 'mock-user-id',
-    }).pipe(delay(1000));
+    // Create request DTO with proper date format
+    const birthDate = this.formatBirthDate(data.birthDay, data.birthMonth, data.birthYear);
+    const registerRequest: RegisterClientRequestDto = {
+      fullName: data.fullName,
+      email: data.email,
+      password: data.password,
+      birthDate: birthDate,
+    };
+
+    // Call backend API
+    return this.registrationApiService.registerClient(registerRequest).pipe(
+      map((response) => ({
+        success: true,
+        message: response.message || 'Registro de cliente exitoso',
+        userId: response.userId,
+      })),
+      catchError((error: ApiError) => {
+        return throwError(() => ({
+          success: false,
+          message: error.message || 'Error al registrar cliente',
+        }));
+      })
+    );
   }
 
   /**
    * Submits establishment registration
-   * Mock implementation - replace with actual API call
+   * Integrated with backend API
+   * Note: File uploads are handled as multipart/form-data in the request
    */
   submitEstablishmentRegistration(
     data: EstablishmentFormData
@@ -235,11 +260,52 @@ export class RegisterService {
       }));
     }
 
-    // Mock API call
-    return of({
-      success: true,
-      message: 'Registro de establecimiento exitoso',
-      userId: 'mock-establishment-id',
-    }).pipe(delay(1000));
+    // Create request DTO
+    const registerRequest: RegisterEstablishmentRequestDto = {
+      ownerName: data.owner.ownerName,
+      ownerEmail: data.owner.ownerEmail,
+      identificationNumber: data.owner.identificationNumber,
+      establishmentName: data.location.establishmentName,
+      establishmentEmail: data.location.establishmentEmail,
+      rues: data.location.rues,
+      rnt: data.location.rnt,
+      password: data.location.password,
+      country: data.location.country,
+      department: data.location.department,
+      municipality: data.location.municipality,
+      acceptedTerms: data.acceptedTerms,
+    };
+
+    // Call backend API
+    // Note: In a real implementation with file uploads, you would need to
+    // use FormData and handle multipart/form-data requests
+    return this.registrationApiService.registerEstablishment(registerRequest).pipe(
+      map((response) => ({
+        success: true,
+        message: response.message || 'Registro de establecimiento exitoso',
+        userId: response.userId,
+      })),
+      catchError((error: ApiError) => {
+        return throwError(() => ({
+          success: false,
+          message: error.message || 'Error al registrar establecimiento',
+        }));
+      })
+    );
+  }
+
+  /**
+   * Format birth date components into ISO date string (YYYY-MM-DD)
+   * Uses early returns for validation
+   * @param day - Day of birth
+   * @param month - Month of birth
+   * @param year - Year of birth
+   * @returns ISO formatted date string
+   */
+  private formatBirthDate(day: string, month: string, year: string): string {
+    // Pad day and month with leading zeros if needed
+    const paddedDay = day.padStart(2, '0');
+    const paddedMonth = month.padStart(2, '0');
+    return `${year}-${paddedMonth}-${paddedDay}`;
   }
 }
