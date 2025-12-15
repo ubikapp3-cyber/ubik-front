@@ -12,6 +12,8 @@ This guide will help you deploy the microservices using Docker Compose.
 
 ### 1. Configure Environment Variables
 
+**Important**: You must create a `.env` file before running docker-compose commands to avoid environment variable warnings.
+
 Copy the example environment file and configure it:
 
 ```bash
@@ -22,6 +24,9 @@ cp .env.example .env
 Edit `.env` and set your values:
 - `JWT_SECRET`: Set a strong secret key (minimum 32 characters)
 - `POSTGRES_PASSWORD`: Set a secure password for PostgreSQL
+- Choose between LOCAL or AZURE PostgreSQL configuration (see comments in .env.example)
+
+**Note**: The `.env` file is gitignored and should never be committed to version control.
 
 ### 2. Build and Start Services
 
@@ -101,6 +106,22 @@ DELETE http://localhost:8080/api/services/{id}
 ```
 
 ## Troubleshooting
+
+### Environment Variable Warnings
+
+If you see warnings like this when running `docker compose` commands:
+```
+WARNING: The POSTGRES_DB variable is not set. Defaulting to a blank string.
+WARNING: The POSTGRES_USER variable is not set. Defaulting to a blank string.
+```
+
+**Solution**: Create a `.env` file in the `microservicios/microreactivo` directory:
+```bash
+cp .env.example .env
+# Then edit .env with your configuration
+```
+
+The `.env` file should contain all required environment variables. See `.env.example` for the complete list and examples.
 
 ### Services Not Starting
 
