@@ -1,7 +1,0 @@
-/home/runner/work/ubik-front/ubik-front/microservicios/microreactivo/gateway/src/main/java/com/example/gateway/GatewayApplication.java
-/home/runner/work/ubik-front/ubik-front/microservicios/microreactivo/gateway/src/main/java/com/example/gateway/filter/AuthorizationFilter.java
-/home/runner/work/ubik-front/ubik-front/microservicios/microreactivo/gateway/src/main/java/com/example/gateway/domain/port/out/JwtValidatorPort.java
-/home/runner/work/ubik-front/ubik-front/microservicios/microreactivo/gateway/src/main/java/com/example/gateway/filter/RequestLoggingFilter.java
-/home/runner/work/ubik-front/ubik-front/microservicios/microreactivo/gateway/src/main/java/com/example/gateway/application/config/SecurityConfig.java
-/home/runner/work/ubik-front/ubik-front/microservicios/microreactivo/gateway/src/main/java/com/example/gateway/infrastructure/adapter/out/jwt/JwtValidatorAdapter.java
-/home/runner/work/ubik-front/ubik-front/microservicios/microreactivo/gateway/src/main/java/com/example/gateway/application/filter/JwtAuthenticationFilter.java

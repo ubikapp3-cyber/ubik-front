@@ -1,5 +1,0 @@
-com/example/products/repo/ProductRepository.class
-com/example/products/web/ProductHandler.class
-com/example/products/web/ProductRouter.class
-com/example/products/ProductsApplication.class
-com/example/products/domain/Product.class
