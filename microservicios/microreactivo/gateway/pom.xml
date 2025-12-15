@@ -45,12 +45,16 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- SPRING SECURITY REACTIVO (WebFlux) - REQUERIDO PARA GATEWAY REACTIVO -->
-        <!-- spring-boot-starter-security funciona automáticamente con WebFlux cuando está presente -->
-        <!-- spring-boot-starter-webflux ya está incluido por spring-cloud-starter-gateway -->
+        <!-- SPRING SECURITY REACTIVO (WebFlux) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- ✅ ACTUATOR - AGREGAR ESTA DEPENDENCIA -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
         <!-- JWT (JJWT 0.12.6) -->
@@ -112,7 +116,3 @@
     </build>
 
 </project>
-
-
-
-
