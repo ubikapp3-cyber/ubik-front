@@ -3,28 +3,22 @@ server:
 
 
 spring:
-  application:
-    name: api-gateway
   cloud:
-    gateway:
-      # Global CORS configuration
+    gateway: 
       globalcors:
         cors-configurations:
-          '[/**]':
-            allowed-origins: "*"
-            allowed-methods:
+          '[/**]': 
+            allowedOriginPatterns: "*"
+            allowedMethods: 
               - GET
               - POST
               - PUT
               - DELETE
+              - PATCH
               - OPTIONS
-            allowed-headers: "*"
-            exposed-headers:
-              - X-User-Id
-              - X-User-Role
-              - X-Error-Message
-            allow-credentials: false
-            max-age: 3600
+            allowedHeaders:  "*"
+            allowCredentials: true
+            maxAge: 3600
 
       routes:
         # MICROSERVICIO userManagement (autenticación: login, register)
