@@ -34,6 +34,7 @@ docker build -f userManagement/Dockerfile -t ubik/user-management:latest .
 ### Motel Management
 ```bash
 cd /ruta/al/proyecto/microservicios/microreactivo
+# Nota: El directorio se llama "motelManegement" (typo en el nombre original)
 docker build -f motelManegement/Dockerfile -t ubik/motel-management:latest .
 ```
 
