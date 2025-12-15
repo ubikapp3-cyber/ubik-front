@@ -39,7 +39,7 @@ spring:
 
         # Products Service (si lo tienes)
         - id: products
-          uri: http://products:8082  # ✅ Cambio aquí
+          uri: http://products:8082
           predicates:
             - Path=/api/products/**
           filters:
@@ -56,7 +56,7 @@ spring:
 
         # Motel Management - Rooms
         - id: motel-management-rooms
-          uri: http://motel-management:8083  # ✅ Cambio aquí
+          uri: http://motel-management:8083
           predicates:
             - Path=/api/rooms/**
           filters:
@@ -65,7 +65,7 @@ spring:
 
         # Motel Management - Services
         - id: motel-management-services
-          uri: http://motel-management:8083  # ✅ Cambio aquí
+          uri: http://motel-management:8083
           predicates:
             - Path=/api/services/**
           filters:
@@ -74,7 +74,7 @@ spring:
 
         # Booking Service - Reservations
         - id: booking-service
-          uri: http://motel-management:8083  # ✅ Cambio aquí
+          uri: http://motel-management:8083
           predicates:
             - Path=/api/bookings/**
           filters:

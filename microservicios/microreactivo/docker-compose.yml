@@ -1,21 +1,43 @@
 services:
 
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - ubik-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   usermanagement:
     build:
       context: .
       dockerfile: userManagement/Dockerfile
-    container_name: usermanagement-service
+    container_name: usermanagement
     ports:
       - "8081:8081"
     environment:
       SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
-      SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
-      SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
-      SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
+      DB_R2DBC_URL: ${DB_R2DBC_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
     networks:
       - ubik-network
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   gateway:
     build:
@@ -29,7 +51,10 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
     depends_on:
-      - usermanagement
+      postgres:
+        condition: service_healthy
+      usermanagement:
+        condition: service_started
     networks:
       - ubik-network
 
@@ -37,7 +62,7 @@ services:
     build:
       context: .
       dockerfile: motelManegement/Dockerfile
-    container_name: motel-management-service
+    container_name: motel-management
     ports:
       - "8083:8083"
     environment:
@@ -48,8 +73,14 @@ services:
     networks:
       - ubik-network
     depends_on:
-      - usermanagement
+      postgres:
+        condition: service_healthy
+      usermanagement:
+        condition: service_started
 
 networks:
   ubik-network:
     driver: bridge
+
+volumes:
+  postgres-data:

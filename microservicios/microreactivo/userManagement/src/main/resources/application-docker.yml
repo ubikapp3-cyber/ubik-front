@@ -1,0 +1,43 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: userManagement-service
+
+  r2dbc:
+    url: ${DB_R2DBC_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    pool:
+      initial-size: 5
+      max-size: 15
+      max-idle-time: 30m
+      max-acquire-time: 3m
+
+  sql:
+    init:
+      mode: always
+      platform: postgresql
+
+  security:
+    bcrypt:
+      strength: 12
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.r2dbc: INFO
+    io.r2dbc.postgresql: INFO
