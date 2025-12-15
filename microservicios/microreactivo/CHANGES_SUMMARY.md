@@ -6,7 +6,7 @@
 **Problem**: Services failed with "Failed to obtain R2DBC Connection" because no PostgreSQL database was configured.
 
 **Solution**:
-- Added PostgreSQL service to `docker-compose.yml`
+- Added PostgreSQL service to `docker compose.yml`
 - Created `.env.example` with all required environment variables
 - Added health checks to ensure database is ready before services start
 - Configured proper service dependencies
@@ -17,7 +17,7 @@
 - Line 51: `motel-management-service:8083` ❌
 
 **Solution**:
-- Updated all routes to use correct service names from docker-compose.yml:
+- Updated all routes to use correct service names from docker compose.yml:
   - `usermanagement:8081` ✅
   - `motel-management:8083` ✅
 
@@ -30,7 +30,7 @@
 
 ## Files Modified
 
-### 1. `docker-compose.yml`
+### 1. `docker compose.yml`
 **Changes**:
 - Added PostgreSQL service with health checks
 - Fixed container names to match service references
@@ -107,11 +107,22 @@ SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/ubik_db
 SPRING_R2DBC_USERNAME=postgres
 SPRING_R2DBC_PASSWORD=<your-password>
 
-# R2DBC for userManagement (different names)
+# R2DBC for userManagement (different names for compatibility)
+# Note: userManagement uses different variable names for historical reasons
+# Both sets are required until userManagement is updated to use SPRING_* names
 DB_R2DBC_URL=r2dbc:postgresql://postgres:5432/ubik_db
 DB_USERNAME=postgres
 DB_PASSWORD=<your-password>
 ```
+
+### Why Two Sets of Database Variables?
+
+The project uses two naming conventions for database configuration:
+
+- **SPRING_R2DBC_*** - Used by motel-management (standard Spring Boot naming)
+- **DB_*** - Used by userManagement (legacy naming convention)
+
+Both are included in `.env` to maintain compatibility with existing service configurations. In a future refactoring, userManagement should be updated to use the standard SPRING_R2DBC_* variables.
 
 ## Service Architecture
 

@@ -27,13 +27,13 @@ Edit `.env` and set your values:
 
 ```bash
 # Build all images (first time or after code changes)
-docker-compose build --no-cache
+docker compose build --no-cache
 
 # Start all services
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ### 3. Verify Services
@@ -42,7 +42,7 @@ Wait for all services to start (approximately 30-60 seconds). Check health:
 
 ```bash
 # Check all services status
-docker-compose ps
+docker compose ps
 
 # Check Gateway health
 curl http://localhost:8080/actuator/health
@@ -106,19 +106,19 @@ DELETE http://localhost:8080/api/services/{id}
 
 1. **Check logs for specific service:**
    ```bash
-   docker-compose logs -f [service-name]
-   # Example: docker-compose logs -f usermanagement
+   docker compose logs -f [service-name]
+   # Example: docker compose logs -f usermanagement
    ```
 
 2. **Verify PostgreSQL is healthy:**
    ```bash
-   docker-compose ps postgres
+   docker compose ps postgres
    # Should show "healthy" status
    ```
 
 3. **Check environment variables:**
    ```bash
-   docker-compose config
+   docker compose config
    ```
 
 ### Database Connection Issues
@@ -127,7 +127,7 @@ If services fail with "Failed to obtain R2DBC Connection":
 
 1. **Verify PostgreSQL is running:**
    ```bash
-   docker-compose ps postgres
+   docker compose ps postgres
    ```
 
 2. **Check database connectivity:**
@@ -137,14 +137,14 @@ If services fail with "Failed to obtain R2DBC Connection":
 
 3. **Restart services:**
    ```bash
-   docker-compose restart usermanagement motel-management
+   docker compose restart usermanagement motel-management
    ```
 
 ### Gateway Routing Issues
 
 If Gateway returns 503 Service Unavailable:
 
-1. **Verify service names match docker-compose:**
+1. **Verify service names match docker compose:**
    - usermanagement (not usermanagement-service)
    - motel-management (not motel-management-service)
 
@@ -155,8 +155,8 @@ If Gateway returns 503 Service Unavailable:
 
 3. **Rebuild Gateway after config changes:**
    ```bash
-   docker-compose build --no-cache gateway
-   docker-compose up -d gateway
+   docker compose build --no-cache gateway
+   docker compose up -d gateway
    ```
 
 ### Port Already in Use
@@ -168,33 +168,33 @@ If you get "port already allocated" error:
 lsof -i :8080  # macOS/Linux
 netstat -ano | findstr :8080  # Windows
 
-# Stop the process or change port in docker-compose.yml
+# Stop the process or change port in docker compose.yml
 ```
 
 ## Rebuilding After Code Changes
 
 ```bash
 # Rebuild specific service
-docker-compose build --no-cache [service-name]
-docker-compose up -d [service-name]
+docker compose build --no-cache [service-name]
+docker compose up -d [service-name]
 
 # Rebuild all services
-docker-compose down
-docker-compose build --no-cache
-docker-compose up -d
+docker compose down
+docker compose build --no-cache
+docker compose up -d
 ```
 
 ## Stopping and Cleaning Up
 
 ```bash
 # Stop all services
-docker-compose down
+docker compose down
 
 # Stop and remove volumes (WARNING: deletes database data)
-docker-compose down -v
+docker compose down -v
 
 # Remove all images
-docker-compose down --rmi all
+docker compose down --rmi all
 ```
 
 ## Configuration Details
@@ -220,7 +220,7 @@ postgres (healthy) → usermanagement → gateway
 
 All services use the `docker` profile when running in Docker:
 - `application-docker.yml` overrides `application.yml`
-- Environment variables are injected via docker-compose
+- Environment variables are injected via docker compose
 
 ## Security Notes
 
