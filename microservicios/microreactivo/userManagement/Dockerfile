@@ -8,6 +8,9 @@ WORKDIR /app
 # Copiamos TODO el proyecto (incluye el pom padre)
 COPY . .
 
+# Set Maven options for SSL
+ENV MAVEN_OPTS="-Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+
 # Compilamos SOLO el módulo userManagement
 RUN mvn clean package \
     -pl userManagement \
