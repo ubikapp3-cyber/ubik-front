@@ -30,7 +30,7 @@ spring:
 
         # MICROSERVICIO userManagement (datos del usuario)
         - id: userManagement-profile
-          uri: http://usermanagement:8081
+          uri: http://usermanagement-service:8081
           predicates:
             - Path=/api/user/**
           filters:
@@ -48,7 +48,7 @@ spring:
 
         # Motel Management - Motels
         - id: motel-management-motels
-          uri: http://motel-management:8083  # ✅ Cambio aquí
+          uri: http://motel-management-service:8083
           predicates:
             - Path=/api/motels/**
           filters:
