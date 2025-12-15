@@ -1,75 +1,77 @@
-services:
+server:
+  port: 8080
 
-  usermanagement:
-    build:
-      context: .
-      dockerfile: userManagement/Dockerfile
-    container_name: usermanagement-service
-    ports:
-      - "8081:8081"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
-      DB_R2DBC_URL: ${SPRING_R2DBC_URL}
-      DB_USERNAME: ${SPRING_R2DBC_USERNAME}
-      DB_PASSWORD: ${SPRING_R2DBC_PASSWORD}
-    networks:
-      - ubik-network
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
+spring:
+  cloud:
+    gateway: 
+      routes:
+        # ✅ UserManagement - Auth (CORREGIDO: usermanagement-service)
+        - id: userManagement-auth
+          uri: http://usermanagement-service:8081
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=0
 
-  gateway:
-    build:
-      context: .
-      dockerfile: gateway/Dockerfile
-    container_name: api-gateway
-    ports:
-      - "8080:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
-    depends_on:
-      usermanagement:
-        condition: service_healthy
-    networks:
-      - ubik-network
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
+        # ✅ UserManagement - Profile (CORREGIDO: usermanagement-service)
+        - id: userManagement-profile
+          uri: http://usermanagement-service:8081
+          predicates:
+            - Path=/api/user/**
+          filters:
+            - StripPrefix=0
 
-  motel-management:
-    build:
-      context: .
-      dockerfile: motelManegement/Dockerfile
-    container_name: motel-management-service
-    ports:
-      - "8083:8083"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
-      SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
-      SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
-    networks:
-      - ubik-network
-    depends_on:
-      usermanagement:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
+        # ✅ Motel Management - Motels (CORREGIDO: motel-management-service)
+        - id: motel-management-motels
+          uri: http://motel-management-service:8083
+          predicates:
+            - Path=/api/motels/**
+          filters:
+            - StripPrefix=0
 
-networks:
-  ubik-network:
-    driver: bridge
+        # ✅ Motel Management - Rooms
+        - id: motel-management-rooms
+          uri: http://motel-management-service:8083
+          predicates:
+            - Path=/api/rooms/**
+          filters:
+            - StripPrefix=0
+
+        # ✅ Motel Management - Services
+        - id: motel-management-services
+          uri: http://motel-management-service:8083
+          predicates:
+            - Path=/api/services/**
+          filters:
+            - StripPrefix=0
+
+        # ✅ Motel Management - Reservations
+        - id: motel-reservations
+          uri: http://motel-management-service:8083
+          predicates:
+            - Path=/api/reservations/**
+          filters:
+            - StripPrefix=0
+
+      trusted-proxies: '127\.0\.0\.1|::1'
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# Logging
+logging:
+  level:
+    com.example.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,gateway"
+  endpoint:
+    health:
+      show-details: always
