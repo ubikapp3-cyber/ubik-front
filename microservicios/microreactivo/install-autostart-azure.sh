@@ -33,7 +33,8 @@ USER_HOME=$(eval echo ~$REAL_USER)
 
 # Detectar automáticamente la ruta del proyecto
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+# El script está en microreactivo, así que PROJECT_DIR es este directorio
+PROJECT_DIR="$SCRIPT_DIR"
 
 echo -e "${YELLOW}📂 Directorio del proyecto: $PROJECT_DIR${NC}"
 echo -e "${YELLOW}👤 Usuario: $REAL_USER${NC}"
@@ -50,6 +51,9 @@ fi
 if [ ! -f "$PROJECT_DIR/docker-compose.yml" ]; then
     echo -e "${RED}❌ No se encontró docker-compose.yml en el proyecto${NC}"
     echo "   Buscado en: $PROJECT_DIR/docker-compose.yml"
+    echo ""
+    echo -e "${YELLOW}💡 Archivos encontrados en el directorio:${NC}"
+    ls -la "$PROJECT_DIR" | grep -E '(docker-compose|yml|yaml)'
     exit 1
 fi
 
