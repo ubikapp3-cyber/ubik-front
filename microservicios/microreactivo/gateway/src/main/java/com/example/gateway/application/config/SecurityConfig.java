@@ -8,12 +8,13 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
-/**
- * Configuración de seguridad para Spring Cloud Gateway
- * 
- * CRÍTICO: Permite OPTIONS sin autenticación para soportar CORS preflight
- */
+import java.util.Arrays;
+import java.util.List;
+
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
@@ -24,6 +25,11 @@ public class SecurityConfig {
             JwtAuthenticationFilter jwtFilter) {
         
         return http
+                // ========================================
+                // CRÍTICO: CORS PRIMERO
+                // ========================================
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                
                 // Deshabilitar CSRF para APIs REST
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 
@@ -89,5 +95,50 @@ public class SecurityConfig {
                 .addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 
                 .build();
+    }
+    
+    /**
+     * Configuración de CORS integrada en SecurityConfig
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        
+        // Permitir cualquier origen (desarrollo)
+        configuration.setAllowedOriginPatterns(List.of("*"));
+        
+        // Para producción, usar orígenes específicos:
+        // configuration.setAllowedOrigins(Arrays.asList(
+        //     "http://localhost:4200",
+        //     "https://ubik-back.duckdns.org",
+        //     "https://tu-dominio-frontend.com"
+        // ));
+        
+        // Métodos HTTP permitidos
+        configuration.setAllowedMethods(Arrays.asList(
+            "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"
+        ));
+        
+        // Headers permitidos
+        configuration.setAllowedHeaders(List.of("*"));
+        
+        // Headers expuestos
+        configuration.setExposedHeaders(Arrays.asList(
+            "Authorization",
+            "Content-Type",
+            "X-User-Username",
+            "X-User-Role"
+        ));
+        
+        // Permitir credenciales
+        configuration.setAllowCredentials(true);
+        
+        // Cache de preflight
+        configuration.setMaxAge(3600L);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        
+        return source;
     }
 }
