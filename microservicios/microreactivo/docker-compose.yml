@@ -7,13 +7,17 @@ services:
     container_name: usermanagement-service
     ports:
       - "8081:8081"
+    env_file:
+      - .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      # Variables JWT
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
-      SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
-      SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
-      SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
+      # Variables Base de datos
+      DB_R2DBC_URL: ${DB_R2DBC_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
     networks:
       - ubik-network
 
@@ -24,6 +28,8 @@ services:
     container_name: api-gateway
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: ${JWT_SECRET}
@@ -40,11 +46,17 @@ services:
     container_name: motel-management-service
     ports:
       - "8083:8083"
+    env_file:
+      - .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      # Variables Base de datos
       SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
       SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
       SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
     networks:
       - ubik-network
     depends_on:
