@@ -5,7 +5,15 @@ spring:
   application:
     name: motel-management-service
 
-  # PostgreSQL R2DBC (valores inyectados desde .env o perfil docker)
+  codec:
+    max-in-memory-size: 10MB
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+
+  # PostgreSQL R2DBC (valores inyectados desde .env o docker)
   r2dbc:
     url: ${SPRING_R2DBC_URL}
     username: ${SPRING_R2DBC_USERNAME}
@@ -26,3 +34,12 @@ logging:
   level:
     org.springframework.r2dbc: INFO
     io.r2dbc.postgresql: INFO
+
+# Cloudinary Configuration
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
+
+
+
