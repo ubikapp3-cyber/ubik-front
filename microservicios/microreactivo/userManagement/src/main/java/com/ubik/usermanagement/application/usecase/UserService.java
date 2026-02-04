@@ -16,8 +16,7 @@ import java.util.UUID;
 
 /**
  * Servicio de gestión de usuarios
- * 
- * Principio SOLID: Single Responsibility - Solo maneja lógica de negocio de usuarios
+ * ✅ CORREGIDO: Usa phoneNumber del RegisterRequest
  */
 @Service
 public class UserService implements UserUseCase {
@@ -51,15 +50,15 @@ public class UserService implements UserUseCase {
                                             request.username(),
                                             passwordEncoder.encode(request.password()),
                                             request.email(),
-                                            null,                    // phoneNumber
-                                            null,                    // createdAt
+                                            request.phoneNumber(),  // ✅ CORREGIDO: Ahora usa el phoneNumber del request
+                                            null,                    // createdAt (se genera en BD)
                                             request.anonymous(),
                                             request.roleId(),
                                             null,                    // resetToken
                                             null,                    // resetTokenExpiry
-                                            request.longitude(),     // Nueva propiedad
-                                            request.latitude(),      // Nueva propiedad
-                                            request.birthDate()      // Nueva propiedad
+                                            request.longitude(),
+                                            request.latitude(),
+                                            request.birthDate()
                                     );
 
                                     return userRepository.save(user)
@@ -99,9 +98,9 @@ public class UserService implements UserUseCase {
                         user.roleId(),
                         resetToken,
                         LocalDateTime.now().plusHours(1),
-                        user.longitude(),      // Mantener valores existentes
-                        user.latitude(),       // Mantener valores existentes
-                        user.birthDate()       // Mantener valores existentes
+                        user.longitude(),
+                        user.latitude(),
+                        user.birthDate()
                 )))
                 .map(user -> resetToken);
     }
@@ -123,9 +122,9 @@ public class UserService implements UserUseCase {
                         user.roleId(),
                         null,
                         null,
-                        user.longitude(),      // Mantener valores existentes
-                        user.latitude(),       // Mantener valores existentes
-                        user.birthDate()       // Mantener valores existentes
+                        user.longitude(),
+                        user.latitude(),
+                        user.birthDate()
                 )))
                 .map(user -> "Password reset successfully");
     }

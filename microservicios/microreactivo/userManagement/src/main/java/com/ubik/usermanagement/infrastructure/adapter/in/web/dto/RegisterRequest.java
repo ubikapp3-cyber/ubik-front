@@ -21,6 +21,10 @@ public record RegisterRequest(
         @NotBlank(message = "Email is required")
         String email,
 
+        // ✅ AGREGADO: Campo phoneNumber
+        @Size(max = 20, message = "Phone number must not exceed 20 characters")
+        String phoneNumber,
+
         @NotNull(message = "Anonymous flag is required")
         Boolean anonymous,
 
@@ -38,5 +42,4 @@ public record RegisterRequest(
 
         @Past(message = "Birth date must be in the past")
         LocalDate birthDate
-) {
-}
+) {}
