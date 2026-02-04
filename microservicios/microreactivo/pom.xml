@@ -36,7 +36,6 @@
     <!-- ******** AGREGAR EN MODULES, CADA MICROSERVICIO QUE SE VAYA CREANDO ******** -->
     <modules>
         <module>gateway</module>
-        <module>products</module>
         <module>userManagement</module>
         <module>motelManegement</module>
     </modules>
