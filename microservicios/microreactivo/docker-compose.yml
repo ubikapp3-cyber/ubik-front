@@ -1,67 +1,93 @@
+version: "3.8"
+
 services:
-
-  usermanagement:
-    build:
-      context: .
-      dockerfile: userManagement/Dockerfile
-    container_name: usermanagement-service
-    ports:
-      - "8081:8081"
-    env_file:
-      - .env
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      # Variables JWT
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION}
-      # Variables Base de datos
-      DB_R2DBC_URL: ${DB_R2DBC_URL}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-    networks:
-      - ubik-network
-
+  # =========================
+  # API GATEWAY (ÚNICO ENTRYPOINT)
+  # =========================
   gateway:
     build:
       context: .
       dockerfile: gateway/Dockerfile
-    container_name: api-gateway
-    ports:
-      - "8080:8080"
-    env_file:
-      - .env
+    container_name: microreactivo-gateway
     environment:
       SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
-    depends_on:
-      - usermanagement
+    ports:
+      - "8080:8080"   # SOLO EL GATEWAY ES PÚBLICO
     networks:
-      - ubik-network
+      - microreactivo-network
+    restart: unless-stopped
+    depends_on:
+      usermanagement-service:
+        condition: service_healthy
+      motel-management-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
-  motel-management:
+  # =========================
+  # USER MANAGEMENT SERVICE
+  # =========================
+  usermanagement-service:
+    build:
+      context: .
+      dockerfile: userManagement/Dockerfile
+    container_name: microreactivo-usermanagement
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
+      SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
+      SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+    expose:
+      - "8081"   # SOLO INTERNO
+    networks:
+      - microreactivo-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # =========================
+  # MOTEL MANAGEMENT SERVICE
+  # =========================
+  motel-management-service:
     build:
       context: .
       dockerfile: motelManegement/Dockerfile
-    container_name: motel-management-service
-    ports:
-      - "8083:8083"
-    env_file:
-      - .env
+    container_name: microreactivo-motel-management
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      # Variables Base de datos
       SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
       SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
       SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+    expose:
+      - "8083"   # SOLO INTERNO
     networks:
-      - ubik-network
-    depends_on:
-      - usermanagement
+      - microreactivo-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
+# =========================
+# NETWORK
+# =========================
 networks:
-  ubik-network:
+  microreactivo-network:
     driver: bridge
