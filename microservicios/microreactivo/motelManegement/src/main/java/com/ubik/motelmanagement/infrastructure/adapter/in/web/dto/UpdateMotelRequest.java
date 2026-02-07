@@ -1,9 +1,9 @@
 package com.ubik.motelmanagement.infrastructure.adapter.in.web.dto;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.DecimalMax;
 import java.util.List;
 
 /**
@@ -37,6 +37,30 @@ public record UpdateMotelRequest(
 
         @DecimalMin(value = "-180.0", message = "La longitud debe estar entre -180 y 180")
         @DecimalMax(value = "180.0", message = "La longitud debe estar entre -180 y 180")
-        Double longitude
+        Double longitude,
+
+        // ========================================
+        // NUEVOS CAMPOS: Información Legal
+        // ========================================
+
+        @Size(max = 100, message = "El RUES no puede exceder 100 caracteres")
+        String rues,
+
+        @Size(max = 100, message = "El RNT no puede exceder 100 caracteres")
+        String rnt,
+
+        String ownerDocumentType,  // CC, NIT, CE, PASAPORTE
+
+        @Size(max = 50, message = "El número de documento no puede exceder 50 caracteres")
+        String ownerDocumentNumber,
+
+        @Size(max = 200, message = "El nombre completo no puede exceder 200 caracteres")
+        String ownerFullName,
+
+        @Size(max = 200, message = "El nombre del representante legal no puede exceder 200 caracteres")
+        String legalRepresentativeName,
+
+        @Size(max = 500, message = "La URL del documento legal no puede exceder 500 caracteres")
+        String legalDocumentUrl
 ) {
 }

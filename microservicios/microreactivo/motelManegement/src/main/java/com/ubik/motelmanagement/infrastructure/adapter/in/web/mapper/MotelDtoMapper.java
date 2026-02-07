@@ -12,6 +12,7 @@ import java.util.List;
 
 /**
  * Mapper para convertir entre DTOs web y modelo de dominio Motel
+ * Incluye mapeo de campos de aprobación e información legal
  */
 @Component
 public class MotelDtoMapper {
@@ -23,6 +24,17 @@ public class MotelDtoMapper {
         if (request == null) {
             return null;
         }
+
+        // Convertir string a enum
+        Motel.DocumentType docType = null;
+        if (request.ownerDocumentType() != null) {
+            try {
+                docType = Motel.DocumentType.valueOf(request.ownerDocumentType().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Tipo de documento inválido: " + request.ownerDocumentType());
+            }
+        }
+
         return new Motel(
                 null, // El ID se generará en la BD
                 request.name(),
@@ -34,7 +46,20 @@ public class MotelDtoMapper {
                 LocalDateTime.now(),
                 request.imageUrls() != null ? new ArrayList<>(request.imageUrls()) : new ArrayList<>(),
                 request.latitude(),
-                request.longitude()
+                request.longitude(),
+                // Estado inicial: PENDING
+                Motel.ApprovalStatus.PENDING,
+                null, // approvalDate
+                null, // approvedByUserId
+                null, // rejectionReason
+                // Información legal
+                request.rues(),
+                request.rnt(),
+                docType,
+                request.ownerDocumentNumber(),
+                request.ownerFullName(),
+                request.legalRepresentativeName(),
+                request.legalDocumentUrl()
         );
     }
 
@@ -45,6 +70,17 @@ public class MotelDtoMapper {
         if (request == null) {
             return null;
         }
+
+        // Convertir string a enum
+        Motel.DocumentType docType = null;
+        if (request.ownerDocumentType() != null) {
+            try {
+                docType = Motel.DocumentType.valueOf(request.ownerDocumentType().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Tipo de documento inválido: " + request.ownerDocumentType());
+            }
+        }
+
         return new Motel(
                 null, // Se establecerá en el servicio
                 request.name(),
@@ -56,7 +92,20 @@ public class MotelDtoMapper {
                 null,  // Se mantendrá la existente
                 request.imageUrls() != null ? new ArrayList<>(request.imageUrls()) : new ArrayList<>(),
                 request.latitude(),
-                request.longitude()
+                request.longitude(),
+                // Los campos de aprobación se mantienen
+                null, // approvalStatus
+                null, // approvalDate
+                null, // approvedByUserId
+                null, // rejectionReason
+                // Información legal
+                request.rues(),
+                request.rnt(),
+                docType,
+                request.ownerDocumentNumber(),
+                request.ownerFullName(),
+                request.legalRepresentativeName(),
+                request.legalDocumentUrl()
         );
     }
 
@@ -78,7 +127,22 @@ public class MotelDtoMapper {
                 motel.dateCreated(),
                 motel.imageUrls(),
                 motel.latitude(),
-                motel.longitude()
+                motel.longitude(),
+                // Estado de aprobación
+                motel.approvalStatus() != null ? motel.approvalStatus().name() : null,
+                motel.approvalDate(),
+                motel.approvedByUserId(),
+                motel.rejectionReason(),
+                // Información legal
+                motel.rues(),
+                motel.rnt(),
+                motel.ownerDocumentType() != null ? motel.ownerDocumentType().name() : null,
+                motel.ownerDocumentNumber(),
+                motel.ownerFullName(),
+                motel.legalRepresentativeName(),
+                motel.legalDocumentUrl(),
+                // Campo calculado
+                motel.hasCompleteLegalInfo()
         );
     }
 }

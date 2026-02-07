@@ -9,6 +9,7 @@ import java.util.List;
 
 /**
  * Mapper para convertir entre el modelo de dominio Motel y la entidad de persistencia MotelEntity
+ * Incluye mapeo de campos de aprobación e información legal
  */
 @Component
 public class MotelMapper {
@@ -31,7 +32,22 @@ public class MotelMapper {
                 entity.dateCreated(),
                 List.of(), // Lista vacía por defecto
                 entity.latitude(),
-                entity.longitude()
+                entity.longitude(),
+                entity.approvalStatus() != null ?
+                        Motel.ApprovalStatus.valueOf(entity.approvalStatus()) :
+                        Motel.ApprovalStatus.PENDING,
+                entity.approvalDate(),
+                entity.approvedByUserId(),
+                entity.rejectionReason(),
+                entity.rues(),
+                entity.rnt(),
+                entity.ownerDocumentType() != null ?
+                        Motel.DocumentType.valueOf(entity.ownerDocumentType()) :
+                        null,
+                entity.ownerDocumentNumber(),
+                entity.ownerFullName(),
+                entity.legalRepresentativeName(),
+                entity.legalDocumentUrl()
         );
     }
 
@@ -53,7 +69,24 @@ public class MotelMapper {
                 entity.dateCreated(),
                 imageUrls != null ? imageUrls : List.of(),
                 entity.latitude(),
-                entity.longitude()
+                entity.longitude(),
+                // Campos de aprobación
+                entity.approvalStatus() != null ?
+                        Motel.ApprovalStatus.valueOf(entity.approvalStatus()) :
+                        Motel.ApprovalStatus.PENDING,
+                entity.approvalDate(),
+                entity.approvedByUserId(),
+                entity.rejectionReason(),
+                // Campos de información legal
+                entity.rues(),
+                entity.rnt(),
+                entity.ownerDocumentType() != null ?
+                        Motel.DocumentType.valueOf(entity.ownerDocumentType()) :
+                        null,
+                entity.ownerDocumentNumber(),
+                entity.ownerFullName(),
+                entity.legalRepresentativeName(),
+                entity.legalDocumentUrl()
         );
     }
 
@@ -74,7 +107,22 @@ public class MotelMapper {
                 motel.propertyId(),
                 motel.dateCreated(),
                 motel.latitude(),
-                motel.longitude()
+                motel.longitude(),
+                motel.approvalStatus() != null ?
+                        motel.approvalStatus().name() :
+                        Motel.ApprovalStatus.PENDING.name(),
+                motel.approvalDate(),
+                motel.approvedByUserId(),
+                motel.rejectionReason(),
+                motel.rues(),
+                motel.rnt(),
+                motel.ownerDocumentType() != null ?
+                        motel.ownerDocumentType().name() :
+                        null,
+                motel.ownerDocumentNumber(),
+                motel.ownerFullName(),
+                motel.legalRepresentativeName(),
+                motel.legalDocumentUrl()
         );
     }
 }
