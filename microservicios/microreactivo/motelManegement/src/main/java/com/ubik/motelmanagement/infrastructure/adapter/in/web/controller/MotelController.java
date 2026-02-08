@@ -4,6 +4,7 @@ import com.ubik.motelmanagement.domain.port.in.MotelUseCasePort;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.CreateMotelRequest;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.MotelResponse;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.UpdateMotelRequest;
+import com.ubik.motelmanagement.infrastructure.adapter.in.web.mapper.MotelDtoMapper;  
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
