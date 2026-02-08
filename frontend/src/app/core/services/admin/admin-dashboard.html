@@ -1,0 +1,371 @@
+<div class="min-h-screen bg-gradient-to-br from-[#0B0608] to-[#501521] text-white p-4 sm:p-6 lg:p-8">
+  <div class="max-w-7xl mx-auto">
+    
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl sm:text-4xl font-bold mb-2">Panel de Administración</h1>
+      <p class="text-gray-300">Gestión de aprobación de moteles</p>
+    </div>
+
+    <!-- Estadísticas -->
+    @if (statistics()) {
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+          <div class="text-2xl font-bold">{{ statistics()!.totalMotels }}</div>
+          <div class="text-sm text-gray-300">Total</div>
+        </div>
+        
+        <div class="bg-yellow-500/20 backdrop-blur-sm rounded-lg p-4 border border-yellow-500/40">
+          <div class="text-2xl font-bold text-yellow-400">{{ statistics()!.pendingApproval }}</div>
+          <div class="text-sm text-gray-300">Pendientes</div>
+        </div>
+        
+        <div class="bg-blue-500/20 backdrop-blur-sm rounded-lg p-4 border border-blue-500/40">
+          <div class="text-2xl font-bold text-blue-400">{{ statistics()!.underReview }}</div>
+          <div class="text-sm text-gray-300">En Revisión</div>
+        </div>
+        
+        <div class="bg-green-500/20 backdrop-blur-sm rounded-lg p-4 border border-green-500/40">
+          <div class="text-2xl font-bold text-green-400">{{ statistics()!.approved }}</div>
+          <div class="text-sm text-gray-300">Aprobados</div>
+        </div>
+        
+        <div class="bg-red-500/20 backdrop-blur-sm rounded-lg p-4 border border-red-500/40">
+          <div class="text-2xl font-bold text-red-400">{{ statistics()!.rejected }}</div>
+          <div class="text-sm text-gray-300">Rechazados</div>
+        </div>
+        
+        <div class="bg-orange-500/20 backdrop-blur-sm rounded-lg p-4 border border-orange-500/40">
+          <div class="text-2xl font-bold text-orange-400">{{ statistics()!.withIncompleteLegalInfo }}</div>
+          <div class="text-sm text-gray-300">Info Incompleta</div>
+        </div>
+      </div>
+    }
+
+    <!-- Filtros -->
+    <div class="flex flex-wrap gap-2 mb-6">
+      <button 
+        (click)="changeFilter('PENDING')"
+        [class.bg-gradient-to-r]="currentFilter() === 'PENDING'"
+        [class.from-[#6E2A35]]="currentFilter() === 'PENDING'"
+        [class.to-[#A72027]]="currentFilter() === 'PENDING'"
+        [class.bg-white/10]="currentFilter() !== 'PENDING'"
+        class="px-4 py-2 rounded-lg font-medium transition-all hover:scale-105">
+        Pendientes
+      </button>
+      
+      <button 
+        (click)="changeFilter('UNDER_REVIEW')"
+        [class.bg-gradient-to-r]="currentFilter() === 'UNDER_REVIEW'"
+        [class.from-[#6E2A35]]="currentFilter() === 'UNDER_REVIEW'"
+        [class.to-[#A72027]]="currentFilter() === 'UNDER_REVIEW'"
+        [class.bg-white/10]="currentFilter() !== 'UNDER_REVIEW'"
+        class="px-4 py-2 rounded-lg font-medium transition-all hover:scale-105">
+        En Revisión
+      </button>
+      
+      <button 
+        (click)="changeFilter('APPROVED')"
+        [class.bg-gradient-to-r]="currentFilter() === 'APPROVED'"
+        [class.from-[#6E2A35]]="currentFilter() === 'APPROVED'"
+        [class.to-[#A72027]]="currentFilter() === 'APPROVED'"
+        [class.bg-white/10]="currentFilter() !== 'APPROVED'"
+        class="px-4 py-2 rounded-lg font-medium transition-all hover:scale-105">
+        Aprobados
+      </button>
+      
+      <button 
+        (click)="changeFilter('REJECTED')"
+        [class.bg-gradient-to-r]="currentFilter() === 'REJECTED'"
+        [class.from-[#6E2A35]]="currentFilter() === 'REJECTED'"
+        [class.to-[#A72027]]="currentFilter() === 'REJECTED'"
+        [class.bg-white/10]="currentFilter() !== 'REJECTED'"
+        class="px-4 py-2 rounded-lg font-medium transition-all hover:scale-105">
+        Rechazados
+      </button>
+      
+      <button 
+        (click)="changeFilter('ALL')"
+        [class.bg-gradient-to-r]="currentFilter() === 'ALL'"
+        [class.from-[#6E2A35]]="currentFilter() === 'ALL'"
+        [class.to-[#A72027]]="currentFilter() === 'ALL'"
+        [class.bg-white/10]="currentFilter() !== 'ALL'"
+        class="px-4 py-2 rounded-lg font-medium transition-all hover:scale-105">
+        Todos
+      </button>
+    </div>
+
+    <!-- Loading -->
+    @if (isLoading()) {
+      <div class="flex justify-center items-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+      </div>
+    }
+
+    <!-- Lista de Moteles -->
+    @if (!isLoading()) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (motel of pendingMotels(); track motel.id) {
+          <div class="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-white/20 hover:border-white/40 transition-all cursor-pointer"
+               (click)="selectMotel(motel)">
+            
+            <!-- Imagen -->
+            <div class="relative h-48 bg-gray-800">
+              @if (motel.imageUrls && motel.imageUrls.length > 0) {
+                <img 
+                  [src]="motel.imageUrls[0]" 
+                  [alt]="motel.name"
+                  class="w-full h-full object-cover">
+              } @else {
+                <div class="w-full h-full flex items-center justify-center">
+                  <i class="fas fa-image text-6xl text-gray-600"></i>
+                </div>
+              }
+              
+              <!-- Badge de Estado -->
+              <div class="absolute top-2 right-2">
+                <span [class]="'px-3 py-1 rounded-full text-xs font-semibold ' + getStatusColor(motel.approvalStatus)">
+                  {{ getStatusText(motel.approvalStatus) }}
+                </span>
+              </div>
+
+              <!-- Badge de Info Legal Incompleta -->
+              @if (!hasCompleteLegalInfo(motel)) {
+                <div class="absolute top-2 left-2">
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-orange-500 text-white">
+                    Info Legal Incompleta
+                  </span>
+                </div>
+              }
+            </div>
+
+            <!-- Contenido -->
+            <div class="p-4">
+              <h3 class="text-xl font-bold mb-2">{{ motel.name }}</h3>
+              <p class="text-gray-300 text-sm mb-2 flex items-center gap-1">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ motel.city }}
+              </p>
+              <p class="text-gray-400 text-sm line-clamp-2">{{ motel.description }}</p>
+              
+              <div class="mt-4 text-xs text-gray-400">
+                Fecha: {{ motel.dateCreated | date:'short' }}
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Empty State -->
+      @if (pendingMotels().length === 0) {
+        <div class="text-center py-12">
+          <i class="fas fa-inbox text-6xl text-gray-600 mb-4"></i>
+          <p class="text-xl text-gray-400">No hay moteles en esta categoría</p>
+        </div>
+      }
+    }
+
+    <!-- Modal de Detalles -->
+    @if (selectedMotel() && !showRejectModal()) {
+      <div class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+           (click)="closeDetails()">
+        <div class="bg-[#1a0508] rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+             (click)="$event.stopPropagation()">
+          
+          <!-- Header del Modal -->
+          <div class="sticky top-0 bg-[#1a0508] border-b border-white/20 p-6 flex justify-between items-center">
+            <h2 class="text-2xl font-bold">{{ selectedMotel()!.name }}</h2>
+            <button 
+              (click)="closeDetails()"
+              class="text-gray-400 hover:text-white transition-colors">
+              <i class="fas fa-times text-2xl"></i>
+            </button>
+          </div>
+
+          <!-- Contenido del Modal -->
+          <div class="p-6">
+            
+            <!-- Galería de Imágenes -->
+            @if (selectedMotel()!.imageUrls && selectedMotel()!.imageUrls.length > 0) {
+              <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3">Imágenes</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  @for (image of selectedMotel()!.imageUrls; track image) {
+                    <img 
+                      [src]="image" 
+                      alt="Imagen del motel"
+                      class="w-full h-32 object-cover rounded-lg">
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Información Básica -->
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold mb-3">Información Básica</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="text-sm text-gray-400">Dirección</label>
+                  <p>{{ selectedMotel()!.address }}</p>
+                </div>
+                <div>
+                  <label class="text-sm text-gray-400">Ciudad</label>
+                  <p>{{ selectedMotel()!.city }}</p>
+                </div>
+                <div>
+                  <label class="text-sm text-gray-400">Teléfono</label>
+                  <p>{{ selectedMotel()!.phoneNumber }}</p>
+                </div>
+                <div>
+                  <label class="text-sm text-gray-400">Fecha de Registro</label>
+                  <p>{{ selectedMotel()!.dateCreated | date:'medium' }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información Legal -->
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold mb-3">Información Legal</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="text-sm text-gray-400">RUE</label>
+                  <p>{{ selectedMotel()!.rues || 'No proporcionado' }}</p>
+                </div>
+                <div>
+                  <label class="text-sm text-gray-400">RNT</label>
+                  <p>{{ selectedMotel()!.rnt || 'No proporcionado' }}</p>
+                </div>
+                <div>
+                  <label class="text-sm text-gray-400">Tipo de Documento</label>
+                  <p>{{ selectedMotel()!.ownerDocumentType || 'No proporcionado' }}</p>
+                </div>
+                <div>
+                  <label class="text-sm text-gray-400">Número de Documento</label>
+                  <p>{{ selectedMotel()!.ownerDocumentNumber || 'No proporcionado' }}</p>
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="text-sm text-gray-400">Nombre Completo del Propietario</label>
+                  <p>{{ selectedMotel()!.ownerFullName || 'No proporcionado' }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Descripción -->
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold mb-3">Descripción</h3>
+              <p class="text-gray-300">{{ selectedMotel()!.description }}</p>
+            </div>
+
+            <!-- Ubicación -->
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold mb-3">Ubicación</h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="text-sm text-gray-400">Latitud</label>
+                  <p>{{ selectedMotel()!.latitude }}</p>
+                </div>
+                <div>
+                  <label class="text-sm text-gray-400">Longitud</label>
+                  <p>{{ selectedMotel()!.longitude }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Razón de Rechazo (si aplica) -->
+            @if (selectedMotel()!.rejectionReason) {
+              <div class="mb-6 p-4 bg-red-500/20 border border-red-500/40 rounded-lg">
+                <h3 class="text-lg font-semibold mb-2 text-red-400">Razón de Rechazo</h3>
+                <p class="text-gray-300">{{ selectedMotel()!.rejectionReason }}</p>
+              </div>
+            }
+
+            <!-- Advertencia de Info Incompleta -->
+            @if (!hasCompleteLegalInfo(selectedMotel()!)) {
+              <div class="mb-6 p-4 bg-orange-500/20 border border-orange-500/40 rounded-lg">
+                <p class="text-orange-300">
+                  <i class="fas fa-exclamation-triangle mr-2"></i>
+                  La información legal está incompleta. No se puede aprobar hasta que esté completa.
+                </p>
+              </div>
+            }
+
+            <!-- Acciones -->
+            <div class="flex flex-wrap gap-3">
+              @if (selectedMotel()!.approvalStatus === 'PENDING' || selectedMotel()!.approvalStatus === 'UNDER_REVIEW') {
+                <button
+                  (click)="approveMotel(selectedMotel()!.id)"
+                  [disabled]="!hasCompleteLegalInfo(selectedMotel()!)"
+                  class="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-lg font-medium hover:from-green-700 hover:to-green-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  <i class="fas fa-check mr-2"></i>
+                  Aprobar
+                </button>
+                
+                <button
+                  (click)="openRejectModal(selectedMotel()!.id)"
+                  class="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-lg font-medium hover:from-red-700 hover:to-red-800 transition-all">
+                  <i class="fas fa-times mr-2"></i>
+                  Rechazar
+                </button>
+              }
+              
+              @if (selectedMotel()!.approvalStatus === 'PENDING') {
+                <button
+                  (click)="putUnderReview(selectedMotel()!.id)"
+                  class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-700 hover:to-blue-800 transition-all">
+                  <i class="fas fa-eye mr-2"></i>
+                  Poner en Revisión
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Modal de Rechazo -->
+    @if (showRejectModal()) {
+      <div class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+           (click)="closeRejectModal()">
+        <div class="bg-[#1a0508] rounded-lg max-w-md w-full"
+             (click)="$event.stopPropagation()">
+          
+          <!-- Header -->
+          <div class="p-6 border-b border-white/20">
+            <h2 class="text-xl font-bold">Rechazar Motel</h2>
+            <p class="text-gray-400 text-sm mt-1">{{ selectedMotel()!.name }}</p>
+          </div>
+
+          <!-- Contenido -->
+          <div class="p-6">
+            <label class="block text-sm font-medium mb-2">
+              Razón del rechazo <span class="text-red-500">*</span>
+            </label>
+            <textarea
+              [(ngModel)]="rejectionReason"
+              rows="4"
+              placeholder="Explica por qué este motel no puede ser aprobado..."
+              class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none resize-none">
+            </textarea>
+
+            <!-- Acciones -->
+            <div class="flex gap-3 mt-6">
+              <button
+                (click)="closeRejectModal()"
+                class="flex-1 px-6 py-3 bg-white/10 rounded-lg font-medium hover:bg-white/20 transition-all">
+                Cancelar
+              </button>
+              
+              <button
+                (click)="rejectMotel()"
+                [disabled]="!rejectionReason().trim()"
+                class="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-lg font-medium hover:from-red-700 hover:to-red-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                Rechazar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>
