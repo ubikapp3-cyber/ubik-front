@@ -8,24 +8,15 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
 
-/**
- * Mapper para convertir entre DTOs web y modelo de dominio Motel
- * Incluye mapeo de campos de aprobación e información legal
- */
 @Component
 public class MotelDtoMapper {
 
-    /**
-     * Convierte CreateMotelRequest a Motel de dominio
-     */
     public Motel toDomain(CreateMotelRequest request) {
         if (request == null) {
             return null;
         }
-
-        // Convertir string a enum
+        
         Motel.DocumentType docType = null;
         if (request.ownerDocumentType() != null) {
             try {
@@ -34,9 +25,9 @@ public class MotelDtoMapper {
                 throw new IllegalArgumentException("Tipo de documento inválido: " + request.ownerDocumentType());
             }
         }
-
+        
         return new Motel(
-                null, // El ID se generará en la BD
+                null,
                 request.name(),
                 request.address(),
                 request.phoneNumber(),
@@ -47,12 +38,10 @@ public class MotelDtoMapper {
                 request.imageUrls() != null ? new ArrayList<>(request.imageUrls()) : new ArrayList<>(),
                 request.latitude(),
                 request.longitude(),
-                // Estado inicial: PENDING
                 Motel.ApprovalStatus.PENDING,
-                null, // approvalDate
-                null, // approvedByUserId
-                null, // rejectionReason
-                // Información legal
+                null,
+                null,
+                null,
                 request.rues(),
                 request.rnt(),
                 docType,
@@ -63,15 +52,11 @@ public class MotelDtoMapper {
         );
     }
 
-    /**
-     * Convierte UpdateMotelRequest a Motel de dominio (sin ID ni fecha)
-     */
     public Motel toDomain(UpdateMotelRequest request) {
         if (request == null) {
             return null;
         }
-
-        // Convertir string a enum
+        
         Motel.DocumentType docType = null;
         if (request.ownerDocumentType() != null) {
             try {
@@ -80,25 +65,23 @@ public class MotelDtoMapper {
                 throw new IllegalArgumentException("Tipo de documento inválido: " + request.ownerDocumentType());
             }
         }
-
+        
         return new Motel(
-                null, // Se establecerá en el servicio
+                null,
                 request.name(),
                 request.address(),
                 request.phoneNumber(),
                 request.description(),
                 request.city(),
-                null, // Se mantendrá el existente
-                null,  // Se mantendrá la existente
+                null,
+                null,
                 request.imageUrls() != null ? new ArrayList<>(request.imageUrls()) : new ArrayList<>(),
                 request.latitude(),
                 request.longitude(),
-                // Los campos de aprobación se mantienen
-                null, // approvalStatus
-                null, // approvalDate
-                null, // approvedByUserId
-                null, // rejectionReason
-                // Información legal
+                null,
+                null,
+                null,
+                null,
                 request.rues(),
                 request.rnt(),
                 docType,
@@ -109,9 +92,6 @@ public class MotelDtoMapper {
         );
     }
 
-    /**
-     * Convierte Motel de dominio a MotelResponse
-     */
     public MotelResponse toResponse(Motel motel) {
         if (motel == null) {
             return null;
@@ -128,12 +108,10 @@ public class MotelDtoMapper {
                 motel.imageUrls(),
                 motel.latitude(),
                 motel.longitude(),
-                // Estado de aprobación
                 motel.approvalStatus() != null ? motel.approvalStatus().name() : null,
                 motel.approvalDate(),
                 motel.approvedByUserId(),
                 motel.rejectionReason(),
-                // Información legal
                 motel.rues(),
                 motel.rnt(),
                 motel.ownerDocumentType() != null ? motel.ownerDocumentType().name() : null,
@@ -141,7 +119,6 @@ public class MotelDtoMapper {
                 motel.ownerFullName(),
                 motel.legalRepresentativeName(),
                 motel.legalDocumentUrl(),
-                // Campo calculado
                 motel.hasCompleteLegalInfo()
         );
     }
