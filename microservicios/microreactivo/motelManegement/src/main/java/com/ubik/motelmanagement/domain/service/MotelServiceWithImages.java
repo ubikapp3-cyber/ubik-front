@@ -1,7 +1,6 @@
 package com.ubik.motelmanagement.domain.service;
 
 import com.ubik.motelmanagement.domain.model.Motel;
-import com.ubik.motelmanagement.domain.port.in.MotelUseCasePort;
 import com.ubik.motelmanagement.domain.port.out.MotelRepositoryPort;
 import com.ubik.motelmanagement.infrastructure.service.CloudinaryService;
 import org.springframework.http.codec.multipart.FilePart;
@@ -30,17 +29,11 @@ public class MotelServiceWithImages {
 
     /**
      * Crea un motel y sube sus imágenes a Cloudinary
-     * 
-     * @param motel Motel a crear (sin URLs de imágenes)
-     * @param imageFiles Archivos de imágenes
-     * @return Motel creado con URLs de Cloudinary
      */
     public Mono<Motel> createMotelWithImages(Motel motel, Flux<FilePart> imageFiles) {
-        // 1. Subir imágenes a Cloudinary
         return cloudinaryService.uploadMultipleImages(imageFiles, "motels")
                 .collectList()
                 .flatMap(imageUrls -> {
-                    // 2. Crear motel con las URLs de Cloudinary
                     Motel motelWithImages = new Motel(
                             null,
                             motel.name(),
@@ -52,7 +45,18 @@ public class MotelServiceWithImages {
                             motel.dateCreated(),
                             imageUrls,
                             motel.latitude(),
-                            motel.longitude()
+                            motel.longitude(),
+                            Motel.ApprovalStatus.PENDING,
+                            null,
+                            null,
+                            null,
+                            motel.rues(),
+                            motel.rnt(),
+                            motel.ownerDocumentType(),
+                            motel.ownerDocumentNumber(),
+                            motel.ownerFullName(),
+                            motel.legalRepresentativeName(),
+                            motel.legalDocumentUrl()
                     );
                     
                     return motelRepositoryPort.save(motelWithImages);
@@ -61,11 +65,6 @@ public class MotelServiceWithImages {
 
     /**
      * Actualiza un motel y reemplaza sus imágenes
-     * 
-     * @param id ID del motel
-     * @param motel Datos actualizados
-     * @param imageFiles Nuevas imágenes (opcional)
-     * @return Motel actualizado
      */
     public Mono<Motel> updateMotelWithImages(
             Long id,
@@ -75,14 +74,11 @@ public class MotelServiceWithImages {
         return motelRepositoryPort.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Motel no encontrado")))
                 .flatMap(existingMotel -> {
-                    // Si hay nuevas imágenes
                     if (imageFiles != null) {
-                        // 1. Eliminar imágenes antiguas de Cloudinary
                         return deleteExistingImages(existingMotel.imageUrls())
                                 .then(cloudinaryService.uploadMultipleImages(imageFiles, "motels")
                                         .collectList())
                                 .flatMap(newUrls -> {
-                                    // 2. Actualizar motel con nuevas URLs
                                     Motel updatedMotel = new Motel(
                                             id,
                                             motel.name(),
@@ -94,7 +90,18 @@ public class MotelServiceWithImages {
                                             existingMotel.dateCreated(),
                                             newUrls,
                                             motel.latitude(),
-                                            motel.longitude()
+                                            motel.longitude(),
+                                            existingMotel.approvalStatus(),
+                                            existingMotel.approvalDate(),
+                                            existingMotel.approvedByUserId(),
+                                            existingMotel.rejectionReason(),
+                                            motel.rues(),
+                                            motel.rnt(),
+                                            motel.ownerDocumentType(),
+                                            motel.ownerDocumentNumber(),
+                                            motel.ownerFullName(),
+                                            motel.legalRepresentativeName(),
+                                            motel.legalDocumentUrl()
                                     );
                                     return motelRepositoryPort.update(updatedMotel);
                                 });
@@ -109,9 +116,20 @@ public class MotelServiceWithImages {
                                 motel.city(),
                                 existingMotel.propertyId(),
                                 existingMotel.dateCreated(),
-                                existingMotel.imageUrls(), // Mantener imágenes existentes
+                                existingMotel.imageUrls(),
                                 motel.latitude(),
-                                motel.longitude()
+                                motel.longitude(),
+                                existingMotel.approvalStatus(),
+                                existingMotel.approvalDate(),
+                                existingMotel.approvedByUserId(),
+                                existingMotel.rejectionReason(),
+                                motel.rues(),
+                                motel.rnt(),
+                                motel.ownerDocumentType(),
+                                motel.ownerDocumentNumber(),
+                                motel.ownerFullName(),
+                                motel.legalRepresentativeName(),
+                                motel.legalDocumentUrl()
                         );
                         return motelRepositoryPort.update(updatedMotel);
                     }
@@ -128,7 +146,6 @@ public class MotelServiceWithImages {
                     cloudinaryService.uploadMultipleImages(imageFiles, "motels")
                             .collectList()
                             .flatMap(newUrls -> {
-                                // Combinar URLs existentes con nuevas
                                 List<String> allUrls = new ArrayList<>(existingMotel.imageUrls());
                                 allUrls.addAll(newUrls);
                                 
@@ -143,7 +160,18 @@ public class MotelServiceWithImages {
                                         existingMotel.dateCreated(),
                                         allUrls,
                                         existingMotel.latitude(),
-                                        existingMotel.longitude()
+                                        existingMotel.longitude(),
+                                        existingMotel.approvalStatus(),
+                                        existingMotel.approvalDate(),
+                                        existingMotel.approvedByUserId(),
+                                        existingMotel.rejectionReason(),
+                                        existingMotel.rues(),
+                                        existingMotel.rnt(),
+                                        existingMotel.ownerDocumentType(),
+                                        existingMotel.ownerDocumentNumber(),
+                                        existingMotel.ownerFullName(),
+                                        existingMotel.legalRepresentativeName(),
+                                        existingMotel.legalDocumentUrl()
                                 );
                                 
                                 return motelRepositoryPort.update(updatedMotel);
@@ -158,7 +186,6 @@ public class MotelServiceWithImages {
         return motelRepositoryPort.findById(motelId)
                 .switchIfEmpty(Mono.error(new RuntimeException("Motel no encontrado")))
                 .flatMap(existingMotel -> {
-                    // Eliminar de Cloudinary
                     return Flux.fromIterable(imageUrlsToRemove)
                             .flatMap(url -> {
                                 String publicId = cloudinaryService.extractPublicId(url);
@@ -167,7 +194,6 @@ public class MotelServiceWithImages {
                                         : Mono.empty();
                             })
                             .then(Mono.defer(() -> {
-                                // Actualizar motel sin las URLs eliminadas
                                 List<String> remainingUrls = new ArrayList<>(existingMotel.imageUrls());
                                 remainingUrls.removeAll(imageUrlsToRemove);
                                 
@@ -182,7 +208,18 @@ public class MotelServiceWithImages {
                                         existingMotel.dateCreated(),
                                         remainingUrls,
                                         existingMotel.latitude(),
-                                        existingMotel.longitude()
+                                        existingMotel.longitude(),
+                                        existingMotel.approvalStatus(),
+                                        existingMotel.approvalDate(),
+                                        existingMotel.approvedByUserId(),
+                                        existingMotel.rejectionReason(),
+                                        existingMotel.rues(),
+                                        existingMotel.rnt(),
+                                        existingMotel.ownerDocumentType(),
+                                        existingMotel.ownerDocumentNumber(),
+                                        existingMotel.ownerFullName(),
+                                        existingMotel.legalRepresentativeName(),
+                                        existingMotel.legalDocumentUrl()
                                 );
                                 
                                 return motelRepositoryPort.update(updatedMotel);

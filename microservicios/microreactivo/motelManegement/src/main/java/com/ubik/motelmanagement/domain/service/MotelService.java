@@ -59,7 +59,18 @@ public class MotelService implements MotelUseCasePort {
                             existingMotel.dateCreated(),
                             motel.imageUrls(),
                             motel.latitude(),
-                            motel.longitude()
+                            motel.longitude(),
+                            existingMotel.approvalStatus(),
+                            existingMotel.approvalDate(),
+                            existingMotel.approvedByUserId(),
+                            existingMotel.rejectionReason(),
+                            motel.rues(),
+                            motel.rnt(),
+                            motel.ownerDocumentType(),
+                            motel.ownerDocumentNumber(),
+                            motel.ownerFullName(),
+                            motel.legalRepresentativeName(),
+                            motel.legalDocumentUrl()
                     );
                     return validateMotel(updatedMotel)
                             .then(motelRepositoryPort.update(updatedMotel));
