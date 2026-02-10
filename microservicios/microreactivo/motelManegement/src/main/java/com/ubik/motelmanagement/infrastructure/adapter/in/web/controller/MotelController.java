@@ -1,6 +1,7 @@
 package com.ubik.motelmanagement.infrastructure.adapter.in.web.controller;
 
 import com.ubik.motelmanagement.domain.port.in.MotelUseCasePort;
+import com.ubik.motelmanagement.domain.model.Motel;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.CreateMotelRequest;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.MotelResponse;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.UpdateMotelRequest;
