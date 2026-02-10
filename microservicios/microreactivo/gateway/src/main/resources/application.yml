@@ -29,6 +29,14 @@ spring:
           filters:
             - StripPrefix=0
 
+        # ✅ NUEVO: Motel Management - Moteles del propietario autenticado
+        - id: motel-management-auth-motels
+          uri: http://motel-management-service:8083
+          predicates:
+            - Path=/api/auth/motels/**
+          filters:
+            - StripPrefix=0
+
         # ✅ Motel Management - Rooms
         - id: motel-management-rooms
           uri: http://motel-management-service:8083

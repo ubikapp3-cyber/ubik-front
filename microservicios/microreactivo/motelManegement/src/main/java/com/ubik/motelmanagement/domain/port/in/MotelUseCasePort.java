@@ -38,6 +38,13 @@ public interface MotelUseCasePort {
     Flux<Motel> getMotelsByCity(String city);
 
     /**
+     * Obtiene moteles por propertyId (ID del propietario)
+     * @param propertyId ID del propietario
+     * @return Flux con los moteles de ese propietario
+     */
+    Flux<Motel> getMotelsByPropertyId(Long propertyId);
+
+    /**
      * Actualiza un motel existente
      * @param id ID del motel a actualizar
      * @param motel Datos actualizados del motel

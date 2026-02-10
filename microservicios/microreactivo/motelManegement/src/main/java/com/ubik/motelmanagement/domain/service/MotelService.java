@@ -44,6 +44,11 @@ public class MotelService implements MotelUseCasePort {
     }
 
     @Override
+    public Flux<Motel> getMotelsByPropertyId(Long propertyId) {
+        return motelRepositoryPort.findByPropertyId(propertyId);
+    }
+
+    @Override
     public Mono<Motel> updateMotel(Long id, Motel motel) {
         return motelRepositoryPort.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Motel no encontrado con ID: " + id)))

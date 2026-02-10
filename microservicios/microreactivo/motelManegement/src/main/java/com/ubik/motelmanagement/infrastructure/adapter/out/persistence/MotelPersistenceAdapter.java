@@ -61,6 +61,12 @@ public class MotelPersistenceAdapter implements MotelRepositoryPort {
     }
 
     @Override
+    public Flux<Motel> findByPropertyId(Long propertyId) {
+        return motelR2dbcRepository.findByPropertyId(propertyId)
+                .flatMap(this::loadMotelWithImages);
+    }
+
+    @Override
     public Mono<Motel> update(Motel motel) {
         return Mono.just(motel)
                 .map(motelMapper::toEntity)

@@ -72,6 +72,13 @@ public class SecurityConfig {
                         .pathMatchers("/api/admin/motels/**").hasAuthority("ROLE_1")
                         
                         // ========================================
+                        // RUTAS AUTENTICADAS - Moteles del propietario
+                        // ========================================
+                        
+
+                        .pathMatchers(HttpMethod.GET, "/api/auth/motels/**").authenticated()
+                        
+                        // ========================================
                         // RUTAS QUE REQUIEREN AUTENTICACIÓN
                         // ========================================
                         

@@ -39,6 +39,13 @@ public interface MotelRepositoryPort {
     Flux<Motel> findByCity(String city);
 
     /**
+     * Busca moteles por propertyId (ID del propietario)
+     * @param propertyId ID del propietario
+     * @return Flux con los moteles de ese propietario
+     */
+    Flux<Motel> findByPropertyId(Long propertyId);
+
+    /**
      * Actualiza un motel existente
      * @param motel Motel con los datos actualizados
      * @return Mono con el motel actualizado

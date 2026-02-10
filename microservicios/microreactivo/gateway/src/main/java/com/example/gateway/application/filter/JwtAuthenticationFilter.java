@@ -62,13 +62,17 @@ public class JwtAuthenticationFilter implements WebFilter {
 
             String username = claims.get("sub").toString();
             Object roleObj = claims.get("role");
+            Object userIdObj = claims.get("userId");
+            
             String role = roleObj != null ? roleObj.toString() : "USER";
+            String userId = userIdObj != null ? userIdObj.toString() : "0";
 
             // 4. Mutar request y agregar headers para microservicios
             ServerHttpRequest mutatedRequest = exchange.getRequest()
                     .mutate()
                     .header("X-User-Username", username)
                     .header("X-User-Role", role)
+                    .header("X-User-Id", userId)
                     .build();
 
             ServerWebExchange mutatedExchange = exchange.mutate()
@@ -94,8 +98,9 @@ public class JwtAuthenticationFilter implements WebFilter {
      * Determina si una ruta es pública (no requiere autenticación)
      */
     private boolean isPublicPath(String path, HttpMethod method) {
-        // Rutas de autenticación
-        if (path.startsWith("/api/auth/")) {
+        // Rutas de autenticación (registro, login, etc.)
+        // IMPORTANTE: /api/auth/motels/** NO es pública, requiere autenticación
+        if (path.startsWith("/api/auth/") && !path.startsWith("/api/auth/motels/")) {
             return true;
         }
         

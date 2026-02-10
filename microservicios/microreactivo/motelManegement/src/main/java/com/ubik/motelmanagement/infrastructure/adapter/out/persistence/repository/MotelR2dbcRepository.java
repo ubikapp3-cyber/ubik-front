@@ -18,4 +18,11 @@ public interface MotelR2dbcRepository extends ReactiveCrudRepository<MotelEntity
      * @return Flux con las entidades encontradas
      */
     Flux<MotelEntity> findByCity(String city);
+
+    /**
+     * Busca moteles por propertyId (ID del propietario)
+     * @param propertyId ID del propietario
+     * @return Flux con las entidades encontradas
+     */
+    Flux<MotelEntity> findByPropertyId(Long propertyId);
 }
