@@ -1,11 +1,16 @@
-server:
-  port: 8080
-
 spring:
   cloud:
-    gateway: 
+    gateway:
       routes:
-        # ✅ UserManagement - Auth (CORREGIDO: usermanagement-service)
+        # ✅ PRIMERO: Motel Management - Auth motels (MÁS ESPECÍFICA - debe ir antes de userManagement-auth)
+        - id: motel-management-auth-motels
+          uri: http://motel-management-service:8083
+          predicates:
+            - Path=/api/auth/motels/**
+          filters:
+            - StripPrefix=0
+
+        # ✅ UserManagement - Auth (DESPUÉS de la ruta más específica)
         - id: userManagement-auth
           uri: http://usermanagement-service:8081
           predicates:
@@ -13,7 +18,7 @@ spring:
           filters:
             - StripPrefix=0
 
-        # ✅ UserManagement - Profile (CORREGIDO: usermanagement-service)
+        # ✅ UserManagement - Profile
         - id: userManagement-profile
           uri: http://usermanagement-service:8081
           predicates:
@@ -21,19 +26,11 @@ spring:
           filters:
             - StripPrefix=0
 
-        # ✅ Motel Management - Motels (CORREGIDO: motel-management-service)
+        # ✅ Motel Management - Motels
         - id: motel-management-motels
           uri: http://motel-management-service:8083
           predicates:
             - Path=/api/motels/**
-          filters:
-            - StripPrefix=0
-
-        # ✅ NUEVO: Motel Management - Moteles del propietario autenticado
-        - id: motel-management-auth-motels
-          uri: http://motel-management-service:8083
-          predicates:
-            - Path=/api/auth/motels/**
           filters:
             - StripPrefix=0
 
@@ -62,24 +59,3 @@ spring:
             - StripPrefix=0
 
       trusted-proxies: '127\.0\.0\.1|::1'
-
-# JWT Configuration
-jwt:
-  secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION:86400000}
-
-# Logging
-logging:
-  level:
-    com.example.gateway: DEBUG
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.security: DEBUG
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "health,info,metrics,gateway"
-  endpoint:
-    health:
-      show-details: always
