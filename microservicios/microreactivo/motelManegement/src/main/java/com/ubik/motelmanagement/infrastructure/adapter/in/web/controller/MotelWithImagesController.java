@@ -5,6 +5,8 @@ import com.ubik.motelmanagement.domain.service.MotelServiceWithImages;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.CreateMotelRequest;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.MotelResponse;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.mapper.MotelDtoMapper;  
+import org.springframework.web.server.ServerWebExchange;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
