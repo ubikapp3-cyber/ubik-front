@@ -45,17 +45,36 @@ public class MotelWithImagesController {
      * - motelData: JSON con datos del motel
      * - images: Array de archivos de imagen
      */
-    @PostMapping(value = "/with-images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ResponseStatus(HttpStatus.CREATED)
-    public Mono<MotelResponse> createMotelWithImages(
-            @RequestPart("motelData") CreateMotelRequest motelData,
-            @RequestPart("images") Flux<FilePart> images) {
-        
-        Motel motel = motelDtoMapper.toDomain(motelData);
-        
-        return motelServiceWithImages.createMotelWithImages(motel, images)
-                .map(motelDtoMapper::toResponse);
+@PostMapping(value = "/with-images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+@ResponseStatus(HttpStatus.CREATED)
+public Mono<MotelResponse> createMotelWithImages(
+        @RequestPart("motelData") CreateMotelRequest motelData,
+        @RequestPart("images") Flux<FilePart> images,
+        ServerWebExchange exchange) {  // ✅ Agregar ServerWebExchange
+    
+    String userIdHeader = exchange.getRequest().getHeaders().getFirst("X-User-Id");
+    if (userIdHeader == null) {
+        return Mono.error(new RuntimeException("Usuario no autenticado"));
     }
+    
+    Long userId = Long.parseLong(userIdHeader);
+    Motel motel = motelDtoMapper.toDomain(motelData);
+    
+    // ✅ Reemplazar propertyId con el userId del token
+    Motel motelWithOwner = new Motel(
+            motel.id(), motel.name(), motel.address(), motel.phoneNumber(),
+            motel.description(), motel.city(),
+            userId,  // ✅ propertyId = userId autenticado
+            motel.dateCreated(), motel.imageUrls(), motel.latitude(), motel.longitude(),
+            motel.approvalStatus(), motel.approvalDate(), motel.approvedByUserId(),
+            motel.rejectionReason(), motel.rues(), motel.rnt(), motel.ownerDocumentType(),
+            motel.ownerDocumentNumber(), motel.ownerFullName(),
+            motel.legalRepresentativeName(), motel.legalDocumentUrl()
+    );
+    
+    return motelServiceWithImages.createMotelWithImages(motelWithOwner, images)
+            .map(motelDtoMapper::toResponse);
+}
 
     /**
      * Agrega imágenes adicionales a un motel existente

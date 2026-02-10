@@ -73,24 +73,56 @@ public class MotelController {
      * Requiere: Header X-User-Username y X-User-Role
      */
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Mono<MotelResponse> createMotel(
-            @Valid @RequestBody CreateMotelRequest request,
-            ServerWebExchange exchange) {
-        
-        // Opcional: Validar que el usuario esté autenticado
-        String username = exchange.getRequest().getHeaders().getFirst("X-User-Username");
-        String role = exchange.getRequest().getHeaders().getFirst("X-User-Role");
-        
-        if (username == null || role == null) {
-            return Mono.error(new RuntimeException("Usuario no autenticado"));
-        }
-        
-        return Mono.just(request)
-                .map(motelDtoMapper::toDomain)
-                .flatMap(motelUseCasePort::createMotel)
-                .map(motelDtoMapper::toResponse);
+@ResponseStatus(HttpStatus.CREATED)
+public Mono<MotelResponse> createMotel(
+        @Valid @RequestBody CreateMotelRequest request,
+        ServerWebExchange exchange) {
+    
+    String username = exchange.getRequest().getHeaders().getFirst("X-User-Username");
+    String userIdHeader = exchange.getRequest().getHeaders().getFirst("X-User-Id");
+    
+    if (username == null || userIdHeader == null) {
+        return Mono.error(new RuntimeException("Usuario no autenticado"));
     }
+    
+    Long userId;
+    try {
+        userId = Long.parseLong(userIdHeader);
+    } catch (NumberFormatException e) {
+        return Mono.error(new RuntimeException("Header X-User-Id inválido"));
+    }
+    
+    // ✅ Asignar el userId del token como propertyId del motel
+    final Long finalUserId = userId;
+    return Mono.just(request)
+            .map(motelDtoMapper::toDomain)
+            .map(motel -> new Motel(
+                    motel.id(),
+                    motel.name(),
+                    motel.address(),
+                    motel.phoneNumber(),
+                    motel.description(),
+                    motel.city(),
+                    finalUserId,          // ✅ propertyId = userId autenticado
+                    motel.dateCreated(),
+                    motel.imageUrls(),
+                    motel.latitude(),
+                    motel.longitude(),
+                    motel.approvalStatus(),
+                    motel.approvalDate(),
+                    motel.approvedByUserId(),
+                    motel.rejectionReason(),
+                    motel.rues(),
+                    motel.rnt(),
+                    motel.ownerDocumentType(),
+                    motel.ownerDocumentNumber(),
+                    motel.ownerFullName(),
+                    motel.legalRepresentativeName(),
+                    motel.legalDocumentUrl()
+            ))
+            .flatMap(motelUseCasePort::createMotel)
+            .map(motelDtoMapper::toResponse);
+}
 
     /**
      * PROTEGIDO - Actualiza un motel existente
