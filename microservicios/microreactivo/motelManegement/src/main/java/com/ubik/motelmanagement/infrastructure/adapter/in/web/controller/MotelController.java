@@ -7,6 +7,7 @@ import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.MotelResponse;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.UpdateMotelRequest;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.mapper.MotelDtoMapper;  
 import jakarta.validation.Valid;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
@@ -78,49 +79,59 @@ public class MotelController {
     public Mono<MotelResponse> createMotel(
             @Valid @RequestBody CreateMotelRequest request,
             ServerWebExchange exchange) {
-        
+
         String username = exchange.getRequest().getHeaders().getFirst("X-User-Username");
         String userIdHeader = exchange.getRequest().getHeaders().getFirst("X-User-Id");
-        
+
         if (username == null || userIdHeader == null) {
             return Mono.error(new RuntimeException("Usuario no autenticado"));
         }
-        
+
         Long userId;
         try {
             userId = Long.parseLong(userIdHeader);
         } catch (NumberFormatException e) {
             return Mono.error(new RuntimeException("Header X-User-Id inválido"));
         }
-        
+
+        Logger log = null;
+        log.info("🔧 Creando motel para usuario ID: {}", userId);
+
         // ✅ Asignar el userId del token como propertyId del motel
         final Long finalUserId = userId;
         return Mono.just(request)
                 .map(motelDtoMapper::toDomain)
-                .map(motel -> new Motel(
-                        motel.id(),
-                        motel.name(),
-                        motel.address(),
-                        motel.phoneNumber(),
-                        motel.description(),
-                        motel.city(),
-                        finalUserId,          // ✅ propertyId = userId autenticado
-                        motel.dateCreated(),
-                        motel.imageUrls(),
-                        motel.latitude(),
-                        motel.longitude(),
-                        motel.approvalStatus(),
-                        motel.approvalDate(),
-                        motel.approvedByUserId(),
-                        motel.rejectionReason(),
-                        motel.rues(),
-                        motel.rnt(),
-                        motel.ownerDocumentType(),
-                        motel.ownerDocumentNumber(),
-                        motel.ownerFullName(),
-                        motel.legalRepresentativeName(),
-                        motel.legalDocumentUrl()
-                ))
+                .map(motel -> {
+                    log.info("Motel original - propertyId: {}", motel.propertyId());
+
+                    Motel motelWithOwner = new Motel(
+                            motel.id(),
+                            motel.name(),
+                            motel.address(),
+                            motel.phoneNumber(),
+                            motel.description(),
+                            motel.city(),
+                            finalUserId,          // ✅ propertyId = userId autenticado
+                            motel.dateCreated(),
+                            motel.imageUrls(),
+                            motel.latitude(),
+                            motel.longitude(),
+                            motel.approvalStatus(),
+                            motel.approvalDate(),
+                            motel.approvedByUserId(),
+                            motel.rejectionReason(),
+                            motel.rues(),
+                            motel.rnt(),
+                            motel.ownerDocumentType(),
+                            motel.ownerDocumentNumber(),
+                            motel.ownerFullName(),
+                            motel.legalRepresentativeName(),
+                            motel.legalDocumentUrl()
+                    );
+
+                    log.info("Motel modificado - propertyId: {}", motelWithOwner.propertyId());
+                    return motelWithOwner;
+                })
                 .flatMap(motelUseCasePort::createMotel)
                 .map(motelDtoMapper::toResponse);
     }

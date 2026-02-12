@@ -74,13 +74,13 @@ public class MotelPersistenceAdapter implements MotelRepositoryPort {
     @Override
     public Flux<Motel> findByPropertyId(Long propertyId) {
         log.info("🔍 MotelPersistenceAdapter.findByPropertyId({})", propertyId);
-        
+
         return motelR2dbcRepository.findByPropertyId(propertyId)
                 .doOnSubscribe(subscription -> log.debug("Ejecutando query en BD para propertyId: {}", propertyId))
-                .doOnNext(entity -> log.info("  ✓ Entity encontrada en BD: id={}, name='{}', propertyId={}", 
+                .doOnNext(entity -> log.info("  ✓ Entity encontrada en BD: id={}, name='{}', propertyId={}",
                         entity.id(), entity.name(), entity.propertyId()))
                 .doOnComplete(() -> log.info("  ✓ Query completada para propertyId: {}", propertyId))
-                .doOnError(error -> log.error("  ✗ Error en query para propertyId {}: {}", 
+                .doOnError(error -> log.error("  ✗ Error en query para propertyId {}: {}",
                         propertyId, error.getMessage(), error))
                 .flatMap(entity -> {
                     log.debug("Cargando imágenes para motel ID: {}", entity.id());
