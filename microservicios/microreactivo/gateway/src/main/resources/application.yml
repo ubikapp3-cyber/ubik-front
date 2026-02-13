@@ -2,23 +2,51 @@ spring:
   cloud:
     gateway:
       routes:
-        # ✅ PRIMERO: Motel Management - Auth motels (MÁS ESPECÍFICA - debe ir antes de userManagement-auth)
-        - id: motel-management-auth-motels
+        # ═══════════════════════════════════════════════════════════
+        # IMPORTANTE: Las rutas se evalúan en ORDEN
+        # Las MÁS ESPECÍFICAS deben ir PRIMERO
+        # ═══════════════════════════════════════════════════════════
+
+        # ┌─────────────────────────────────────────────────────────┐
+        # │ MOTEL MANAGEMENT - RUTAS AUTENTICADAS                   │
+        # │ (Orden crítico: específica → general)                   │
+        # └─────────────────────────────────────────────────────────┘
+
+        # 1️⃣ RUTA MÁS ESPECÍFICA - /my-motels (exacta, sin variables)
+        - id: motel-management-my-motels
           uri: http://motel-management-service:8083
           predicates:
-            - Path=/api/auth/motels/**
+            - Path=/api/auth/motels/my-motels
           filters:
             - StripPrefix=0
+          metadata:
+            description: "Moteles del usuario autenticado (sin userId en URL)"
 
-        # ✅ UserManagement - Auth (DESPUÉS de la ruta más específica)
+        # 2️⃣ RUTA SEMI-ESPECÍFICA - /{userId} (con variable de path)
+        - id: motel-management-auth-motels-userid
+          uri: http://motel-management-service:8083
+          predicates:
+            - Path=/api/auth/motels/{userId}
+          filters:
+            - StripPrefix=0
+          metadata:
+            description: "Moteles de un usuario específico"
+
+        # ┌─────────────────────────────────────────────────────────┐
+        # │ USER MANAGEMENT - AUTENTICACIÓN                         │
+        # └─────────────────────────────────────────────────────────┘
+
+        # 3️⃣ UserManagement - Auth (DESPUÉS de rutas específicas de motel)
         - id: userManagement-auth
           uri: http://usermanagement-service:8081
           predicates:
             - Path=/api/auth/**
           filters:
             - StripPrefix=0
+          metadata:
+            description: "Login, registro, etc."
 
-        # ✅ UserManagement - Profile
+        # 4️⃣ UserManagement - Profile
         - id: userManagement-profile
           uri: http://usermanagement-service:8081
           predicates:
@@ -26,7 +54,11 @@ spring:
           filters:
             - StripPrefix=0
 
-        # ✅ Motel Management - Motels
+        # ┌─────────────────────────────────────────────────────────┐
+        # │ MOTEL MANAGEMENT - RUTAS PÚBLICAS                       │
+        # └─────────────────────────────────────────────────────────┘
+
+        # 5️⃣ Motel Management - Motels
         - id: motel-management-motels
           uri: http://motel-management-service:8083
           predicates:
@@ -34,7 +66,7 @@ spring:
           filters:
             - StripPrefix=0
 
-        # ✅ Motel Management - Rooms
+        # 6️⃣ Motel Management - Rooms
         - id: motel-management-rooms
           uri: http://motel-management-service:8083
           predicates:
@@ -42,7 +74,7 @@ spring:
           filters:
             - StripPrefix=0
 
-        # ✅ Motel Management - Services
+        # 7️⃣ Motel Management - Services
         - id: motel-management-services
           uri: http://motel-management-service:8083
           predicates:
@@ -50,7 +82,7 @@ spring:
           filters:
             - StripPrefix=0
 
-        # ✅ Motel Management - Reservations
+        # 8️⃣ Motel Management - Reservations
         - id: motel-reservations
           uri: http://motel-management-service:8083
           predicates:
@@ -58,4 +90,7 @@ spring:
           filters:
             - StripPrefix=0
 
+      # ┌─────────────────────────────────────────────────────────┐
+      # │ CONFIGURACIÓN DE PROXIES                                │
+      # └─────────────────────────────────────────────────────────┘
       trusted-proxies: '127\.0\.0\.1|::1'
