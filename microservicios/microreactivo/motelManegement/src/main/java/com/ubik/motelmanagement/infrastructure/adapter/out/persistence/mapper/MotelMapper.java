@@ -10,6 +10,8 @@ import java.util.List;
 /**
  * Mapper para convertir entre el modelo de dominio Motel y la entidad de persistencia MotelEntity
  * Incluye mapeo de campos de aprobación e información legal
+ *
+ * ✅ FIXED: Maneja conversión de enums case-insensitive para evitar errores con datos en BD
  */
 @Component
 public class MotelMapper {
@@ -33,16 +35,18 @@ public class MotelMapper {
                 List.of(), // Lista vacía por defecto
                 entity.latitude(),
                 entity.longitude(),
+                // ✅ FIX: Convertir a uppercase antes de valueOf
                 entity.approvalStatus() != null ?
-                        Motel.ApprovalStatus.valueOf(entity.approvalStatus()) :
+                        Motel.ApprovalStatus.valueOf(entity.approvalStatus().toUpperCase()) :
                         Motel.ApprovalStatus.PENDING,
                 entity.approvalDate(),
                 entity.approvedByUserId(),
                 entity.rejectionReason(),
                 entity.rues(),
                 entity.rnt(),
+                // ✅ FIX: Convertir a uppercase antes de valueOf
                 entity.ownerDocumentType() != null ?
-                        Motel.DocumentType.valueOf(entity.ownerDocumentType()) :
+                        Motel.DocumentType.valueOf(entity.ownerDocumentType().toUpperCase()) :
                         null,
                 entity.ownerDocumentNumber(),
                 entity.ownerFullName(),
@@ -71,8 +75,9 @@ public class MotelMapper {
                 entity.latitude(),
                 entity.longitude(),
                 // Campos de aprobación
+                // ✅ FIX: Convertir a uppercase antes de valueOf
                 entity.approvalStatus() != null ?
-                        Motel.ApprovalStatus.valueOf(entity.approvalStatus()) :
+                        Motel.ApprovalStatus.valueOf(entity.approvalStatus().toUpperCase()) :
                         Motel.ApprovalStatus.PENDING,
                 entity.approvalDate(),
                 entity.approvedByUserId(),
@@ -80,8 +85,9 @@ public class MotelMapper {
                 // Campos de información legal
                 entity.rues(),
                 entity.rnt(),
+                // ✅ FIX: Convertir a uppercase antes de valueOf
                 entity.ownerDocumentType() != null ?
-                        Motel.DocumentType.valueOf(entity.ownerDocumentType()) :
+                        Motel.DocumentType.valueOf(entity.ownerDocumentType().toUpperCase()) :
                         null,
                 entity.ownerDocumentNumber(),
                 entity.ownerFullName(),
