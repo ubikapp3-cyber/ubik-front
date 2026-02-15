@@ -11,6 +11,7 @@
         <module name="motel-management" />
         <module name="gateway" />
         <module name="products" />
+        <module name="notificationService" />
       </profile>
       <profile name="Annotation profile for microreactivo-2025" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -28,6 +29,7 @@
       <module name="customers" options="-parameters" />
       <module name="gateway" options="-parameters" />
       <module name="motel-management" options="-parameters" />
+      <module name="notificationService" options="-parameters" />
       <module name="orders" options="-parameters" />
       <module name="products" options="-parameters" />
       <module name="user-management" options="-parameters" />

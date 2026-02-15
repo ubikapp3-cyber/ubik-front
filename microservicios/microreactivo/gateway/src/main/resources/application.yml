@@ -1,52 +1,19 @@
+server:
+  port: 8080
+
 spring:
   cloud:
-    gateway:
+    gateway: 
       routes:
-        # ═══════════════════════════════════════════════════════════
-        # IMPORTANTE: Las rutas se evalúan en ORDEN
-        # Las MÁS ESPECÍFICAS deben ir PRIMERO
-        # ═══════════════════════════════════════════════════════════
-
-        # ┌─────────────────────────────────────────────────────────┐
-        # │ MOTEL MANAGEMENT - RUTAS AUTENTICADAS                   │
-        # │ (Orden crítico: específica → general)                   │
-        # └─────────────────────────────────────────────────────────┘
-
-        # 1️⃣ RUTA MÁS ESPECÍFICA - /my-motels (exacta, sin variables)
-        - id: motel-management-my-motels
-          uri: http://motel-management-service:8083
-          predicates:
-            - Path=/api/auth/motels/my-motels
-          filters:
-            - StripPrefix=0
-          metadata:
-            description: "Moteles del usuario autenticado (sin userId en URL)"
-
-        # 2️⃣ RUTA SEMI-ESPECÍFICA - /{userId} (con variable de path)
-        - id: motel-management-auth-motels-userid
-          uri: http://motel-management-service:8083
-          predicates:
-            - Path=/api/auth/motels/{userId}
-          filters:
-            - StripPrefix=0
-          metadata:
-            description: "Moteles de un usuario específico"
-
-        # ┌─────────────────────────────────────────────────────────┐
-        # │ USER MANAGEMENT - AUTENTICACIÓN                         │
-        # └─────────────────────────────────────────────────────────┘
-
-        # 3️⃣ UserManagement - Auth (DESPUÉS de rutas específicas de motel)
+        # ✅ UserManagement - Auth (CORREGIDO: usermanagement-service)
         - id: userManagement-auth
           uri: http://usermanagement-service:8081
           predicates:
             - Path=/api/auth/**
           filters:
             - StripPrefix=0
-          metadata:
-            description: "Login, registro, etc."
 
-        # 4️⃣ UserManagement - Profile
+        # ✅ UserManagement - Profile (CORREGIDO: usermanagement-service)
         - id: userManagement-profile
           uri: http://usermanagement-service:8081
           predicates:
@@ -54,11 +21,15 @@ spring:
           filters:
             - StripPrefix=0
 
-        # ┌─────────────────────────────────────────────────────────┐
-        # │ MOTEL MANAGEMENT - RUTAS PÚBLICAS                       │
-        # └─────────────────────────────────────────────────────────┘
+        # ✅ notificationService
+        - id: notificationService
+          uri: http://notificationService:8084
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - StripPrefix=0
 
-        # 5️⃣ Motel Management - Motels
+        # ✅ Motel Management - Motels (CORREGIDO: motel-management-service)
         - id: motel-management-motels
           uri: http://motel-management-service:8083
           predicates:
@@ -66,7 +37,7 @@ spring:
           filters:
             - StripPrefix=0
 
-        # 6️⃣ Motel Management - Rooms
+        # ✅ Motel Management - Rooms
         - id: motel-management-rooms
           uri: http://motel-management-service:8083
           predicates:
@@ -74,7 +45,7 @@ spring:
           filters:
             - StripPrefix=0
 
-        # 7️⃣ Motel Management - Services
+        # ✅ Motel Management - Services
         - id: motel-management-services
           uri: http://motel-management-service:8083
           predicates:
@@ -82,7 +53,7 @@ spring:
           filters:
             - StripPrefix=0
 
-        # 8️⃣ Motel Management - Reservations
+        # ✅ Motel Management - Reservations
         - id: motel-reservations
           uri: http://motel-management-service:8083
           predicates:
@@ -90,7 +61,25 @@ spring:
           filters:
             - StripPrefix=0
 
-      # ┌─────────────────────────────────────────────────────────┐
-      # │ CONFIGURACIÓN DE PROXIES                                │
-      # └─────────────────────────────────────────────────────────┘
       trusted-proxies: '127\.0\.0\.1|::1'
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# Logging
+logging:
+  level:
+    com.example.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,gateway"
+  endpoint:
+    health:
+      show-details: always
