@@ -1,49 +1,34 @@
-version: "3.8"
+version: '3.8'
 
 services:
-  gateway:
-    build:
-      context: .
-      dockerfile: gateway/Dockerfile
-    container_name: microreactivo-gateway
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION}
-    ports:
-      - "8080:8080"
-    networks:
-      - microreactivo-network
-    restart: unless-stopped
-    depends_on:
-      usermanagement-service:
-        condition: service_healthy
-      motel-management-service:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-
+  # ===========================================
+  # MICROSERVICIO: USER MANAGEMENT
+  # ===========================================
   usermanagement-service:
     build:
       context: .
       dockerfile: userManagement/Dockerfile
-    container_name: microreactivo-usermanagement
+    container_name: usermanagement-service
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
     environment:
+      # Spring Profile
       SPRING_PROFILES_ACTIVE: docker
+
+      # Database R2DBC Connection (Azure Flexible Server)
       SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
       SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
       SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
+
+      # JWT Configuration
       JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION}
-    expose:
-      - "8081"
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+
+      # Java Options
+      JAVA_OPTS: "-Xmx512m -Xms256m"
     networks:
-      - microreactivo-network
-    restart: unless-stopped
+      - ubik-network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
       interval: 30s
@@ -51,24 +36,35 @@ services:
       retries: 5
       start_period: 60s
 
+  # ===========================================
+  # MICROSERVICIO: MOTEL MANAGEMENT
+  # ===========================================
   motel-management-service:
     build:
       context: .
       dockerfile: motelManegement/Dockerfile
-    container_name: microreactivo-motel-management
+    container_name: motel-management-service
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
     environment:
+      # Spring Profile
       SPRING_PROFILES_ACTIVE: docker
+
+      # Database R2DBC Connection (Azure Flexible Server)
       SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
       SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
       SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
+
+      # Cloudinary Configuration
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
-    expose:
-      - "8083"
+
+      # Java Options
+      JAVA_OPTS: "-Xmx512m -Xms256m"
     networks:
-      - microreactivo-network
-    restart: unless-stopped
+      - ubik-network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health"]
       interval: 30s
@@ -76,6 +72,77 @@ services:
       retries: 5
       start_period: 60s
 
+  # ===========================================
+  # MICROSERVICIO: NOTIFICATION SERVICE
+  # ===========================================
+  notification-service:
+    build:
+      context: .
+      dockerfile: notificationService/Dockerfile
+    container_name: notification-service
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    environment:
+      # Spring Profile
+      SPRING_PROFILES_ACTIVE: docker
+
+      # Mail Configuration
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+
+      # Java Options
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    networks:
+      - ubik-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # ===========================================
+  # API GATEWAY
+  # ===========================================
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    container_name: gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Spring Profile
+      SPRING_PROFILES_ACTIVE: docker
+
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+
+      # Java Options
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    depends_on:
+      usermanagement-service:
+        condition: service_healthy
+      motel-management-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+    networks:
+      - ubik-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+# ===========================================
+# NETWORKS
+# ===========================================
 networks:
-  microreactivo-network:
+  ubik-network:
     driver: bridge
+    name: ubik-network
