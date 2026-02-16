@@ -5,12 +5,13 @@ FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
 
 WORKDIR /app
 
-# Copiamos todo el proyecto (incluye pom padre)
+# Copiar TODO el proyecto (incluye pom padre)
 COPY . .
 
+# Set Maven options for SSL
 ENV MAVEN_OPTS="-Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
 
-# Compilamos SOLO el módulo notificationService
+# Compilar SOLO el módulo notificationService
 RUN mvn clean package \
     -pl notificationService \
     -am \
@@ -27,12 +28,12 @@ WORKDIR /app
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
-# Copiar el JAR generado
+# Copiar el JAR del servicio de notificaciones
 COPY --from=build /app/notificationService/target/*.jar app.jar
 
 EXPOSE 8084
 
-ENV JAVA_OPTS="-Xmx256m -Xms128m"
+ENV JAVA_OPTS="-Xmx512m -Xms256m"
 ENV SPRING_PROFILES_ACTIVE=docker
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
