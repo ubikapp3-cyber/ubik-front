@@ -31,11 +31,11 @@ public class UserService implements UserUseCase {
             UserRepositoryPort userRepository,
             PasswordEncoder passwordEncoder,
             JwtAdapter jwtAdapter,
-            NotificationPort notificationPort, NotificationPort notificationPort1) {
+            NotificationPort notificationPort) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtAdapter = jwtAdapter;
-        this.notificationPort = notificationPort1;
+        this.notificationPort = notificationPort;
     }
 
     @Override
@@ -66,10 +66,20 @@ public class UserService implements UserUseCase {
                                     );
 
                                     return userRepository.save(user)
-                                            .map(saved -> jwtAdapter.generateToken(
-                                                    saved.username(),
-                                                    saved.roleId()
-                                            ));
+                                            //.map(saved -> jwtAdapter.generateToken(
+                                              //      saved.username(),
+                                                //    saved.roleId()
+                                            //)
+                                            .flatMap(saved ->
+                                                    notificationPort
+                                                            .sendRegisterEmail(saved.email(), saved.username())
+                                                            .thenReturn(
+                                                                    jwtAdapter.generateToken(
+                                                                            saved.username(),
+                                                                            saved.roleId()
+                                                                    )
+                                                            )
+                                            );
                                 }))
                 );
     }
