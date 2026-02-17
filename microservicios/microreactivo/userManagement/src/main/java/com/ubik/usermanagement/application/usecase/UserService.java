@@ -1,6 +1,7 @@
 package com.ubik.usermanagement.application.usecase;
 
 import com.ubik.usermanagement.application.port.in.UserUseCase;
+import com.ubik.usermanagement.application.port.out.NotificationPort;
 import com.ubik.usermanagement.application.port.out.UserRepositoryPort;
 import com.ubik.usermanagement.domain.model.User;
 import com.ubik.usermanagement.infrastructure.adapter.in.web.dto.LoginRequest;
@@ -24,14 +25,17 @@ public class UserService implements UserUseCase {
     private final UserRepositoryPort userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtAdapter jwtAdapter;
+    private final NotificationPort notificationPort;
 
     public UserService(
-            UserRepositoryPort userRepository, 
-            PasswordEncoder passwordEncoder, 
-            JwtAdapter jwtAdapter) {
+            UserRepositoryPort userRepository,
+            PasswordEncoder passwordEncoder,
+            JwtAdapter jwtAdapter,
+            NotificationPort notificationPort) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtAdapter = jwtAdapter;
+        this.notificationPort = notificationPort;
     }
 
     @Override
@@ -62,10 +66,20 @@ public class UserService implements UserUseCase {
                                     );
 
                                     return userRepository.save(user)
-                                            .map(saved -> jwtAdapter.generateToken(
-                                                    saved.username(),
-                                                    saved.roleId()
-                                            ));
+                                            //.map(saved -> jwtAdapter.generateToken(
+                                              //      saved.username(),
+                                                //    saved.roleId()
+                                            //)
+                                            .flatMap(saved ->
+                                                    notificationPort
+                                                            .sendRegisterEmail(saved.email(), saved.username())
+                                                            .thenReturn(
+                                                                    jwtAdapter.generateToken(
+                                                                            saved.username(),
+                                                                            saved.roleId()
+                                                                    )
+                                                            )
+                                            );
                                 }))
                 );
     }
@@ -102,7 +116,11 @@ public class UserService implements UserUseCase {
                         user.latitude(),
                         user.birthDate()
                 )))
-                .map(user -> resetToken);
+                .flatMap(user ->
+                        notificationPort
+                                .sendPasswordRecoveryEmail(user.email(), resetToken)
+                                .thenReturn(resetToken)
+                );
     }
 
     @Override
