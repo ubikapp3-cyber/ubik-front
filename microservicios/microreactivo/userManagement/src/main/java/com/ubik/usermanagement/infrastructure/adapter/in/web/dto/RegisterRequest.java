@@ -29,8 +29,7 @@ public record RegisterRequest(
         Boolean anonymous,
 
         @NotNull(message = "Role ID is required")
-        @Min(value = 1, message = "Role ID must be a positive number")
-        Integer roleId,
+        Long roleId,
 
         @DecimalMin(value = "-180.0", message = "Longitude must be >= -180")
         @DecimalMax(value = "180.0", message = "Longitude must be <= 180")

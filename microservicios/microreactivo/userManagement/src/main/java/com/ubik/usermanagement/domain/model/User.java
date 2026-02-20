@@ -29,7 +29,7 @@ public record User(
         String phoneNumber,
         LocalDateTime createdAt,
         boolean anonymous,
-        Integer roleId,
+        Long roleId,  // era Integer
         String resetToken,
         LocalDateTime resetTokenExpiry,
         BigDecimal longitude,

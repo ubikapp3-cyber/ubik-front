@@ -25,7 +25,7 @@ public class JwtAdapter implements JwtPort {
     }
 
     @Override
-    public String generateToken(String username, Integer roleId) {
+    public String generateToken(String username, Long roleId) {
         return Jwts.builder()
                 .subject(username)
                 .claim("role", roleId)

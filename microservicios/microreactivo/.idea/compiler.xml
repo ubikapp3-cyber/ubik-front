@@ -24,6 +24,9 @@
         <module name="user-management" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="paymentService" target="17" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">

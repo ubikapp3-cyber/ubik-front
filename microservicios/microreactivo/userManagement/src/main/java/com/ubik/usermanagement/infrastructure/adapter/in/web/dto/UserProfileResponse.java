@@ -14,7 +14,7 @@ public record UserProfileResponse(
         String phoneNumber,
         LocalDateTime createdAt,
         boolean anonymous,
-        Integer roleId,
+        Long roleId,
         BigDecimal longitude,
         BigDecimal latitude,
         LocalDate birthDate,
