@@ -114,6 +114,9 @@ services:
     ports:
       - "8080:8080"
     environment:
+      ROLE_ID_ADMIN: ${ROLE_ID_ADMIN}
+      ROLE_ID_PROPERTY_OWNER: ${ROLE_ID_PROPERTY_OWNER}
+      ROLE_ID_USER: ${ROLE_ID_USER}
       # Spring Profile
       SPRING_PROFILES_ACTIVE: docker
 

@@ -1,6 +1,7 @@
 package com.example.gateway.application.config;
 
 import com.example.gateway.application.filter.JwtAuthenticationFilter;
+import com.ubik.motelmanagement.domain.model.RoleConstants;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -69,8 +70,9 @@ public class SecurityConfig {
                         // ========================================
                         
                         // Gestión de aprobación de moteles - SOLO ADMIN
-                        .pathMatchers("/api/admin/motels/**").hasAuthority("ROLE_1")
-                        
+                        .pathMatchers("/api/admin/motels/**").hasAuthority("ROLE_" + RoleConstants.ADMIN)
+
+
                         // ========================================
                         // RUTAS AUTENTICADAS - Moteles del propietario
                         // ========================================
