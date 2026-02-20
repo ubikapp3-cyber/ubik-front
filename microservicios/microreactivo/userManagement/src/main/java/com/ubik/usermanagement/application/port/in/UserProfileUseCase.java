@@ -7,4 +7,5 @@ import reactor.core.publisher.Mono;
 public interface UserProfileUseCase {
     Mono<UserProfileResponse> getUserProfile(String username);
     Mono<UserProfileResponse> updateUserProfile(String username, UpdateUserRequest request);
+    Mono<UserProfileResponse> getUserProfileById(Long id);
 }

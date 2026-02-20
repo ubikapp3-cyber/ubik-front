@@ -2,8 +2,10 @@ package com.ubik.motelmanagement.domain.service;
 
 import com.ubik.motelmanagement.domain.model.Reservation;
 import com.ubik.motelmanagement.domain.port.in.ReservationUseCasePort;
+import com.ubik.motelmanagement.domain.port.out.NotificationPort;
 import com.ubik.motelmanagement.domain.port.out.ReservationRepositoryPort;
 import com.ubik.motelmanagement.domain.port.out.RoomRepositoryPort;
+import com.ubik.motelmanagement.domain.port.out.UserPort;
 import com.ubik.motelmanagement.infrastructure.client.NotificationClient;
 import com.ubik.motelmanagement.infrastructure.service.ConfirmationCodeService;
 import org.slf4j.Logger;
@@ -19,22 +21,26 @@ import java.time.format.DateTimeFormatter;
 public class ReservationService implements ReservationUseCasePort {
 
     private static final Logger log = LoggerFactory.getLogger(ReservationService.class);
-
+    private final NotificationPort notificationPort;
     private final ReservationRepositoryPort reservationRepositoryPort;
     private final RoomRepositoryPort roomRepositoryPort;
     private final ConfirmationCodeService confirmationCodeService;
     private final NotificationClient notificationClient;
+    private final UserPort userPort;
 
     public ReservationService(
+            NotificationPort notificationPort,
             ReservationRepositoryPort reservationRepositoryPort,
             RoomRepositoryPort roomRepositoryPort,
             ConfirmationCodeService confirmationCodeService,
-            NotificationClient notificationClient
+            NotificationClient notificationClient, UserPort userPort
     ) {
+        this.notificationPort = notificationPort;
         this.reservationRepositoryPort = reservationRepositoryPort;
         this.roomRepositoryPort = roomRepositoryPort;
         this.confirmationCodeService = confirmationCodeService;
         this.notificationClient = notificationClient;
+        this.userPort = userPort;
     }
 
     @Override
@@ -86,66 +92,39 @@ public class ReservationService implements ReservationUseCasePort {
                             });
                 })
 
-                // PASO 5: Enviar email asíncrono (no bloquea la respuesta)
-                .doOnSuccess(savedReservation -> {
-                    log.info("Reserva #{} creada con código: {}",
-                            savedReservation.id(),
-                            savedReservation.confirmationCode());
+                .flatMap(savedReservation ->
 
-                    sendConfirmationEmail(savedReservation).subscribe();
-                })
+                        userPort.getUserById(savedReservation.userId())
+
+                                .flatMap(user -> {
+
+                                    DateTimeFormatter formatter =
+                                            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+                                    return notificationPort.sendReservationConfirmation(
+                                            user.email(),
+                                            savedReservation.confirmationCode(),
+                                            savedReservation.checkInDate().format(formatter),
+                                            savedReservation.checkOutDate().format(formatter),
+                                            savedReservation.roomId().toString(),
+                                            String.format("%,.2f", savedReservation.totalPrice())
+                                    );
+                                })
+
+                                // No bloquear si falla el email
+                                .onErrorResume(error -> {
+                                    log.error("Error enviando notificación: {}", error.getMessage());
+                                    return Mono.empty();
+                                })
+
+                                .thenReturn(savedReservation)
+                )
+
 
                 // ✅ Manejo de errores
                 .doOnError(error -> {
                     log.error("Error creando reserva: {}", error.getMessage());
                 });
-    }
-
-    /**
-     * Envía email de confirmación con el código
-     */
-    private Mono<Void> sendConfirmationEmail(Reservation reservation) {
-        // TODO: Obtener email del usuario desde UserManagement
-        String userEmail = "usuario@ejemplo.com";
-
-        String subject = "Confirmación de Reserva - Código: " + reservation.confirmationCode();
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        String message = String.format("""
-                ¡Reserva confirmada! 
-                
-                Tu código de confirmación es:
-                
-                    %s
-                
-                ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                DETALLES DE TU RESERVA
-                ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                
-                Check-in:  %s
-                Check-out: %s
-                Habitación: #%s
-                Total:      $%,.2f COP
-                
-                ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                
-                ⚠IMPORTANTE:
-                Presenta este código al momento del check-in.
-                Sin el código no podrás acceder a la habitación.
-                
-                ¿Tienes preguntas?
-                Contáctanos en ubikapp3@gmail.com
-                
-                ¡Gracias por elegir Ubik! 
-                """,
-                reservation.confirmationCode(),
-                reservation.checkInDate().format(formatter),
-                reservation.checkOutDate().format(formatter),
-                reservation.roomId(),
-                reservation.totalPrice()
-        );
-
-        return notificationClient.sendEmailAsync(userEmail, subject, message);
     }
 
     @Override

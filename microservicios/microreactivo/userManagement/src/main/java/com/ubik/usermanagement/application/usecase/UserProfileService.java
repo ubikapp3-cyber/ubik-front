@@ -55,7 +55,13 @@ public class UserProfileService implements UserProfileUseCase {
                             .map(this::toResponse);
                 });
     }
-    
+
+    @Override
+    public Mono<UserProfileResponse> getUserProfileById(Long id) {
+        return userRepository.findById(id)
+                .map(this::toResponse);
+    }
+
     /**
      * Convierte User a UserProfileResponse
      * Incluye cálculo de edad

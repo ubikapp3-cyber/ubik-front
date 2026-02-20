@@ -30,6 +30,13 @@ public class UserProfileController {
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{id}")
+    public Mono<ResponseEntity<UserProfileResponse>> getById(@PathVariable Long id) {
+        return userProfileUseCase.getUserProfileById(id)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
     @PutMapping
     public Mono<ResponseEntity<UserProfileResponse>> updateProfile(
             @RequestBody UpdateUserRequest request,

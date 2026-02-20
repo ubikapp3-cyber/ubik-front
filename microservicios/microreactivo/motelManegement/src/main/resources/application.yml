@@ -13,6 +13,11 @@ spring:
       max-file-size: 10MB
       max-request-size: 50MB
 
+services:
+  user-management:
+    url: http://usermanagement-service:8081
+
+
   # PostgreSQL R2DBC (valores inyectados desde .env o docker)
   r2dbc:
     url: ${SPRING_R2DBC_URL}
