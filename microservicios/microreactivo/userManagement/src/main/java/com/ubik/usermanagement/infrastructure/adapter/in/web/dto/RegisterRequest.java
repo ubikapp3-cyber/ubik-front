@@ -1,5 +1,6 @@
 package com.ubik.usermanagement.infrastructure.adapter.in.web.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
@@ -29,6 +30,7 @@ public record RegisterRequest(
         Boolean anonymous,
 
         @NotNull(message = "Role ID is required")
+        @JsonDeserialize(using = LongFromStringDeserializer.class)
         Long roleId,
 
         @DecimalMin(value = "-180.0", message = "Longitude must be >= -180")
