@@ -1,0 +1,20 @@
+[Unit]
+Description=Ubik Microservices Startup
+# Arrancar después de que Docker y la red estén listos
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+# Ejecutar el script de arranque
+ExecStart=/home/azureuser/ubik-start.sh
+# Mantener el log activo aunque el servicio termine
+RemainAfterExit=yes
+# Usuario con permisos de Docker
+User=root
+# Timeout generoso para que los contenedores terminen de buildear/arrancar
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target
