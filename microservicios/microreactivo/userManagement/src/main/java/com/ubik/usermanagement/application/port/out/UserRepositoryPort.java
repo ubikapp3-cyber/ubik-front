@@ -11,4 +11,6 @@ public interface UserRepositoryPort {
     Mono<User> findById(Long id);
 
     Mono<User> update(User user);
+
+    Mono<Void> deleteById(Long id);
 }

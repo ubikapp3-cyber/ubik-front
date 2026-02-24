@@ -72,4 +72,9 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
                 })
                 .map(mapper::toDomain);
     }
+
+    @Override
+    public Mono<Void> deleteById(Long id) {
+        return userRepository.deleteById(id);
+    }
 }

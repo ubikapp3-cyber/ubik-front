@@ -62,6 +62,17 @@ public class UserProfileService implements UserProfileUseCase {
                 .map(this::toResponse);
     }
 
+    @Override
+    public Mono<Boolean> deleteUserProfile(String username) {
+
+        return userRepository.findByUsername(username)
+                .flatMap(user ->
+                        userRepository.deleteById(user.id())
+                                .thenReturn(true)
+                )
+                .defaultIfEmpty(false);
+    }
+
     /**
      * Convierte User a UserProfileResponse
      * Incluye cálculo de edad

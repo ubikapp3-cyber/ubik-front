@@ -48,4 +48,18 @@ public class UserProfileController {
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
+
+    @DeleteMapping
+    public Mono<ResponseEntity<Void>> deleteProfile(ServerWebExchange exchange) {
+
+        String username = exchange.getRequest()
+                .getHeaders()
+                .getFirst("X-User-Username");
+
+        return userProfileUseCase.deleteUserProfile(username)
+                .map(deleted -> deleted
+                        ? ResponseEntity.noContent().build()
+                        : ResponseEntity.notFound().build()
+                );
+    }
 }
