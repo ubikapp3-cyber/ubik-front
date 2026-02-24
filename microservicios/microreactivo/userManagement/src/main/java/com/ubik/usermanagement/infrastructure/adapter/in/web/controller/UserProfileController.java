@@ -30,6 +30,13 @@ public class UserProfileController {
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{id}")
+    public Mono<ResponseEntity<UserProfileResponse>> getById(@PathVariable Long id) {
+        return userProfileUseCase.getUserProfileById(id)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
     @PutMapping
     public Mono<ResponseEntity<UserProfileResponse>> updateProfile(
             @RequestBody UpdateUserRequest request,
@@ -40,5 +47,19 @@ public class UserProfileController {
         return userProfileUseCase.updateUserProfile(username, request)
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    @DeleteMapping
+    public Mono<ResponseEntity<Void>> deleteProfile(ServerWebExchange exchange) {
+
+        String username = exchange.getRequest()
+                .getHeaders()
+                .getFirst("X-User-Username");
+
+        return userProfileUseCase.deleteUserProfile(username)
+                .map(deleted -> deleted
+                        ? ResponseEntity.noContent().build()
+                        : ResponseEntity.notFound().build()
+                );
     }
 }

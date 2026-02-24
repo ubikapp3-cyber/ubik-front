@@ -15,6 +15,7 @@ public record Reservation(
         ReservationStatus status,
         Double totalPrice,
         String specialRequests,
+        String confirmationCode,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -38,7 +39,8 @@ public record Reservation(
             LocalDateTime checkInDate,
             LocalDateTime checkOutDate,
             Double totalPrice,
-            String specialRequests
+            String specialRequests,
+            String confirmationCode
     ) {
         LocalDateTime now = LocalDateTime.now();
         return new Reservation(
@@ -50,6 +52,7 @@ public record Reservation(
                 ReservationStatus.PENDING,
                 totalPrice,
                 specialRequests,
+                confirmationCode,
                 now,
                 now
         );
@@ -68,6 +71,7 @@ public record Reservation(
                 newStatus,
                 this.totalPrice,
                 this.specialRequests,
+                this.confirmationCode,
                 this.createdAt,
                 LocalDateTime.now()
         );
@@ -91,6 +95,7 @@ public record Reservation(
                 this.status,
                 totalPrice,
                 specialRequests,
+                this.confirmationCode,
                 this.createdAt,
                 LocalDateTime.now()
         );

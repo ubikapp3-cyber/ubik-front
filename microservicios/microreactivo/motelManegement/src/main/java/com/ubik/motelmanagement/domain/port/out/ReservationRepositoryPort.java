@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 
 /**
  * Puerto de salida para persistencia de Reservation
- * Define las operaciones de repositorio en el dominio
  */
 public interface ReservationRepositoryPort {
 
@@ -25,7 +24,7 @@ public interface ReservationRepositoryPort {
 
     Mono<Void> deleteById(Long id);
 
-    // Métodos de búsqueda específicos del dominio
+    // Métodos de búsqueda específicos
     Flux<Reservation> findByRoomId(Long roomId);
 
     Flux<Reservation> findByUserId(Long userId);
@@ -39,4 +38,8 @@ public interface ReservationRepositoryPort {
     Flux<Reservation> findByDateRange(LocalDate startDate, LocalDate endDate);
 
     Mono<Boolean> hasConflictingReservations(Long roomId, LocalDate checkIn, LocalDate checkOut, Long excludeReservationId);
+
+    Mono<Boolean> existsActiveReservationWithCode(String confirmationCode);
+
+    Mono<Reservation> findByConfirmationCode(String confirmationCode);
 }

@@ -3,9 +3,35 @@ server:
 
 spring:
   cloud:
-    gateway: 
+    gateway:
       routes:
-        # ✅ UserManagement - Auth (CORREGIDO: usermanagement-service)
+        # ═══════════════════════════════════════════════════════
+        # MOTEL MANAGEMENT - RUTAS AUTENTICADAS
+        # ⚠️  DEBEN IR ANTES que /api/auth/** del userManagement
+        # ═══════════════════════════════════════════════════════
+
+        # 1️⃣ PRIMERO: ruta exacta, sin variables (más específica)
+        - id: motel-management-my-motels
+          uri: http://motel-management-service:8083
+          predicates:
+            - Path=/api/auth/motels/my-motels
+          filters:
+            - StripPrefix=0
+
+        # 2️⃣ SEGUNDO: ruta con variable de path (menos específica)
+        - id: motel-management-auth-motels-userid
+          uri: http://motel-management-service:8083
+          predicates:
+            - Path=/api/auth/motels/{userId}
+          filters:
+            - StripPrefix=0
+
+        # ═══════════════════════════════════════════════════════
+        # USER MANAGEMENT
+        # Debe ir DESPUÉS de las rutas de motel autenticadas
+        # ═══════════════════════════════════════════════════════
+
+        # 3️⃣ Auth general (login, registro, etc.)
         - id: userManagement-auth
           uri: http://usermanagement-service:8081
           predicates:
@@ -13,7 +39,7 @@ spring:
           filters:
             - StripPrefix=0
 
-        # ✅ UserManagement - Profile (CORREGIDO: usermanagement-service)
+        # 4️⃣ Profile
         - id: userManagement-profile
           uri: http://usermanagement-service:8081
           predicates:
@@ -21,15 +47,23 @@ spring:
           filters:
             - StripPrefix=0
 
-        # ✅ notificationService
+        # ═══════════════════════════════════════════════════════
+        # OTROS SERVICIOS
+        # ═══════════════════════════════════════════════════════
+
+        # 5️⃣ Notifications
         - id: notificationService
-          uri: http://notification-service:8084
+          uri: http://notificationService:8084
           predicates:
             - Path=/api/notifications/**
           filters:
             - StripPrefix=0
 
-        # ✅ Motel Management - Motels (CORREGIDO: motel-management-service)
+        # ═══════════════════════════════════════════════════════
+        # MOTEL MANAGEMENT - RUTAS PÚBLICAS
+        # ═══════════════════════════════════════════════════════
+
+        # 6️⃣ Motels públicos
         - id: motel-management-motels
           uri: http://motel-management-service:8083
           predicates:
@@ -37,7 +71,7 @@ spring:
           filters:
             - StripPrefix=0
 
-        # ✅ Motel Management - Rooms
+        # 7️⃣ Rooms
         - id: motel-management-rooms
           uri: http://motel-management-service:8083
           predicates:
@@ -45,7 +79,7 @@ spring:
           filters:
             - StripPrefix=0
 
-        # ✅ Motel Management - Services
+        # 8️⃣ Services
         - id: motel-management-services
           uri: http://motel-management-service:8083
           predicates:
@@ -53,7 +87,7 @@ spring:
           filters:
             - StripPrefix=0
 
-        # ✅ Motel Management - Reservations
+        # 9️⃣ Reservations
         - id: motel-reservations
           uri: http://motel-management-service:8083
           predicates:

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 /**
  * DTO para actualizar una Reservation existente
+ * NO permite cambiar el confirmationCode (es inmutable)
  */
 public record UpdateReservationRequest(
         @NotNull(message = "La fecha de check-in es requerida")
@@ -21,5 +22,6 @@ public record UpdateReservationRequest(
 
         @Size(max = 500, message = "Las solicitudes especiales no pueden exceder 500 caracteres")
         String specialRequests
+
 ) {
 }

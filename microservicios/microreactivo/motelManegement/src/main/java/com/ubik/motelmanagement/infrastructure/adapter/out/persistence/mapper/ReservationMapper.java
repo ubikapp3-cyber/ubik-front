@@ -27,6 +27,7 @@ public class ReservationMapper {
                 Reservation.ReservationStatus.valueOf(entity.status()),
                 entity.totalPrice(),
                 entity.specialRequests(),
+                entity.confirmationCode(),
                 entity.createdAt(),
                 entity.updatedAt()
         );
@@ -49,6 +50,7 @@ public class ReservationMapper {
                 reservation.status().name(),
                 reservation.totalPrice(),
                 reservation.specialRequests(),
+                reservation.confirmationCode(),
                 reservation.createdAt(),
                 reservation.updatedAt()
         );

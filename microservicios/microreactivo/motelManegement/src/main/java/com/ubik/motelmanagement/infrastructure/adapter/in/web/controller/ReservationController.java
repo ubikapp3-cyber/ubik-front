@@ -6,32 +6,32 @@ import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.CreateReservat
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.ReservationResponse;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.UpdateReservationRequest;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.mapper.ReservationDtoMapper;
+import com.ubik.motelmanagement.infrastructure.adapter.out.persistence.repository.UserR2dbcRepository;  // ✅ AGREGAR
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ServerWebExchange;  // ✅ AGREGAR
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 
-/**
- * Controlador REST reactivo para operaciones CRUD de Reservation
- * Adaptador primario en arquitectura hexagonal
- */
 @RestController
 @RequestMapping("/api/reservations")
 public class ReservationController {
 
     private final ReservationUseCasePort reservationUseCasePort;
     private final ReservationDtoMapper reservationDtoMapper;
+    private final UserR2dbcRepository userRepository;  // ✅ AGREGAR
 
     public ReservationController(
             ReservationUseCasePort reservationUseCasePort,
-            ReservationDtoMapper reservationDtoMapper
-    ) {
+            ReservationDtoMapper reservationDtoMapper,
+            UserR2dbcRepository userRepository) {  // ✅ AGREGAR
         this.reservationUseCasePort = reservationUseCasePort;
         this.reservationDtoMapper = reservationDtoMapper;
+        this.userRepository = userRepository;  // ✅ AGREGAR
     }
 
     /**
@@ -40,12 +40,46 @@ public class ReservationController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<ReservationResponse> createReservation(@Valid @RequestBody CreateReservationRequest request) {
-        return Mono.just(request)
-                .map(reservationDtoMapper::toDomain)
-                .flatMap(reservationUseCasePort::createReservation)
-                .map(reservationDtoMapper::toResponse);
+    public Mono<ReservationResponse> createReservation(
+            @Valid @RequestBody CreateReservationRequest request,
+            ServerWebExchange exchange) {  // ✅ AGREGAR ServerWebExchange
+
+        // ✅ Obtener username del header
+        String username = exchange.getRequest().getHeaders().getFirst("X-User-Username");
+
+        if (username == null || username.isBlank()) {
+            return Mono.error(new RuntimeException("Usuario no autenticado"));
+        }
+
+        // ✅ Buscar userId por username
+        return userRepository.findIdByUsername(username)
+                .switchIfEmpty(Mono.error(new RuntimeException("Usuario no encontrado: " + username)))
+                .flatMap(userId -> {
+                    // ✅ Usar el userId obtenido de la BD
+                    return Mono.just(request)
+                            .map(reservationDtoMapper::toDomain)
+                            .flatMap(reservation -> {
+                                // ✅ Reemplazar el userId del request con el real
+                                var reservationWithUserId = new com.ubik.motelmanagement.domain.model.Reservation(
+                                        null,
+                                        reservation.roomId(),
+                                        userId,  // ✅ userId de la BD
+                                        reservation.checkInDate(),
+                                        reservation.checkOutDate(),
+                                        reservation.status(),
+                                        reservation.totalPrice(),
+                                        reservation.specialRequests(),
+                                        null,  // confirmationCode (se genera en el servicio)
+                                        null,  // createdAt
+                                        null   // updatedAt
+                                );
+                                return reservationUseCasePort.createReservation(reservationWithUserId);
+                            })
+                            .map(reservationDtoMapper::toResponse);
+                });
     }
+
+
 
     /**
      * Obtiene una reserva por ID

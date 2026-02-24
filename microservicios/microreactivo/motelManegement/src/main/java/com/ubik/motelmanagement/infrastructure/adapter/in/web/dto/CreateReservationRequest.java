@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 /**
  * DTO para crear una nueva Reservation
+ * NO incluye confirmationCode porque se genera automáticamente
  */
 public record CreateReservationRequest(
         @NotNull(message = "El ID de la habitación es requerido")
@@ -28,5 +29,6 @@ public record CreateReservationRequest(
 
         @Size(max = 500, message = "Las solicitudes especiales no pueden exceder 500 caracteres")
         String specialRequests
+
 ) {
 }

@@ -10,12 +10,14 @@ import java.time.LocalDateTime;
 
 /**
  * Mapper para convertir entre DTOs web y modelo de dominio Reservation
+ * ✅ CORREGIDO: Mantiene fiabilidad del confirmationCode
  */
 @Component
 public class ReservationDtoMapper {
 
     /**
-     * Convierte CreateReservationRequest a Reservation de dominio
+     * ✅ Convierte CreateReservationRequest a Reservation de dominio
+     * confirmationCode = null porque se genera en el servicio
      */
     public Reservation toDomain(CreateReservationRequest request) {
         if (request == null) {
@@ -31,13 +33,16 @@ public class ReservationDtoMapper {
                 Reservation.ReservationStatus.PENDING,
                 request.totalPrice(),
                 request.specialRequests(),
+                null,  // confirmationCode = null (se genera en el servicio)
                 now,
                 now
         );
     }
 
     /**
-     * Convierte UpdateReservationRequest a Reservation de dominio (sin ID, roomId, userId)
+     * Convierte UpdateReservationRequest a Reservation de dominio
+     * confirmationCode = null porque NO se puede actualizar
+     * (el servicio mantendrá el código original)
      */
     public Reservation toDomain(UpdateReservationRequest request) {
         if (request == null) {
@@ -52,6 +57,7 @@ public class ReservationDtoMapper {
                 null, // Se mantendrá el existente
                 request.totalPrice(),
                 request.specialRequests(),
+                null, // confirmationCode = null (se mantiene el original en el servicio)
                 null, // Se mantendrá la existente
                 LocalDateTime.now()
         );
@@ -59,6 +65,7 @@ public class ReservationDtoMapper {
 
     /**
      * Convierte Reservation de dominio a ReservationResponse
+     * INCLUYE confirmationCode en la respuesta
      */
     public ReservationResponse toResponse(Reservation reservation) {
         if (reservation == null) {
@@ -73,6 +80,7 @@ public class ReservationDtoMapper {
                 reservation.status().name(),
                 reservation.totalPrice(),
                 reservation.specialRequests(),
+                reservation.confirmationCode(),
                 reservation.createdAt(),
                 reservation.updatedAt()
         );

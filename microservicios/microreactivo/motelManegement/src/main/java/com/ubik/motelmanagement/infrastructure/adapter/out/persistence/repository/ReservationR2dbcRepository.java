@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 
 /**
  * Repositorio R2DBC para gestionar reservas
+ * ✅ Incluye queries para confirmationCode
  */
 @Repository
 public interface ReservationR2dbcRepository extends R2dbcRepository<ReservationEntity, Long> {
@@ -33,4 +34,12 @@ public interface ReservationR2dbcRepository extends R2dbcRepository<ReservationE
             "OR (check_out_date BETWEEN :startDate AND :endDate) " +
             "OR (check_in_date <= :startDate AND check_out_date >= :endDate))")
     Flux<ReservationEntity> findConflictingReservationsExcluding(Long roomId, LocalDateTime startDate, LocalDateTime endDate, Long excludeId);
+
+    @Query("SELECT EXISTS(SELECT 1 FROM reservations " +
+            "WHERE confirmation_code = :code " +
+            "AND status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN'))")
+    Mono<Boolean> existsActiveReservationWithCode(String code);
+
+    @Query("SELECT * FROM reservations WHERE confirmation_code = :code")
+    Mono<ReservationEntity> findByConfirmationCode(String code);
 }

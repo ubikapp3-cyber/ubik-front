@@ -2,48 +2,128 @@ package com.ubik.motelmanagement.domain.service;
 
 import com.ubik.motelmanagement.domain.model.Reservation;
 import com.ubik.motelmanagement.domain.port.in.ReservationUseCasePort;
+import com.ubik.motelmanagement.domain.port.out.NotificationPort;
 import com.ubik.motelmanagement.domain.port.out.ReservationRepositoryPort;
 import com.ubik.motelmanagement.domain.port.out.RoomRepositoryPort;
+import com.ubik.motelmanagement.domain.port.out.UserPort;
+import com.ubik.motelmanagement.infrastructure.client.NotificationClient;
+import com.ubik.motelmanagement.infrastructure.service.ConfirmationCodeService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
-/**
- * Servicio de dominio que implementa los casos de uso de Reservation
- * Contiene la lógica de negocio para gestión de reservas
- */
 @Service
 public class ReservationService implements ReservationUseCasePort {
 
+    private static final Logger log = LoggerFactory.getLogger(ReservationService.class);
+    private final NotificationPort notificationPort;
     private final ReservationRepositoryPort reservationRepositoryPort;
     private final RoomRepositoryPort roomRepositoryPort;
+    private final ConfirmationCodeService confirmationCodeService;
+    private final NotificationClient notificationClient;
+    private final UserPort userPort;
 
     public ReservationService(
+            NotificationPort notificationPort,
             ReservationRepositoryPort reservationRepositoryPort,
-            RoomRepositoryPort roomRepositoryPort
+            RoomRepositoryPort roomRepositoryPort,
+            ConfirmationCodeService confirmationCodeService,
+            NotificationClient notificationClient, UserPort userPort
     ) {
+        this.notificationPort = notificationPort;
         this.reservationRepositoryPort = reservationRepositoryPort;
         this.roomRepositoryPort = roomRepositoryPort;
+        this.confirmationCodeService = confirmationCodeService;
+        this.notificationClient = notificationClient;
+        this.userPort = userPort;
     }
 
     @Override
     public Mono<Reservation> createReservation(Reservation reservation) {
-        return validateReservation(reservation)
-                .then(roomRepositoryPort.existsById(reservation.roomId()))
-                .flatMap(roomExists -> {
-                    if (!roomExists) {
-                        return Mono.error(new RuntimeException("Habitación no encontrada con ID: " + reservation.roomId()));
-                    }
-                    return isRoomAvailable(reservation.roomId(), reservation.checkInDate(), reservation.checkOutDate());
+        log.info("Creando nueva reserva para habitación {}", reservation.roomId());
+
+        // PASO 1: Generar código único de forma reactiva
+        return confirmationCodeService.generateCode()
+                .doOnNext(code -> log.debug("Código asignado: {}", code))
+
+                // PASO 2: Crear reserva con el código generado
+                .flatMap(confirmationCode -> {
+                    Reservation reservationWithCode = new Reservation(
+                            null,
+                            reservation.roomId(),
+                            reservation.userId(),
+                            reservation.checkInDate(),
+                            reservation.checkOutDate(),
+                            Reservation.ReservationStatus.PENDING,
+                            reservation.totalPrice(),
+                            reservation.specialRequests(),
+                            confirmationCode,
+                            LocalDateTime.now(),
+                            LocalDateTime.now()
+                    );
+
+                    // PASO 3: Validaciones de negocio
+                    return validateReservation(reservationWithCode)
+                            .then(roomRepositoryPort.existsById(reservation.roomId()))
+                            .flatMap(roomExists -> {
+                                if (!roomExists) {
+                                    return Mono.error(new RuntimeException(
+                                            "Habitación no encontrada con ID: " + reservation.roomId()));
+                                }
+                                return isRoomAvailable(
+                                        reservation.roomId(),
+                                        reservation.checkInDate(),
+                                        reservation.checkOutDate()
+                                );
+                            })
+                            .flatMap(isAvailable -> {
+                                if (!isAvailable) {
+                                    return Mono.error(new IllegalArgumentException(
+                                            "La habitación no está disponible para las fechas seleccionadas"));
+                                }
+
+                                // PASO 4: Guardar en BD
+                                return reservationRepositoryPort.save(reservationWithCode);
+                            });
                 })
-                .flatMap(isAvailable -> {
-                    if (!isAvailable) {
-                        return Mono.error(new IllegalArgumentException(
-                                "La habitación no está disponible para las fechas seleccionadas"));
-                    }
-                    return reservationRepositoryPort.save(reservation);
+
+                .flatMap(savedReservation ->
+
+                        userPort.getUserById(savedReservation.userId())
+
+                                .flatMap(user -> {
+
+                                    DateTimeFormatter formatter =
+                                            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+                                    return notificationPort.sendReservationConfirmation(
+                                            user.email(),
+                                            savedReservation.confirmationCode(),
+                                            savedReservation.checkInDate().format(formatter),
+                                            savedReservation.checkOutDate().format(formatter),
+                                            savedReservation.roomId().toString(),
+                                            String.format("%,.2f", savedReservation.totalPrice())
+                                    );
+                                })
+
+                                // No bloquear si falla el email
+                                .onErrorResume(error -> {
+                                    log.error("Error enviando notificación: {}", error.getMessage());
+                                    return Mono.empty();
+                                })
+
+                                .thenReturn(savedReservation)
+                )
+
+
+                // ✅ Manejo de errores
+                .doOnError(error -> {
+                    log.error("Error creando reserva: {}", error.getMessage());
                 });
     }
 
@@ -118,6 +198,7 @@ public class ReservationService implements ReservationUseCasePort {
                                             existingReservation.status(),
                                             reservation.totalPrice(),
                                             reservation.specialRequests(),
+                                            existingReservation.confirmationCode(),
                                             existingReservation.createdAt(),
                                             LocalDateTime.now()
                                     );
@@ -134,6 +215,7 @@ public class ReservationService implements ReservationUseCasePort {
                                 existingReservation.status(),
                                 reservation.totalPrice(),
                                 reservation.specialRequests(),
+                                existingReservation.confirmationCode(),
                                 existingReservation.createdAt(),
                                 LocalDateTime.now()
                         );

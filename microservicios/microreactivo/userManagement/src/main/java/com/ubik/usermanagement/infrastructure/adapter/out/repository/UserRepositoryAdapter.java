@@ -22,6 +22,12 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         this.userRepository = userRepository;
         this.mapper = mapper;
     }
+
+    @Override
+    public Mono<User> findById(Long id) {
+        return userRepository.findById(id)
+                .map(mapper::toDomain);
+    }
     
     @Override
     public Mono<User> findByUsername(String username) {
@@ -65,5 +71,10 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
                     return userRepository.save(updatedEntity);
                 })
                 .map(mapper::toDomain);
+    }
+
+    @Override
+    public Mono<Void> deleteById(Long id) {
+        return userRepository.deleteById(id);
     }
 }

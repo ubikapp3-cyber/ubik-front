@@ -14,6 +14,7 @@ public record ReservationResponse(
         String status,
         Double totalPrice,
         String specialRequests,
+        String confirmationCode,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

@@ -36,7 +36,7 @@ public record UserEntity(
         boolean anonymous,
 
         @Column("role_id")
-        Integer roleId,
+        Long roleId,
 
         @Column("reset_token")
         String resetToken,

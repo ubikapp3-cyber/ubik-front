@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 
 /**
  * Adaptador de persistencia para Reservation
+ * Implementa métodos para confirmationCode
  */
 @Component
 public class ReservationPersistenceAdapter implements ReservationRepositoryPort {
@@ -96,7 +97,6 @@ public class ReservationPersistenceAdapter implements ReservationRepositoryPort 
 
     @Override
     public Flux<Reservation> findByDateRange(LocalDate startDate, LocalDate endDate) {
-        // Convert LocalDate to LocalDateTime at start/end of day for the query
         return reservationRepository.findAll()
                 .map(reservationMapper::toDomain)
                 .filter(reservation -> {
@@ -122,5 +122,16 @@ public class ReservationPersistenceAdapter implements ReservationRepositoryPort 
                     checkOut.atTime(23, 59, 59)
             ).hasElements();
         }
+    }
+
+    @Override
+    public Mono<Boolean> existsActiveReservationWithCode(String confirmationCode) {
+        return reservationRepository.existsActiveReservationWithCode(confirmationCode);
+    }
+
+    @Override
+    public Mono<Reservation> findByConfirmationCode(String confirmationCode) {
+        return reservationRepository.findByConfirmationCode(confirmationCode)
+                .map(reservationMapper::toDomain);
     }
 }
