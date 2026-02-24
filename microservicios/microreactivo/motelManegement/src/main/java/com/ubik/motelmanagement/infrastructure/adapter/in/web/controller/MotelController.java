@@ -1,43 +1,53 @@
 package com.ubik.motelmanagement.infrastructure.adapter.in.web.controller;
 
-import com.ubik.motelmanagement.domain.model.Motel;  
+import com.ubik.motelmanagement.domain.model.Motel;
 import com.ubik.motelmanagement.domain.port.in.MotelUseCasePort;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.CreateMotelRequest;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.MotelResponse;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.UpdateMotelRequest;
-import com.ubik.motelmanagement.infrastructure.adapter.in.web.mapper.MotelDtoMapper;  
+import com.ubik.motelmanagement.infrastructure.adapter.in.web.mapper.MotelDtoMapper;
+import com.ubik.motelmanagement.infrastructure.adapter.out.persistence.repository.UserR2dbcRepository;
 import jakarta.validation.Valid;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-/**
- * Controlador REST reactivo para operaciones CRUD de Motel
- * 
- * ENDPOINTS PÚBLICOS (sin autenticación):
- * - GET /api/motels
- * - GET /api/motels/{id}
- * - GET /api/motels/city/{city}
- * 
- * ENDPOINTS PROTEGIDOS (requieren autenticación):
- * - POST /api/motels
- * - PUT /api/motels/{id}
- * - DELETE /api/motels/{id}
- */
 @RestController
 @RequestMapping("/api/motels")
 public class MotelController {
 
+    private static final Logger log = LoggerFactory.getLogger(MotelController.class);
+
+    // Leídos desde variables de entorno, igual que en SecurityConfig del gateway
+    private final String roleIdAdmin;
+    private final String roleIdPropertyOwner;
+
     private final MotelUseCasePort motelUseCasePort;
     private final MotelDtoMapper motelDtoMapper;
+    private final UserR2dbcRepository userRepository;
 
-    public MotelController(MotelUseCasePort motelUseCasePort, MotelDtoMapper motelDtoMapper) {
+    public MotelController(
+            MotelUseCasePort motelUseCasePort,
+            MotelDtoMapper motelDtoMapper,
+            UserR2dbcRepository userRepository,
+            @Value("${app.roles.admin:#{environment['ROLE_ID_ADMIN']}}") String roleIdAdmin,
+            @Value("${app.roles.property-owner:#{environment['ROLE_ID_PROPERTY_OWNER']}}") String roleIdPropertyOwner) {
         this.motelUseCasePort = motelUseCasePort;
         this.motelDtoMapper = motelDtoMapper;
+        this.userRepository = userRepository;
+        this.roleIdAdmin = roleIdAdmin;
+        this.roleIdPropertyOwner = roleIdPropertyOwner;
     }
+
+    // =========================================================================
+    // ENDPOINTS PÚBLICOS
+    // =========================================================================
 
     /**
      * PÚBLICO - Obtiene todos los moteles
@@ -69,10 +79,15 @@ public class MotelController {
                 .map(motelDtoMapper::toResponse);
     }
 
+    // =========================================================================
+    // ENDPOINTS PROTEGIDOS
+    // =========================================================================
+
     /**
-     * PROTEGIDO - Crea un nuevo motel
+     * PROTEGIDO - Crea un nuevo motel.
+     * El propertyId se asigna desde el usuario autenticado (lookup por username).
+     * Cualquier propertyId en el body es ignorado.
      * POST /api/motels
-     * Requiere: Header X-User-Username y X-User-Role
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -81,29 +96,31 @@ public class MotelController {
             ServerWebExchange exchange) {
 
         String username = exchange.getRequest().getHeaders().getFirst("X-User-Username");
-        String userIdHeader = exchange.getRequest().getHeaders().getFirst("X-User-Id");
+        String role     = exchange.getRequest().getHeaders().getFirst("X-User-Role");
 
-        if (username == null || userIdHeader == null) {
-            return Mono.error(new RuntimeException("Usuario no autenticado"));
+        if (username == null || username.isBlank()) {
+            return Mono.error(new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED, "Usuario no autenticado"));
         }
 
-        Long userId;
-        try {
-            userId = Long.parseLong(userIdHeader);
-        } catch (NumberFormatException e) {
-            return Mono.error(new RuntimeException("Header X-User-Id inválido"));
+        // Solo admin y property owner pueden crear moteles
+        if (!isAdmin(role) && !isPropertyOwner(role)) {
+            return Mono.error(new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "No tienes permiso para crear moteles"));
         }
 
-        Logger log = null;
-        log.info("🔧 Creando motel para usuario ID: {}", userId);
+        log.info("Creando motel para username: '{}' con role: '{}'", username, role);
 
-        // ✅ Asignar el userId del token como propertyId del motel
-        final Long finalUserId = userId;
-        return Mono.just(request)
-                .map(motelDtoMapper::toDomain)
-                .map(motel -> {
-                    log.info("Motel original - propertyId: {}", motel.propertyId());
+        return userRepository.findIdByUsername(username)
+                .switchIfEmpty(Mono.error(new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Usuario no encontrado: " + username)))
+                .flatMap(userId -> {
+                    log.info("UserId resuelto: {} para username: '{}'", userId, username);
 
+                    Motel motel = motelDtoMapper.toDomain(request);
+
+                    // Forzar propertyId desde el usuario autenticado,
+                    // ignorando lo que venga en el request body
                     Motel motelWithOwner = new Motel(
                             motel.id(),
                             motel.name(),
@@ -111,7 +128,7 @@ public class MotelController {
                             motel.phoneNumber(),
                             motel.description(),
                             motel.city(),
-                            finalUserId,          // ✅ propertyId = userId autenticado
+                            userId,                 // propertyId = userId real de la BD
                             motel.dateCreated(),
                             motel.imageUrls(),
                             motel.latitude(),
@@ -129,55 +146,128 @@ public class MotelController {
                             motel.legalDocumentUrl()
                     );
 
-                    log.info("Motel modificado - propertyId: {}", motelWithOwner.propertyId());
-                    return motelWithOwner;
+                    return motelUseCasePort.createMotel(motelWithOwner);
                 })
-                .flatMap(motelUseCasePort::createMotel)
                 .map(motelDtoMapper::toResponse);
     }
 
     /**
-     * PROTEGIDO - Actualiza un motel existente
+     * PROTEGIDO - Actualiza un motel existente.
+     * Admin puede actualizar cualquier motel.
+     * Property owner solo puede actualizar sus propios moteles.
      * PUT /api/motels/{id}
-     * Requiere: Header X-User-Username y X-User-Role
      */
     @PutMapping("/{id}")
     public Mono<MotelResponse> updateMotel(
             @PathVariable Long id,
             @Valid @RequestBody UpdateMotelRequest request,
             ServerWebExchange exchange) {
-        
-        // Opcional: Validar autenticación
+
         String username = exchange.getRequest().getHeaders().getFirst("X-User-Username");
-        
-        if (username == null) {
-            return Mono.error(new RuntimeException("Usuario no autenticado"));
+        String role     = exchange.getRequest().getHeaders().getFirst("X-User-Role");
+
+        if (username == null || username.isBlank()) {
+            return Mono.error(new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED, "Usuario no autenticado"));
         }
-        
-        return Mono.just(request)
-                .map(motelDtoMapper::toDomain)
-                .flatMap(motel -> motelUseCasePort.updateMotel(id, motel))
+
+        log.info("Actualizando motel {} por username: '{}' con role: '{}'", id, username, role);
+
+        // Admin puede actualizar cualquier motel sin verificar propiedad
+        if (isAdmin(role)) {
+            return Mono.just(request)
+                    .map(motelDtoMapper::toDomain)
+                    .flatMap(motel -> motelUseCasePort.updateMotel(id, motel))
+                    .map(motelDtoMapper::toResponse);
+        }
+
+        // Property owner: verificar que el motel le pertenece
+        if (!isPropertyOwner(role)) {
+            return Mono.error(new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "No tienes permiso para modificar moteles"));
+        }
+
+        return userRepository.findIdByUsername(username)
+                .switchIfEmpty(Mono.error(new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Usuario no encontrado: " + username)))
+                .flatMap(userId ->
+                        motelUseCasePort.getMotelById(id)
+                                .flatMap(existingMotel -> {
+                                    if (!userId.equals(existingMotel.propertyId())) {
+                                        log.warn("Acceso denegado: usuario {} intentó editar motel {} (propietario: {})",
+                                                userId, id, existingMotel.propertyId());
+                                        return Mono.error(new ResponseStatusException(
+                                                HttpStatus.FORBIDDEN,
+                                                "No tienes permiso para modificar este motel"));
+                                    }
+                                    return Mono.just(request)
+                                            .map(motelDtoMapper::toDomain)
+                                            .flatMap(motel -> motelUseCasePort.updateMotel(id, motel));
+                                })
+                )
                 .map(motelDtoMapper::toResponse);
     }
 
     /**
-     * PROTEGIDO - Elimina un motel
+     * PROTEGIDO - Elimina un motel.
+     * Admin puede eliminar cualquier motel.
+     * Property owner solo puede eliminar sus propios moteles.
      * DELETE /api/motels/{id}
-     * Requiere: Header X-User-Username y X-User-Role
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteMotel(
             @PathVariable Long id,
             ServerWebExchange exchange) {
-        
-        // Opcional: Validar autenticación
+
         String username = exchange.getRequest().getHeaders().getFirst("X-User-Username");
-        
-        if (username == null) {
-            return Mono.error(new RuntimeException("Usuario no autenticado"));
+        String role     = exchange.getRequest().getHeaders().getFirst("X-User-Role");
+
+        if (username == null || username.isBlank()) {
+            return Mono.error(new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED, "Usuario no autenticado"));
         }
-        
-        return motelUseCasePort.deleteMotel(id);
+
+        log.info("Eliminando motel {} por username: '{}' con role: '{}'", id, username, role);
+
+        // Admin puede eliminar cualquier motel
+        if (isAdmin(role)) {
+            return motelUseCasePort.deleteMotel(id);
+        }
+
+        // Property owner: verificar propiedad antes de eliminar
+        if (!isPropertyOwner(role)) {
+            return Mono.error(new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "No tienes permiso para eliminar moteles"));
+        }
+
+        return userRepository.findIdByUsername(username)
+                .switchIfEmpty(Mono.error(new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Usuario no encontrado: " + username)))
+                .flatMap(userId ->
+                        motelUseCasePort.getMotelById(id)
+                                .flatMap(existingMotel -> {
+                                    if (!userId.equals(existingMotel.propertyId())) {
+                                        log.warn("Acceso denegado: usuario {} intentó eliminar motel {} (propietario: {})",
+                                                userId, id, existingMotel.propertyId());
+                                        return Mono.error(new ResponseStatusException(
+                                                HttpStatus.FORBIDDEN,
+                                                "No tienes permiso para eliminar este motel"));
+                                    }
+                                    return motelUseCasePort.deleteMotel(id);
+                                })
+                );
+    }
+
+    // =========================================================================
+    // HELPERS
+    // =========================================================================
+
+    private boolean isAdmin(String role) {
+        return roleIdAdmin != null && roleIdAdmin.equals(role);
+    }
+
+    private boolean isPropertyOwner(String role) {
+        return roleIdPropertyOwner != null && roleIdPropertyOwner.equals(role);
     }
 }

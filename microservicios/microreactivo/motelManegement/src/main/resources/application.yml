@@ -1,3 +1,7 @@
+app:
+  roles:
+    admin: ${ROLE_ID_ADMIN}
+    property-owner: ${ROLE_ID_PROPERTY_OWNER}
 server:
   port: 8083
 
