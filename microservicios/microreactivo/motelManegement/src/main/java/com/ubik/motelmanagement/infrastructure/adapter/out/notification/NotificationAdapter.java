@@ -89,4 +89,71 @@ public class NotificationAdapter implements NotificationPort {
                 .retrieve()
                 .bodyToMono(Void.class);
     }
+
+    @Override
+    public Mono<Void> sendMotelCreationNotification(
+            String email,
+            String motelName,
+            String city,
+            String address,
+            String phone,
+            String rnt
+    ) {
+
+        String htmlMessage = """
+        <div style="font-family: Arial, Helvetica, sans-serif; background-color:#f4f6f9; padding:40px 20px;">
+            <div style="max-width:600px; margin:0 auto; background:#ffffff; border-radius:8px; padding:30px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+
+                <h2 style="color:#2c3e50; text-align:center;">
+                    🏨 Nuevo Establecimiento Registrado
+                </h2>
+
+                <p>Tu establecimiento ha sido registrado exitosamente en <strong>UBIK</strong>.</p>
+
+                <h3 style="color:#444; margin-top:25px;">Datos del establecimiento</h3>
+
+                <p><strong>Nombre:</strong> %s</p>
+                <p><strong>Ciudad:</strong> %s</p>
+                <p><strong>Dirección:</strong> %s</p>
+                <p><strong>Teléfono:</strong> %s</p>
+                <p><strong>RNT:</strong> %s</p>
+
+                <hr style="margin:25px 0;" />
+
+                <p style="color:#e67e22; font-weight:bold;">
+                    ⚠ Estado actual: Pendiente de aprobación por UBIK.
+                </p>
+
+                <p style="font-size:13px; color:#777;">
+                    Nuestro equipo validará la información suministrada.
+                    Recibirás una notificación cuando el establecimiento sea aprobado.
+                </p>
+
+                <p style="font-size:12px; color:#aaa; text-align:center;">
+                    Gracias por confiar en UBIK
+                </p>
+
+            </div>
+        </div>
+        """.formatted(
+                motelName,
+                city,
+                address,
+                phone,
+                rnt
+        );
+
+        Map<String, String> body = Map.of(
+                "to", email,
+                "subject", "🏨 Registro de Establecimiento Recibido - UBIK",
+                "message", htmlMessage
+        );
+
+        return webClient.post()
+                .uri("/notifications/email")
+                .header("X-Internal-Request", "true")
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(Void.class);
+    }
 }
