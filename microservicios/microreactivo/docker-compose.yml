@@ -61,6 +61,11 @@ services:
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
 
+      # Role IDs (requeridos por MotelController y AdminMotelController)
+      ROLE_ID_ADMIN: ${ROLE_ID_ADMIN}
+      ROLE_ID_PROPERTY_OWNER: ${ROLE_ID_PROPERTY_OWNER}
+      ROLE_ID_USER: ${ROLE_ID_USER}
+
       # Java Options
       JAVA_OPTS: "-Xmx512m -Xms256m"
     networks:
