@@ -43,10 +43,10 @@ public record UpdateMotelRequest(
         // NUEVOS CAMPOS: Información Legal
         // ========================================
 
-        @Size(max = 100, message = "El RUES no puede exceder 100 caracteres")
+        @Size(max = 500, message = "La URL del RUES no puede exceder 500 caracteres")
         String rues,
 
-        @Size(max = 100, message = "El RNT no puede exceder 100 caracteres")
+        @Size(max = 500, message = "La URL del RNT no puede exceder 500 caracteres")
         String rnt,
 
         String ownerDocumentType,  // CC, NIT, CE, PASAPORTE
