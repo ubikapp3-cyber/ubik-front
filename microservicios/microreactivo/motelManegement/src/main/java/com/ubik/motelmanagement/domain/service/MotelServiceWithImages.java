@@ -2,6 +2,8 @@ package com.ubik.motelmanagement.domain.service;
 
 import com.ubik.motelmanagement.domain.model.Motel;
 import com.ubik.motelmanagement.domain.port.out.MotelRepositoryPort;
+import com.ubik.motelmanagement.domain.port.out.NotificationPort;
+import com.ubik.motelmanagement.domain.port.out.UserPort;
 import com.ubik.motelmanagement.infrastructure.service.CloudinaryService;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
@@ -19,12 +21,16 @@ public class MotelServiceWithImages {
 
     private final MotelRepositoryPort motelRepositoryPort;
     private final CloudinaryService cloudinaryService;
+    private final NotificationPort notificationPort;
+    private final UserPort userPort;
 
     public MotelServiceWithImages(
             MotelRepositoryPort motelRepositoryPort,
-            CloudinaryService cloudinaryService) {
+            CloudinaryService cloudinaryService, NotificationPort notificationPort, UserPort userPort) {
         this.motelRepositoryPort = motelRepositoryPort;
         this.cloudinaryService = cloudinaryService;
+        this.notificationPort = notificationPort;
+        this.userPort = userPort;
     }
 
     /**
@@ -60,7 +66,29 @@ public class MotelServiceWithImages {
                     );
                     
                     return motelRepositoryPort.save(motelWithImages);
-                });
+                })
+                .flatMap(savedMotel ->
+
+                        userPort.getUserById(savedMotel.propertyId())
+
+                                .flatMap(user ->
+
+                                        notificationPort.sendMotelCreationNotification(
+                                                        user.email(),
+                                                        savedMotel.name(),
+                                                        savedMotel.city(),
+                                                        savedMotel.address(),
+                                                        savedMotel.phoneNumber(),
+                                                        savedMotel.rnt()
+                                                )
+                                                .onErrorResume(error -> Mono.empty())
+                                                .thenReturn(savedMotel)
+                                )
+
+                                // Si no encuentra usuario, no romper creación
+                                .defaultIfEmpty(savedMotel)
+                );
+
     }
 
     /**

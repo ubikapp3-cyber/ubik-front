@@ -3,6 +3,8 @@ package com.ubik.motelmanagement.domain.service;
 import com.ubik.motelmanagement.domain.model.Motel;
 import com.ubik.motelmanagement.domain.port.in.MotelUseCasePort;
 import com.ubik.motelmanagement.domain.port.out.MotelRepositoryPort;
+import com.ubik.motelmanagement.domain.port.out.NotificationPort;
+import com.ubik.motelmanagement.domain.port.out.UserPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -19,18 +21,53 @@ public class MotelService implements MotelUseCasePort {
     private static final Logger log = LoggerFactory.getLogger(MotelService.class);
 
     private final MotelRepositoryPort motelRepositoryPort;
+    private final NotificationPort notificationPort;
+    private final UserPort userPort;
 
-    public MotelService(MotelRepositoryPort motelRepositoryPort) {
+    public MotelService(NotificationPort notificationPort, UserPort userPort, MotelRepositoryPort motelRepositoryPort) {
+        this.notificationPort = notificationPort;
+        this.userPort = userPort;
         this.motelRepositoryPort = motelRepositoryPort;
     }
 
     @Override
     public Mono<Motel> createMotel(Motel motel) {
+
         log.info("Creando motel: {}", motel.name());
-        // Validaciones de negocio
+
         return validateMotel(motel)
+
                 .then(motelRepositoryPort.save(motel))
-                .doOnSuccess(saved -> log.info("Motel creado con ID: {}", saved.id()));
+
+                .flatMap(savedMotel ->
+
+                        userPort.getUserById(savedMotel.propertyId())
+
+                                .flatMap(user ->
+
+                                        notificationPort.sendMotelCreationNotification(
+                                                        user.email(),
+                                                        savedMotel.name(),
+                                                        savedMotel.city(),
+                                                        savedMotel.address(),
+                                                        savedMotel.phoneNumber(),
+                                                        savedMotel.rnt()
+                                                )
+                                                // Si falla el envío, no romper creación
+                                                .onErrorResume(error -> {
+                                                    log.error("Error enviando notificación: {}", error.getMessage());
+                                                    return Mono.empty();
+                                                })
+                                                .thenReturn(savedMotel)
+                                )
+
+                                // Si no encuentra usuario, no romper creación
+                                .defaultIfEmpty(savedMotel)
+                )
+
+                .doOnSuccess(saved ->
+                        log.info("Motel creado con ID: {}", saved.id())
+                );
     }
 
     @Override

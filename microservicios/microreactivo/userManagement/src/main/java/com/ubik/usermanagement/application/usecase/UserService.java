@@ -121,7 +121,7 @@ public class UserService implements UserUseCase {
                 )))
                 .flatMap(user ->
                         notificationPort
-                                .sendPasswordRecoveryEmail(user.email(), resetToken)
+                                .sendPasswordRecoveryEmail(user.email(), user.username(), resetToken)
                                 .thenReturn(resetToken)
                 );
     }

@@ -20,7 +20,7 @@ public class NotificationAdapter implements NotificationPort {
     }
 
     @Override
-    public Mono<Void> sendPasswordRecoveryEmail(String email, String token) {
+    public Mono<Void> sendPasswordRecoveryEmail(String email, String username, String token) {
 
         String htmlMessage = """
         <div style="font-family: Arial, Helvetica, sans-serif; background-color:#f4f6f9; padding:40px 20px;">
@@ -31,7 +31,7 @@ public class NotificationAdapter implements NotificationPort {
                 </h2>
 
                 <p style="font-size:15px; color:#333;">
-                    Hola,
+                    Hola, <strong>%s</strong>
                 </p>
 
                 <p style="font-size:15px; color:#333;">
@@ -71,7 +71,7 @@ public class NotificationAdapter implements NotificationPort {
                 </p>
             </div>
         </div>
-        """.formatted(token);
+        """.formatted(username, token);
 
         Map<String, String> body = Map.of(
                 "to", email,
