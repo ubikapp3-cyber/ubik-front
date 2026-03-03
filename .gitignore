@@ -1,18 +1,9 @@
-<<<<<<< Updated upstream
-##################################################
-# 👷 PROYECTO UBIK-APP (.gitignore principal)
-# Estructura: 
-#   /backend        → microservicios Spring Boot
-#   /frontend       → aplicación Angular
-#   /microservicios → base común o submódulos
-##################################################
-
 ############################
 # 🔹 IntelliJ IDEA / JetBrains
 ############################
 .idea/
 *.iml
-out/
+/out/
 *.ipr
 *.iws
 .ai/
@@ -54,7 +45,7 @@ logs/
 ############################
 target/
 build/
-out/
+/out/
 .gradle/
 .mvn/
 !gradle/wrapper/gradle-wrapper.jar
@@ -117,96 +108,5 @@ frontend/dist/
 frontend/.angular/
 backend/**/target/
 backend/**/build/
-backend/**/out/
+# backend/**/out/ # Removed to avoid ignoring hexagonal architecture packages
 
-############################
-# 🔹 Otros
-############################
-*.pid
-*.seed
-*.pid.lock
-
-./frontend/node_modules/
-./frontend/.vscode/
-./frontend/dist/
-./frontend/build/
-./frontend/.angular/
-./frontend/.DS_Store
-
-
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-
-# Compiled output
-./frontend/dist
-./frontend/tmp
-./frontend/out-tsc
-./frontend/bazel-out
-
-# Node
-./frontend/node_modules
-./frontend/npm-debug.log
-./frontend/yarn-error.log
-
-# IDEs and editors
-./frontend/.idea/
-./frontend/.project
-./frontend/.classpath
-./frontend/.c9/
-./frontend/*.launch
-./frontend/.settings/
-./frontend/*.sublime-workspace
-
-# Visual Studio Code
-./frontend/.vscode/*
-./frontend/!.vscode/settings.json
-./frontend/!.vscode/tasks.json
-./frontend/!.vscode/launch.json
-./frontend/!.vscode/extensions.json
-./frontend/.history/*
-
-# Miscellaneous
-./frontend/.angular/cache
-./frontend/.sass-cache/
-./frontend/connect.lock
-./frontend/coverage
-./frontend/libpeerconnection.log
-./frontend/testem.log
-./frontend/typings
-./frontend/__screenshots__/
-
-# System files
-./frontend/.DS_Store
-./frontend/Thumbs.db
-=======
-# =============================================================
-# CREDENCIALES Y CONFIGURACIÓN SENSIBLE
-# =============================================================
-.env
-.env.*
-*.env
-
-# =============================================================
-# MAVEN - BUILD OUTPUTS
-# =============================================================
-**/target/
-**/target/**
-
-# =============================================================
-# INTELLIJ IDEA
-# =============================================================
-.idea/
-*.iml
-*.iws
-*.ipr
-
-# =============================================================
-# VS CODE
-# =============================================================
-.vscode/
-
-# =============================================================
-# LOGS
-# =============================================================
-*.log
-logs/
->>>>>>> Stashed changes
