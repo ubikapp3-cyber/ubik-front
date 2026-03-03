@@ -5,8 +5,10 @@ import com.example.paymentservice.repository.MotelMpAccountRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -103,7 +105,8 @@ public class OAuthService {
      */
     public Mono<MotelMpAccountEntity> refreshToken(Long motelId) {
         return mpAccountRepository.findByMotelId(motelId)
-                .switchIfEmpty(Mono.error(new RuntimeException("Cuenta MP no encontrada para motel: " + motelId)))
+                .switchIfEmpty(Mono.error(new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Cuenta MP no encontrada para motel: " + motelId)))
                 .flatMap(account -> webClient.post()
                         .uri("/oauth/token")
                         .bodyValue(Map.of(
@@ -136,8 +139,9 @@ public class OAuthService {
      */
     public Mono<String> getValidAccessToken(Long motelId) {
         return mpAccountRepository.findByMotelId(motelId)
-                .switchIfEmpty(Mono.error(new RuntimeException(
-                        "El motel " + motelId + " no tiene cuenta MercadoPago vinculada")))
+                .switchIfEmpty(Mono.error(new ResponseStatusException(
+                        HttpStatus.UNPROCESSABLE_ENTITY,
+                        "El motel " + motelId + " no ha vinculado su cuenta de MercadoPago. No puede recibir pagos.")))
                 .flatMap(account -> {
                     boolean isExpiringSoon = account.tokenExpiresAt() != null &&
                             account.tokenExpiresAt().isBefore(LocalDateTime.now().plusHours(1));
