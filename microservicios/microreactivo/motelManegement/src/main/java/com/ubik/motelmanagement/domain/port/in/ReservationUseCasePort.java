@@ -111,4 +111,10 @@ public interface ReservationUseCasePort {
      * @return Mono vacío que completa cuando se elimina
      */
     Mono<Void> deleteReservation(Long id);
+
+    /**
+     * Obtiene un flujo de eventos de reservas en tiempo real
+     * @return Flux de reservas que se emiten cuando ocurren cambios
+     */
+    Flux<Reservation> getReservationStream();
 }

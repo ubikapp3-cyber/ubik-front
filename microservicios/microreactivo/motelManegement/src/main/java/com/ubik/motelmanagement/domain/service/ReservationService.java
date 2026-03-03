@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -27,6 +28,9 @@ public class ReservationService implements ReservationUseCasePort {
     private final ConfirmationCodeService confirmationCodeService;
     private final NotificationClient notificationClient;
     private final UserPort userPort;
+
+    // Bus de eventos para tiempo real
+    private final Sinks.Many<Reservation> reservationSink = Sinks.many().multicast().onBackpressureBuffer();
 
     public ReservationService(
             NotificationPort notificationPort,
@@ -91,8 +95,12 @@ public class ReservationService implements ReservationUseCasePort {
                                 return reservationRepositoryPort.save(reservationWithCode);
                             });
                 })
-
+                .doOnNext(saved -> {
+                    log.info("Emitiendo evento de nueva reserva: {}", saved.id());
+                    reservationSink.tryEmitNext(saved);
+                })
                 .flatMap(savedReservation ->
+// ... rest of implementation (omitted for brevity in replace call, but I will provide the full block)
 
                         userPort.getUserById(savedReservation.userId())
 
@@ -236,7 +244,8 @@ public class ReservationService implements ReservationUseCasePort {
                     }
                     Reservation confirmedReservation = reservation.withStatus(Reservation.ReservationStatus.CONFIRMED);
                     return reservationRepositoryPort.update(confirmedReservation);
-                });
+                })
+                .doOnNext(reservationSink::tryEmitNext);
     }
 
     @Override
@@ -250,7 +259,8 @@ public class ReservationService implements ReservationUseCasePort {
                     }
                     Reservation cancelledReservation = reservation.withStatus(Reservation.ReservationStatus.CANCELLED);
                     return reservationRepositoryPort.update(cancelledReservation);
-                });
+                })
+                .doOnNext(reservationSink::tryEmitNext);
     }
 
     @Override
@@ -264,7 +274,8 @@ public class ReservationService implements ReservationUseCasePort {
                     }
                     Reservation checkedInReservation = reservation.withStatus(Reservation.ReservationStatus.CHECKED_IN);
                     return reservationRepositoryPort.update(checkedInReservation);
-                });
+                })
+                .doOnNext(reservationSink::tryEmitNext);
     }
 
     @Override
@@ -278,7 +289,8 @@ public class ReservationService implements ReservationUseCasePort {
                     }
                     Reservation checkedOutReservation = reservation.withStatus(Reservation.ReservationStatus.CHECKED_OUT);
                     return reservationRepositoryPort.update(checkedOutReservation);
-                });
+                })
+                .doOnNext(reservationSink::tryEmitNext);
     }
 
     @Override
@@ -292,6 +304,11 @@ public class ReservationService implements ReservationUseCasePort {
                     }
                     return reservationRepositoryPort.deleteById(id);
                 });
+    }
+
+    @Override
+    public Flux<Reservation> getReservationStream() {
+        return reservationSink.asFlux();
     }
 
     /**
