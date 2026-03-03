@@ -1,0 +1,259 @@
+<div class="min-h-screen text-white px-5 py-10">
+  <div class="mx-auto w-full max-w-5xl">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
+      <h2 class="text-3xl md:text-4xl font-bold ">CREAR MOTEL</h2>
+    </div>
+
+    @if (error) {
+      <div class="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-200">
+        {{ error }}
+      </div>
+    }
+
+    @if (locationStatus) {
+      <div class="mb-6 rounded-xl border border-sky-500/30 bg-sky-500/10 px-4 py-3 text-sky-100">
+        {{ locationStatus }}
+      </div>
+    }
+
+    <form
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6 md:p-8 shadow-[0_10px_35px_rgba(0,0,0,0.45)] grid grid-cols-1 md:grid-cols-2 gap-6"
+    >
+      <!-- Datos básicos -->
+      <h4 class="md:col-span-2 text-lg font-semibold tracking-wide text-white/90">
+        Datos básicos
+      </h4>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm text-white/80">Nombre</label>
+        <input
+          class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white placeholder-white/35 outline-none transition focus:border-red-500/40 focus:ring-2 focus:ring-red-500/40"
+          formControlName="name"
+        />
+        @if (form.get('name')?.touched && form.get('name')?.invalid) {
+          <div class="text-xs text-red-300">Nombre requerido (mínimo 3).</div>
+        }
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm text-white/80">Teléfono</label>
+        <input
+          class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white placeholder-white/35 outline-none transition focus:border-red-500/40 focus:ring-2 focus:ring-red-500/40"
+          formControlName="phoneNumber"
+        />
+      </div>
+
+      <div class="md:col-span-2 flex flex-col gap-2">
+        <label class="text-sm text-white/80">Dirección</label>
+        <input
+          class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white placeholder-white/35 outline-none transition focus:border-red-500/40 focus:ring-2 focus:ring-red-500/40"
+          formControlName="address"
+        />
+        @if (form.get('address')?.touched && form.get('address')?.invalid) {
+          <div class="text-xs text-red-300">Dirección requerida.</div>
+        }
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm text-white/80">Ciudad</label>
+        <input
+          class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white placeholder-white/35 outline-none transition focus:border-red-500/40 focus:ring-2 focus:ring-red-500/40"
+          formControlName="city"
+        />
+        @if (form.get('city')?.touched && form.get('city')?.invalid) {
+          <div class="text-xs text-red-300">Ciudad requerida.</div>
+        }
+      </div>
+
+      <div class="md:col-span-2 flex flex-col gap-2">
+        <label class="text-sm text-white/80">Descripción</label>
+        <textarea
+          class="w-full min-h-110px rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white placeholder-white/35 outline-none transition focus:border-red-500/40 focus:ring-2 focus:ring-red-500/40"
+          rows="3"
+          formControlName="description"
+        ></textarea>
+      </div>
+
+      <hr class="md:col-span-2 border-white/10 my-2" />
+
+      <!-- Ubicación (lat/long desde geolocalización) -->
+      <h4 class="md:col-span-2 text-lg font-semibold tracking-wide text-white/90">
+        Ubicación
+      </h4>
+
+      <div class="md:col-span-2 flex flex-col sm:flex-row sm:items-center gap-3">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-medium text-white/90 hover:bg-white/10 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
+          [disabled]="loading || gettingLocation"
+          (click)="getUserLocation()"
+        >
+          @if (gettingLocation) {
+            <span
+              class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
+            ></span>
+            Obteniendo...
+          } @else {
+            Obtener ubicación actual
+          }
+        </button>
+
+        @if (form.get('latitude')?.value && form.get('longitude')?.value) {
+          <span class="text-sm text-white/70">
+            Listo: {{ form.get('latitude')?.value }}, {{ form.get('longitude')?.value }}
+          </span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm text-white/80">Latitud</label>
+        <input
+          type="number"
+          class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white placeholder-white/35 outline-none transition focus:border-red-500/40 focus:ring-2 focus:ring-red-500/40"
+          formControlName="latitude"
+        />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm text-white/80">Longitud</label>
+        <input
+          type="number"
+          class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white placeholder-white/35 outline-none transition focus:border-red-500/40 focus:ring-2 focus:ring-red-500/40"
+          formControlName="longitude"
+        />
+      </div>
+
+      <hr class="md:col-span-2 border-white/10 my-2" />
+
+      <!-- Galería -->
+      <h4 class="md:col-span-2 text-lg font-semibold tracking-wide text-white/90">
+        Imágenes del motel (galería)
+      </h4>
+
+      <div class="md:col-span-2 flex flex-col gap-2">
+        <label class="text-sm text-white/80">Subir imágenes</label>
+        <input
+          class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white file:mr-4 file:rounded-lg file:border-0 file:bg-red-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-red-500 transition"
+          type="file"
+          accept="image/*"
+          multiple
+          (change)="onMotelImagesSelected($event)"
+        />
+
+        @if (motelImages.length > 0) {
+          <small class="text-sm text-white/60">
+            {{ motelImages.length }} archivo(s) seleccionado(s)
+          </small>
+        }
+      </div>
+
+      <hr class="md:col-span-2 border-white/10 my-2" />
+
+      <!-- Documentos RNT / RUES -->
+      <h4 class="md:col-span-2 text-lg font-semibold tracking-wide text-white/90">
+        Documentos (RNT / RUES)
+      </h4>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm text-white/80">RNT (imagen)</label>
+        <input
+          class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-white/15 transition"
+          type="file"
+          accept="image/*"
+          (change)="onRntSelected($event)"
+        />
+        @if (rntFile) {
+          <small class="text-sm text-white/60">{{ rntFile.name }}</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm text-white/80">RUES (imagen)</label>
+        <input
+          class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-white/15 transition"
+          type="file"
+          accept="image/*"
+          (change)="onRuesSelected($event)"
+        />
+        @if (ruesFile) {
+          <small class="text-sm text-white/60">{{ ruesFile.name }}</small>
+        }
+      </div>
+
+      <div class="md:col-span-2 flex flex-col gap-2">
+        <label class="text-sm text-white/80">Documento legal (opcional)</label>
+        <input
+          class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-white/15 transition"
+          type="file"
+          accept="image/*,application/pdf"
+          (change)="onLegalDocSelected($event)"
+        />
+        @if (legalDocumentFile) {
+          <small class="text-sm text-white/60">{{ legalDocumentFile.name }}</small>
+        }
+      </div>
+
+      <hr class="md:col-span-2 border-white/10 my-2" />
+
+      <!-- Propietario -->
+      <h4 class="md:col-span-2 text-lg font-semibold tracking-wide text-white/90">
+        Propietario
+      </h4>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm text-white/80">Tipo documento</label>
+        <select
+          class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none transition focus:border-red-500/40 focus:ring-2 focus:ring-red-500/40"
+          formControlName="ownerDocumentType"
+        >
+          @for (t of documentTypes; track t) {
+            <option [value]="t">{{ t }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm text-white/80">Número documento</label>
+        <input
+          class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white placeholder-white/35 outline-none transition focus:border-red-500/40 focus:ring-2 focus:ring-red-500/40"
+          formControlName="ownerDocumentNumber"
+        />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm text-white/80">Nombre propietario</label>
+        <input
+          class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white placeholder-white/35 outline-none transition focus:border-red-500/40 focus:ring-2 focus:ring-red-500/40"
+          formControlName="ownerFullName"
+        />
+      </div>
+
+      <div class="md:col-span-2 flex flex-col gap-2">
+        <label class="text-sm text-white/80">Representante legal (opcional)</label>
+        <input
+          class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white placeholder-white/35 outline-none transition focus:border-red-500/40 focus:ring-2 focus:ring-red-500/40"
+          formControlName="legalRepresentativeName"
+        />
+      </div>
+
+      <div class="md:col-span-2 flex gap-3 mt-2">
+        <button
+          class="flex-1 inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-500 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
+          type="submit"
+          [disabled]="loading || form.invalid"
+        >
+          @if (loading) {
+            <span
+              class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
+            ></span>
+            Creando...
+          } @else {
+            Crear motel
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

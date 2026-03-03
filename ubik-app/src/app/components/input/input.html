@@ -1,0 +1,32 @@
+<div class="input-container flex flex-col w-full">
+  @if (label) {
+    <label class="mb-1 text-white text-sm">{{ label }}</label>
+  }
+
+  <div class="relative">
+    <input
+      [type]="type === 'password' && visible ? 'text' : type"
+      [placeholder]="placeholder"
+      [value]="value"
+      [disabled]="disabled"
+      (input)="onChange($event.target.value)"
+      (blur)="onTouched()"
+      title="input"
+      [class.pr-12]="type === 'password' || hasToggle"
+      class="rounded-full p-3 text-black focus:outline-none focus:ring-2 focus:ring-red-600 w-full bg-white"
+    />
+
+    <!-- Toggle eye inside input when requested -->
+    @if (type === 'password' && hasToggle) {
+      <button
+        type="button"
+        (click)="toggle.emit()"
+        class="absolute right-3 inset-y-0 flex items-center text-black hover:opacity-80 text-lg"
+        [disabled]="disabled"
+        aria-label="Toggle password visibility"
+      >
+        <i class="fas" [class.fa-eye]="!visible" [class.fa-eye-slash]="visible"></i>
+      </button>
+    }
+  </div>
+</div>

@@ -1,0 +1,63 @@
+<div class="flex mt-16 mb-16 flex-col lg:flex-row justify-between gap-6">
+  <!-- RESULTADOS -->
+  <div
+    class="results-section flex-1 flex flex-col gap-6 max-h-[800px] max-w-full lg:max-w-[60%] rounded-xl overflow-hidden border border-white/10"
+  >
+    <div
+      class="title flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 justify-between gap-3"
+    >
+      <h2 class="text-2xl font-semibold">Moteles y Habitaciones</h2>
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+        <input
+          type="text"
+          placeholder="Buscar moteles o ciudades..."
+          class="w-full sm:w-80 px-3 py-2 rounded bg-[#1e2128] text-white border border-white/10"
+          (input)="onSearchInput($any($event.target).value)"
+        />
+        <app-button-02 text="Filtro" (click)="openModal()"></app-button-02>
+      </div>
+    </div>
+
+    <section class="results flex flex-col gap-6 sm:gap-10 w-full flex-1 overflow-y-auto">
+      <!-- @if (suggestions.length) {
+        <div class="px-4">
+          <ul class="bg-[#111213] rounded shadow p-2 max-w-md">
+            @for (s of suggestions; track s.id) {
+              <li
+                (click)="selectSuggestion(s)"
+                class="cursor-pointer px-2 py-1 hover:bg-white/5 rounded"
+              >
+                {{ s.title }} — {{ s.location }}
+              </li>
+            }
+          </ul>
+        </div>
+      } -->
+
+      @if (loading) {
+        @for (_ of skeletonItems; track $index) {
+          <app-loading-card-3/>
+        }
+      }
+
+      @if (error) {
+        <p>Error al cargar las habitaciones.</p>
+      }
+
+      @if (!loading && !error) {
+        @for (card of cards; track card.id) {
+          <app-card-3 [card]="card" />
+        }
+      }
+    </section>
+  </div>
+
+  <!-- MAPA -->
+  <div class="flex-1 h-[800px] min-h-[400px] rounded-xl overflow-hidden relative">
+    <app-map
+      class="block w-full h-full"
+      [points]="points"
+      [active]="activePoint">
+    </app-map>
+  </div>
+</div>

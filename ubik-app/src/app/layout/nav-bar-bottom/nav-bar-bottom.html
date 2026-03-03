@@ -1,0 +1,118 @@
+@if (menuOpen) {
+  <div 
+    class="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]" 
+    (click)="closeMenu()">
+  </div>
+}
+
+<nav
+  class="w-dvw bg-[#2d2f35] text-white min-h-60px fixed bottom-0 left-0
+         flex justify-center items-center shadow-white z-50 font-bold lg:hidden"
+>
+  <ul class="flex w-full justify-around items-end">
+
+    <li class="home-icon">
+      <a (click)="navigateTo(AppRoutes.HOME)" class="flex flex-col items-center justify-center gap-1 py-2 px-4 cursor-pointer">
+        <fa-icon [icon]="icons.house" class="text-[20px]" />
+        <p class="text-[0.7rem]">Inicio</p>
+      </a>
+    </li>
+
+    <li class="explora-icon">
+      <a (click)="navigateTo(AppRoutes.EXPLORE)" class="flex flex-col items-center justify-center gap-1 py-2 px-4 cursor-pointer">
+        <fa-icon [icon]="icons.compass" class="text-[20px]" />
+        <p class="text-[0.7rem]">Explora</p>
+      </a>
+    </li>
+
+    <li class="menu-icon relative flex justify-center">
+      
+      @if (menuOpen) {
+        <div 
+          class="absolute bottom-full mb-4 w-40 bg-[#3a3d45] rounded-xl shadow-2xl 
+                overflow-hidden border border-gray-600 flex flex-col animation-fade-in"
+        >
+
+          <!-- 🔓 NO LOGUEADO -->
+          @if (!isLogged()) {
+            <button 
+              (click)="navigateTo(AppRoutes.LOGIN)" 
+              class="w-full text-left px-4 py-3 text-sm hover:bg-[#4a4d55] border-b border-gray-600 transition-colors"
+            >
+              Iniciar Sesión
+            </button>
+
+            <button 
+              (click)="navigateTo(AppRoutes.REGISTER)" 
+              class="w-full text-left px-4 py-3 text-sm hover:bg-[#4a4d55] transition-colors"
+            >
+              Registrarse
+            </button>
+          }
+
+          <!-- 🔐 LOGUEADO -->
+          @if (isLogged()) {
+
+            @switch (role()) {
+
+              @case (7392841056473829) {
+                <button 
+                  (click)="navigateTo(AppRoutes.ADMIN)" 
+                  class="w-full text-left px-4 py-3 text-sm hover:bg-[#4a4d55] border-b border-gray-600 transition-colors flex items-center gap-2"
+                >
+                  <fa-icon [icon]="icons.admin" class="text-[18px]" />
+                  Panel Admin
+                </button>
+              }
+
+              @case (3847261094857362) {
+                <button 
+                  (click)="navigateTo(AppRoutes.PROPERTY)" 
+                  class="w-full text-left px-4 py-3 text-sm hover:bg-[#4a4d55] border-b border-gray-600 transition-colors flex items-center gap-2"
+                >
+                  <fa-icon [icon]="icons.owner" class="text-[18px]" />
+                  Propiedades
+                </button>
+                <button 
+                  (click)="navigateTo(AppRoutes.PROFILE)" 
+                  class="w-full text-left px-4 py-3 text-sm hover:bg-[#4a4d55] border-b border-gray-600 transition-colors flex items-center gap-2"
+                >
+                  <fa-icon [icon]="icons.user" class="text-[18px]" />
+                  Mi Perfil
+                </button>
+              }
+
+              @default {
+                <button 
+                  (click)="navigateTo(AppRoutes.PROFILE)" 
+                  class="w-full text-left px-4 py-3 text-sm hover:bg-[#4a4d55] border-b border-gray-600 transition-colors flex items-center gap-2"
+                >
+                  <fa-icon [icon]="icons.user" class="text-[18px]" />
+                  Mi Perfil
+                </button>
+              }
+            }
+
+            <button 
+              (click)="logout()" 
+              class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-[#4a4d55] transition-colors flex items-center gap-2"
+            >
+              <fa-icon [icon]="icons.logout" class="text-[18px]" />
+              Cerrar Sesión
+            </button>
+          }
+
+        </div>
+      }
+
+      <a
+        (click)="toggleMenu()"
+        class="flex flex-col items-center justify-center gap-1 py-2 px-4 cursor-pointer z-50 relative"
+      >
+        <fa-icon [icon]="icons.menu" class="text-[20px] transition-transform duration-200" [class.rotate-90]="menuOpen" />
+        <p class="text-[0.7rem]">Menu</p>
+      </a>
+    </li>
+
+  </ul>
+</nav>

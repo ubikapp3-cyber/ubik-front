@@ -1,0 +1,176 @@
+<header class="w-full px-5 pt-4">
+
+  <!-- Top bar -->
+  <div class=" w-full">
+    
+
+    <nav class="flex items-center justify-center lg:justify-between">
+
+      <app-logo-01></app-logo-01>
+
+
+      <div class="navlinks hidden lg:flex items-center gap-6">
+
+          <!-- Públicas -->
+        <a
+          (click)="navigateTo(ROUTES.HOME)"
+          class="text-white hover:text-red-500 transition cursor-pointer"
+        >
+          Inicio
+        </a>
+
+        <a
+          (click)="navigateTo(ROUTES.EXPLORE)"
+          class="text-white hover:text-red-500 transition cursor-pointer"
+        >
+          Explorar
+        </a>
+
+        <a
+          (click)="navigateTo(ROUTES.OFFERTS)"
+          class="text-white hover:text-red-500 transition cursor-pointer"
+        >
+          Ofertas
+        </a>
+
+      </div>
+
+      
+
+      <div class="logandreg hidden lg:flex gap-6">
+        <!-- 🔐 LOGUEADO -->
+
+        @if (!isLogged()) {
+    
+          <a
+            (click)="navigateTo(ROUTES.LOGIN)"
+            class="text-white hover:text-red-500 transition cursor-pointer"
+          >
+            Inicia sesión
+          </a>
+    
+          <a
+            (click)="navigateTo(ROUTES.REGISTER)"
+            class="text-white hover:text-red-500 transition cursor-pointer"
+          >
+            Registrarse
+          </a>
+    
+        }
+
+        <!-- 🔓 NO LOGUEADO -->
+      
+        @if (isLogged()) {
+
+          @switch (role()) {
+
+            <!-- ADMIN -->
+            @case (7392841056473829) {
+              <a
+                (click)="navigateTo(ROUTES.ADMIN)"
+                class="text-white hover:text-red-400 transition cursor-pointer"
+              >
+                Panel Admin
+              </a>
+            }
+
+            <!-- OWNER -->
+            @case (3847261094857362) {
+              <a
+                (click)="navigateTo(ROUTES.OWNER)"
+                class="text-white hover:text-red-400 transition cursor-pointer"
+              >
+                Propiedades
+              </a>
+
+              <a
+                (click)="navigateTo(ROUTES.PROFILE)"
+                class="text-white hover:text-red-400 transition cursor-pointer"
+              >
+                Mi Perfil
+              </a>
+            }
+
+            <!-- USER -->
+            @default {
+              <a
+                (click)="navigateTo(ROUTES.PROFILE)"
+                class="text-white hover:text-red-400 transition cursor-pointer"
+              >
+                Mi Perfil
+              </a>
+            }
+          }
+
+          <!-- LOGOUT -->
+          <a
+            (click)="logout()"
+            class="text-white hover:text-red-400 transition cursor-pointer"
+          >
+            Cerrar sesión
+          </a>
+
+        }
+      
+      </div>
+
+    </nav>
+
+  </div>
+
+
+  
+
+  @if (showSearch()) {
+    <section class="w-full min-h-[280px] sm:min-h-[360px] lg:min-h-[425px] flex items-center justify-center">
+
+    <div class="flex flex-col text-center text-white px-4 sm:px-6 max-w-3xl gap-6 sm:gap-10">
+      <h2 class="text-2xl sm:text-3xl lg:text-5xl font-extrabold leading-tight">
+        {{ title }}
+      </h2>
+
+      <p class="text-sm sm:text-base lg:text-lg opacity-90">
+        {{ subtitle }}
+      </p>
+    </div>
+
+  </section>
+
+    <form class="hidden lg:flex w-full justify-center mb-[100px]" method="get">
+      <div class="w-full lg:max-w-5xl flex items-end gap-4 rounded-xl">
+        
+        <div class="flex-1">
+          <label class="text-sm text-white">Departamento</label>
+          <input
+            type="text"
+            placeholder="Quindio, Antioquia..."
+            class="w-full mt-1 bg-white border border-white px-3 py-2 rounded-lg focus:outline-none focus:border-gray-400"
+          />
+        </div>
+
+        <div class="flex-1">
+          <label class="text-sm text-white">Municipio</label>
+          <input
+            type="text"
+            placeholder="Calarca, Armenia..."
+            class="w-full mt-1 bg-white border border-white px-3 py-2 rounded-lg focus:outline-none focus:border-gray-400"
+          />
+        </div>
+
+        <div class="flex-1">
+          <label class="text-sm text-white">Filtros rápidos</label>
+          <input
+            type="text"
+            placeholder="Jacuzzi, parqueadero..."
+            class="w-full mt-1 bg-white border border-white px-3 py-2 rounded-lg focus:outline-none focus:border-gray-400"
+          />
+        </div>
+
+        <div class="min-w-45">
+          <app-button-01 text="Buscar" [fullWidth]=true></app-button-01>
+        </div>
+      </div>
+    </form>
+  }
+
+</header>

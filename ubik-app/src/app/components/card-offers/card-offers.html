@@ -1,0 +1,37 @@
+<div class="w-sm h-45 flex flex-col gap-6">
+  <div class="flex bg-[#F7E8E3] rounded-xl overflow-hidden shadow-md w-full">
+    
+    <div class="w-2/3 flex flex-col justify-center p-5">
+      <h2 class="text-xl font-extrabold text-[#4A2A2A] uppercase">
+        {{ card.nombre }}
+      </h2>
+
+      @if (showDescription) {
+        <p class="text-sm text-[#4A2A2A] text-base line-clamp-2">
+          {{card.descripcion}}
+        </p>
+      }
+
+      <div class="flex gap-3 mt-4">
+        @if (showButton01) {
+          <app-button-01 
+            [text]="textButton1" 
+            class="w-30">
+          </app-button-01>
+        }
+
+        @if (showButton02) {
+          <app-button-02 
+            [text]="textButton2" 
+            class="w-30">
+          </app-button-02>
+        }
+      </div>
+    </div>
+
+    <div class="w-1/2">
+      <img [src]="card.image" alt="Oferta" class="w-full h-full object-cover"/>
+    </div>
+
+  </div>
+</div>

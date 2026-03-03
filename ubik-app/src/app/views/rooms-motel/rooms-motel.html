@@ -1,0 +1,38 @@
+<div class="container mx-auto p-4">
+  <h1 class="text-white text-2xl mb-6 text-center">Habitaciones del Motel</h1>
+
+  <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    <!-- CARD AGREGAR HABITACIÓN -->
+    <div
+      class="flex flex-col items-center justify-center
+             border-2 border-dashed border-gray-400
+             rounded-xl h-70 cursor-pointer w-45"
+      [routerLink]="'/'"
+    >
+      <span class="text-5xl text-gray-400">+</span>
+      <p class="text-gray-300 mt-2 text-sm">
+        Agregar habitación
+      </p>
+    </div>
+
+    <!-- CARDS DE HABITACIONES -->
+
+    <!-- Las comente porque me esta arrojando error, segun tengo entenndido esto auun no esta xreado o no hay una vista concretaa ELIMINAR COMENTARIO CUANDO ESTE COMPLETA LA VISTA ⚠️ -->
+
+     @for (hab of habitaciones; track hab.id) {
+      <app-card
+        
+      >
+      </app-card>
+    } 
+
+
+    <!-- class="w-43 text-base"
+        [card]="hab"
+        [textButton1]="'Editar'"
+        [textButton2]="'Eliminar'"
+        [showDescription]="false"    -->
+
+  </div>
+</div>

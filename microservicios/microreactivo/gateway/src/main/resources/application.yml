@@ -94,6 +94,12 @@ spring:
             - Path=/api/reservations/**
           filters:
             - StripPrefix=0
+        - id: payment-service
+          uri: http://payment-service:8085
+          predicates:
+            - Path=/api/payments/**
+          filters:
+            - StripPrefix=0
 
       trusted-proxies: '127\.0\.0\.1|::1'
 

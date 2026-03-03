@@ -1,0 +1,55 @@
+<footer class="px-4 sm:px-5 py-8 sm:py-10 text-white font-sans mb-15">
+  <div
+    class="flex items-center gap-8 sm:gap-10 flex-col md:flex-row max-w-4xl mx-auto justify-center"
+  >
+    <!-- Logo -->
+    <div class="flex flex-col items-center md:items-center gap-1 md:mr-3">
+      <img [src]="logoFooter" class="h-24 sm:h-32 md:h-40 mx-auto md:mx-0" alt="" />
+    </div>
+
+    <!-- Divisor vertical estilo neón (visible en tablet y superiores) -->
+    <div class="hidden md:flex items-center">
+      <div class="relative flex items-center">
+        <!-- línea central -->
+        <span
+          class="block w-0.5 h-16 rounded bg-linear-to-b from-white/10 via-white/60 to-white/10 shadow-[0_0_8px_#ffffff]"
+        >
+        </span>
+        <!-- brillo difuso animado -->
+        <span
+          class="absolute left-1/2 -translate-x-1/2 w-3 h-20 rounded bg-linear-to-b from-transparent via-white/60 to-transparent blur-xl opacity-60 animate-pulse pointer-events-none"
+        >
+        </span>
+      </div>
+    </div>
+
+    <!-- Texto informativo -->
+    <div class="flex-1 text-center md:text-left md:max-w-2xl">
+      <p class="font-bold text-xs sm:text-sm mb-1">
+        UBIK - PLATAFORMA PARA LA GESTIÓN INTELIGENTE DE MOTELES
+      </p>
+      <p class="text-[11px] sm:text-[13px] mb-4 sm:mb-5">
+        ADMINISTRA TUS RESERVAS, HABITACIONES Y SERVICIOS DESDE UN SOLO LUGAR.
+      </p>
+
+      <!-- Enlaces en columnas -->
+      <div
+        class="flex flex-col sm:flex-row gap-4 sm:gap-20 mb-4 sm:mb-6 justify-center sm:justify-start"
+      >
+        <div class="flex flex-col gap-2">
+          <a href="#" class="text-gray-300 text-xs hover:underline">Política de Privacidad</a>
+          <a href="#" class="text-gray-300 text-xs hover:underline">Términos y Condiciones</a>
+        </div>
+        <div class="flex flex-col gap-2">
+          <a href="#" class="text-gray-300 text-xs hover:underline">Política de Cookies</a>
+          <a href="#" class="text-gray-300 text-xs hover:underline">Aviso Legal</a>
+        </div>
+      </div>
+
+      <!-- Derechos reservados -->
+      <p class="text-[10px] sm:text-[11px] opacity-80 mt-2">
+        Todos los derechos reservados UBIK® 2024–2026
+      </p>
+    </div>
+  </div>
+</footer>

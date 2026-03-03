@@ -1,0 +1,29 @@
+<div class="h-[80vh] flex items-center justify-center px-4">
+  <div class="w-full max-w-4xl mb-8 flex flex-col md:flex-row gap-6 justify-center">
+    <div class="flex-1 flex flex-col items-stretch gap-3">
+      <app-button-01
+        text="Establecimiento"
+        subtext="Registrar un establecimiento y los datos del propietario"
+        [routerLink]="'/register-owner'"
+        iconLeft="fas fa-home"
+        iconRight="fas fa-arrow-right"
+        [fullWidth]="true"
+        [tall]="true"
+      >
+      </app-button-01>
+    </div>
+
+    <div class="flex-1 flex flex-col items-stretch gap-3">
+      <app-button-01
+        text="Cliente"
+        subtext="Registrar un cliente con datos personales y de contacto"
+        [routerLink]="'/register-user'"
+        iconLeft="fas fa-user"
+        iconRight="fas fa-arrow-right"
+        [fullWidth]="true"
+        [tall]="true"
+      >
+      </app-button-01>
+    </div>
+  </div>
+</div>

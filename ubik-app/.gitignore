@@ -1,0 +1,174 @@
+##################################################
+# 👷 PROYECTO UBIK-APP (.gitignore principal)
+# Estructura: 
+#   /backend        → microservicios Spring Boot
+#  .       → aplicación Angular
+#   /microservicios → base común o submódulos
+##################################################
+
+############################
+# IntelliJ IDEA / JetBrains
+############################
+.idea/
+*.iml
+out/
+*.ipr
+*.iws
+
+############################
+# VSCode (si se usa)
+############################
+.vscode/
+
+############################
+# Sistema operativo
+############################
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+############################
+# Archivos temporales / logs
+############################
+logs/
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+############################
+# Spring Boot / Maven / Gradle
+############################
+target/
+build/
+out/
+.gradle/
+.mvn/
+!gradle/wrapper/gradle-wrapper.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+spring.log
+*.jar
+*.war
+*.ear
+*.class
+
+############################
+# Archivos de entorno o configuración sensible
+############################
+.env
+.env.*
+application-*.yml
+application-*.properties
+!application.yml
+!application.properties
+
+############################
+# Node.js / Angular.)
+############################
+node_modules/
+dist/
+tmp/
+.angular/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+############################
+# Archivos del sistema / editor
+############################
+*.orig
+*.rej
+*.sublime-workspace
+*.sublime-project
+
+############################
+# Archivos temporales y cache de IDEs
+############################
+*.idea_modules/
+*.classpath
+*.project
+*.settings/
+
+############################
+# Subcarpetas específicas del proyecto
+############################
+microservicios/.idea/
+microservicios/**/target/
+microservicios/**/build./node_modules./dist./.angular/
+backend/**/target/
+backend/**/build/
+backend/**/out/
+
+############################
+# Otros
+############################
+*.pid
+*.seed
+*.pid.lock
+
+./node_modules/
+./.vscode/
+./dist/
+./build/
+./.angular/
+./.DS_Store
+
+
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+./dist
+./tmp
+./out-tsc
+./bazel-out
+
+# Node
+./node_modules
+./npm-debug.log
+./yarn-error.log
+
+# IDEs and editors
+./.idea/
+./.project
+./.classpath
+./.c9/
+./*.launch
+./.settings/
+./*.sublime-workspace
+
+# Visual Studio Code
+./.vscode/*
+./!.vscode/settings.json
+./!.vscode/tasks.json
+./!.vscode/launch.json
+./!.vscode/extensions.json
+./.history/*
+
+# Miscellaneous
+./.angular/cache
+./.sass-cache/
+./connect.lock
+./coverage
+./libpeerconnection.log
+./testem.log
+./typings
+./__screenshots__/
+
+# System files
+./.DS_Store
+./Thumbs.db

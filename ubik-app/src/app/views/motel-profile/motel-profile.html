@@ -1,0 +1,70 @@
+<div class="text-white overflow-hidden shadow-lg max-w mx-auto h-auto">
+  <!-- Header con imagen de fondo -->
+  <div class="relative h-48 w-full">
+    <img [src]="profile.imageBack" [alt]="'Imagen de fondo'" class="w-full h-80 object-cover" alt="" />
+
+    <!-- Contenedor de imagen circular centrada -->
+    <div class="absolute -bottom-50 left-1/2 transform -translate-x-1/2">
+      <div class="w-32 h-32 rounded-full overflow-hidden shadow-xl">
+        <img
+          alt=""
+          [src]="profile.imagePerfile"
+          [alt]="'Imagen de perfil'"
+          class="w-full h-full object-cover"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Body del card con padding superior para la imagen circular -->
+  <div class="px-6 pt-55 pb-8 text-center flex flex-col items-center gap-4">
+    <h2 class="text-2xl font-bold mb-2 tracking-wider">{{ profile.nombre }}</h2>
+    <h3 class="text-lg text-gray-300 mb-4">{{ profile.ubicacion }}</h3>
+    <p class="text-sm text-gray-400 leading-relaxed mb-2 px-4 max-w-xl">
+      {{ profile.description }}
+    </p>
+    <p class="text-sm text-gray-400 leading-relaxed mb-2 px-2 max-w-xl">{{ profile.address }}</p>
+    <div class="w-3xs">
+      <app-button-01
+        [text]="'Editar'"
+        class="max-w-3xs"
+        [routerLink]="'/three-buttons'"
+      ></app-button-01>
+    </div>
+  </div>
+
+  <!-- CARRUSEL DE OFERTAS -->
+  <div class="mb-12">
+    <div class="flex justify-between items-center px-6 py-4">
+      <p class="text-xl text-white font-bold">Ofertas</p>
+      <a href="#" class="text-sm text-white hover:underline">Ver todas ></a>
+    </div>
+
+    <div
+      class="overflow-x-auto px-6 scroll-smooth flex gap-4 pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+    >
+      @for (oferta of ofertas; track oferta.id) {
+        <div class="shrink-0">
+          <app-card-offers [card]="oferta"></app-card-offers>
+        </div>
+      }
+    </div>
+  </div>
+  <!-- CARRUSEL DE HABITACIONES -->
+  <div class="mb-12">
+    <div class="flex justify-between items-center px-6 py-4">
+      <p class="text-xl text-white font-bold">Habitaciones</p>
+      <a href="#" class="text-sm text-white hover:underline">Ver todas ></a>
+    </div>
+
+    <div
+      class="overflow-x-auto px-6 scroll-smooth flex gap-4 pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+    >
+      @for (habitacion of CardHab; track habitacion.id) {
+        <div class="shrink-0">
+          <app-card-room [cardHabitacion]="habitacion"> </app-card-room>
+        </div>
+      }
+    </div>
+  </div>
+</div>

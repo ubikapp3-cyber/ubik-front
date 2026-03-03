@@ -1,0 +1,125 @@
+<!-- Layout Container -->
+<div class="mb-28 mt-28 flex items-center justify-center">
+  <!-- Card -->
+  <div
+    class="w-full max-w-md bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-white/20"
+  >
+    <form class="flex flex-col gap-6" (ngSubmit)="onFormSubmit()">
+      <!-- Title -->
+      <div class="text-center">
+        <h2 class="text-2xl font-semibold text-white">Iniciar Sesión</h2>
+        <p class="text-gray-400 text-sm mt-1">Ingresa tus credenciales para continuar</p>
+
+        
+
+        @if (hasFieldError('form')) {
+          <div class="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200 mt-5">
+            {{ getFieldError('form') }}
+          </div>
+        }
+          
+
+      </div>
+
+      <!-- Inputs -->
+      <div class="flex flex-col gap-5">
+        <!-- Username -->
+        <div class="w-full">
+          <app-input
+            label="Usuario"
+            placeholder="Ingresa tu usuario"
+            name="username"
+            [ngModel]="formData().username"
+            (ngModelChange)="updateField('username', $event)"
+            [disabled]="isSubmitting()"
+          ></app-input>
+
+          @if (hasFieldError('username')) {
+            <p class="text-red-400 text-xs mt-1.5">
+              {{ getFieldError('username') }}
+            </p>
+          }
+        </div>
+
+        <!-- Password -->
+        <div class="w-full">
+          <app-input
+            label="Contraseña"
+            type="password"
+            placeholder="Ingresa tu contraseña"
+            name="password"
+            [ngModel]="formData().password"
+            (ngModelChange)="updateField('password', $event)"
+            [disabled]="isSubmitting()"
+            [hasToggle]="true"
+            [visible]="showPassword()"
+            (toggle)="togglePassword()"
+          ></app-input>
+
+          @if (hasFieldError('password')) {
+            <p class="text-red-400 text-xs mt-1.5">
+              {{ getFieldError('password') }}
+            </p>
+          }
+        </div>
+
+        <!-- Remember + Forgot -->
+        <div class="flex items-center justify-between text-sm">
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              [checked]="rememberMe()"
+              (change)="onRememberMeChange($event)"
+              class="w-4 h-4 rounded border-gray-300 text-red-500 focus:ring-2 focus:ring-red-400 focus:ring-offset-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              [disabled]="isSubmitting()"
+            />
+            <span class="text-gray-300">Recordarme</span>
+          </label>
+
+          <button
+            type="button"
+            (click)="navigateToPasswordReset()"
+            class="text-red-400 hover:text-red-300 hover:underline transition-colors"
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        [disabled]="isSubmitting()"
+        class="w-full py-3 mt-2 bg-gradient-to-r from-[#6E2A35] to-[#A72027] text-white font-medium rounded-lg hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+      >
+        @if (isSubmitting()) {
+          <span class="flex items-center justify-center gap-2">
+            <svg
+              class="animate-spin h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            Ingresando...
+          </span>
+        } @else {
+          Ingresar
+        }
+      </button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,33 @@
+<div class="shrink-0 w-60 sm:w-64 md:w-72 bg-[#1e2128] rounded-2xl overflow-hidden shadow-lg">
+  <img
+    [src]="card.imageUrls.length ? card.imageUrls[0] : './assets/images/ubikLogo.jpg'"
+    class="w-full h-40 object-cover"
+  />
+
+  <div class="p-4">
+    <h2 class="text-white font-bold mb-1">
+      {{ card.roomType }}
+    </h2>
+
+    @if (showDescription) {
+      <p class="text-gray-300 text-xs mb-3 line-clamp-2">
+        {{ card.description }}
+      </p>
+    }
+
+    <div class="flex justify-between gap-2">
+      <app-button-01
+        text="Reserva"
+        [routerLink]="['/roominfo']"
+        [id]="card.id"
+        action="reservar"
+      ></app-button-01>
+
+      <app-button-02
+        text="Ver más"
+        [routerLink]="'/roominfo'"
+        [queryParams]="{ id: card.id }"
+      ></app-button-02>
+    </div>
+  </div>
+</div>

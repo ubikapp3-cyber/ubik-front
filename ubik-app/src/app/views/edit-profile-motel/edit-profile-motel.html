@@ -1,0 +1,93 @@
+@if (profile) {
+  <div class="min-h-screen bg-[#1a0508] text-white">
+    <!-- HEADER / COVER -->
+    <div class="relative h-56 w-full">
+      <img
+        [src]=""
+        alt="Cover motel"
+        class="h-full w-full object-cover"
+      />
+
+      <!-- Nombre -->
+      <div class="absolute top-4 left-4 text-xl font-bold tracking-wide">
+        
+      </div>
+
+      <!-- Add cover -->
+      <button
+        class="absolute top-4 right-4 bg-white text-black rounded-full w-10 h-10 flex items-center justify-center shadow"
+      >
+        +
+      </button>
+
+      <!-- Avatar -->
+      <div class="absolute -bottom-12 left-1/2 -translate-x-1/2">
+        <div class="relative w-24 h-24 rounded-full border-4 border-[#1a0508]">
+          <img
+            [src]=""
+            alt="Logo"
+            class="w-full h-full rounded-full object-cover"
+          />
+          <button
+            class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center text-2xl"
+          >
+            +
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div class="px-6 pt-20 space-y-6">
+      <!-- Nombre -->
+      <section>
+        <h2 class="text-sm font-semibold mb-2 uppercase opacity-80">
+          Nombre del establecimiento
+        </h2>
+        <app-input
+          placeholder="Nombre del motel"
+        />
+      </section>
+
+      <!-- Ubicación -->
+      <section>
+        <h2 class="text-sm font-semibold mb-2 uppercase opacity-80">
+          Ubicación
+        </h2>
+        <app-input
+          placeholder="Ciudad, Departamento"
+        />
+      </section>
+
+      <!-- Dirección -->
+      <section>
+        <h2 class="text-sm font-semibold mb-2 uppercase opacity-80">
+          Dirección
+        </h2>
+        <app-input
+          placeholder="Dirección exacta"
+        />
+      </section>
+
+      <!-- Descripción -->
+      <section>
+
+        <h2 class="text-sm font-semibold mb-2 uppercase opacity-80">
+          Descripción
+        </h2>
+
+        <label for="textField"></label>
+        <textarea class="w-full min-h-[120px] rounded-xl bg-black/40 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-red-500" id="textField"
+        title="notitle"></textarea>
+
+      </section>
+
+      <!-- Guardar -->
+        <app-button-01
+            [text]="'Guardar cambios'"
+            class="w-full mt-4"
+            (click)="saveProfile()">
+        </app-button-01>
+    </div>
+  </div>
+}

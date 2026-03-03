@@ -1,0 +1,22 @@
+<button
+  (click)="navigate()"
+  [disabled]="disabled"
+  class="bg-linear-to-r from-[#6E2A35] to-[#A72027] text-white font-medium rounded-lg text-center hover:from-[#7E3A45] hover:to-[#B73037] transition-colors cursor-pointer flex items-center justify-between gap-2 text-overflow: ellipsis; text-clip"
+  [ngClass]="tall ? 'p-6 min-h-[72px] text-lg' : 'p-2.5'"
+  [class.w-full]="fullWidth"
+>
+  @if (iconLeft) {
+    <div class="flex items-center justify-center gap-3 w-12 flex-shrink-0">
+      <i [class]="iconLeft + ' text-lg'"></i>
+    </div>
+  }
+
+  <div class="flex-1 text-center flex flex-col justify-center">
+    <span class="font-semibold">{{ text }}</span>
+    <span *ngIf="subtext" class="block text-sm text-white/90 mt-1">{{ subtext }}</span>
+  </div>
+
+  @if (iconRight) {
+    <i [class]="iconRight + ' text-lg opacity-70'"></i>
+  }
+</button>

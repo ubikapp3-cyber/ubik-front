@@ -1,0 +1,177 @@
+<div class="w-full sm:px-4 md:px-6 lg:max-w-[1400px] lg:mx-auto flex-col gap-y-28 mt-32">
+
+  <!-- Ofertas -->
+  <section class="ofertas mb-38">
+    
+    <h3 class="mb-6 text-2xl font-bold">Mejores ofertas</h3>
+
+    <div class="relative">
+
+      <!-- Botón izquierda -->
+      <button
+        (click)="scrollLeft(ofertasCarousel)"
+        class="absolute 
+               -left-3 sm:-left-4 md:-left-7
+               top-1/2 -translate-y-1/2 z-20
+               w-9 h-9 sm:w-11 sm:h-11 md:w-14 md:h-14
+               flex items-center justify-center
+               rounded-full cursor-pointer
+               bg-black/60 backdrop-blur-md
+               text-white text-base sm:text-lg md:text-2xl
+               shadow-lg border border-white/40
+               transition-all duration-300
+               hover:bg-white hover:text-black md:hover:scale-110">
+        ‹
+      </button>
+
+      <div
+        #ofertasCarousel
+        class="flex gap-4 overflow-x-auto pb-4 scroll-smooth scrollbar-hide">
+
+        @if(loading) {
+          @for (_ of skeletonItems; track $index) {
+            <app-loading-card></app-loading-card>
+          }
+        } @else {
+          @for (oferta of mejoresOfertas; track oferta.id) {
+            <app-card [card]="oferta" class="shrink-0 w-60 sm:w-64 md:w-72"></app-card>
+          }
+        }
+      </div>
+
+      <!-- Botón derecha -->
+      <button
+        (click)="scrollRight(ofertasCarousel)"
+        class="absolute 
+               -right-3 sm:-right-4 md:-right-7
+               top-1/2 -translate-y-1/2 z-20
+               w-9 h-9 sm:w-11 sm:h-11 md:w-14 md:h-14
+               flex items-center justify-center
+               rounded-full cursor-pointer
+               bg-black/60 backdrop-blur-md
+               text-white text-base sm:text-lg md:text-2xl
+               shadow-lg border border-white/40
+               transition-all duration-300
+               hover:bg-white hover:text-black md:hover:scale-110">
+        ›
+      </button>
+
+    </div>
+  </section>
+
+
+  <!-- Moteles Cercanos -->
+  <section class="motelesCercanos mb-38">
+    <h3 class="mb-6 text-2xl font-bold">Moteles más cercanos</h3>
+
+    <div class="relative">
+
+      <button
+        (click)="scrollLeft(nearbyMotelsCarousel)"
+        class="absolute 
+               -left-3 sm:-left-4 md:-left-7
+               top-1/2 -translate-y-1/2 z-20
+               w-9 h-9 sm:w-11 sm:h-11 md:w-14 md:h-14
+               flex items-center justify-center
+               rounded-full cursor-pointer
+               bg-black/60 backdrop-blur-md
+               text-white text-base sm:text-lg md:text-2xl
+               shadow-lg border border-white/40
+               transition-all duration-300
+               hover:bg-white hover:text-black md:hover:scale-110">
+        ‹
+      </button>
+
+      <div
+        #nearbyMotelsCarousel
+        class="flex gap-4 overflow-x-auto pb-4 scroll-smooth scrollbar-hide">
+        @if(loading) {
+          @for (_ of skeletonItems; track $index) {
+            <app-loading-card></app-loading-card>
+          }
+        } @else {
+          @for (motel of motelesCercanos; track motel.id) {
+            <app-card [card]="motel" class="shrink-0 w-60 sm:w-64 md:w-72"></app-card>
+          }
+        }
+      </div>
+
+      <button
+        (click)="scrollRight(nearbyMotelsCarousel)"
+        class="absolute 
+               -right-3 sm:-right-4 md:-right-7
+               top-1/2 -translate-y-1/2 z-20
+               w-9 h-9 sm:w-11 sm:h-11 md:w-14 md:h-14
+               flex items-center justify-center
+               rounded-full cursor-pointer
+               bg-black/60 backdrop-blur-md
+               text-white text-base sm:text-lg md:text-2xl
+               shadow-lg border border-white/40
+               transition-all duration-300
+               hover:bg-white hover:text-black md:hover:scale-110">
+        ›
+      </button>
+
+    </div>
+  </section>
+
+
+  <!-- Destinos Populares -->
+  <section class="destinosPopulares mb-38">
+    <h3 class="mb-6 text-2xl font-bold">Destinos Populares</h3>
+
+    <div class="relative">
+
+      <button
+        (click)="scrollLeft(destinosPopularesCarousel)"
+        class="absolute 
+               -left-3 sm:-left-4 md:-left-7
+               top-1/2 -translate-y-1/2 z-20
+               w-9 h-9 sm:w-11 sm:h-11 md:w-14 md:h-14
+               flex items-center justify-center
+               rounded-full cursor-pointer
+               bg-black/60 backdrop-blur-md
+               text-white text-base sm:text-lg md:text-2xl
+               shadow-lg border border-white/40
+               transition-all duration-300
+               hover:bg-white hover:text-black md:hover:scale-110">
+        ‹
+      </button>
+
+      <div
+        #destinosPopularesCarousel
+        class="flex gap-4 overflow-x-auto pb-4 scroll-smooth scrollbar-hide">
+        @if(loading) {
+
+          @for (_ of skeletonItems; track $index) {
+            <app-loading-card></app-loading-card>
+          }
+          
+        } @else { 
+
+          @for (destino of destinosPopulares; track destino.id) {
+            <app-card [card]="destino" class="shrink-0 w-60 sm:w-64 md:w-72"></app-card>
+          }
+        }
+        </div>
+
+      <button
+        (click)="scrollRight(destinosPopularesCarousel)"
+        class="absolute 
+               -right-3 sm:-right-4 md:-right-7
+               top-1/2 -translate-y-1/2 z-20
+               w-9 h-9 sm:w-11 sm:h-11 md:w-14 md:h-14
+               flex items-center justify-center
+               rounded-full cursor-pointer
+               bg-black/60 backdrop-blur-md
+               text-white text-base sm:text-lg md:text-2xl
+               shadow-lg border border-white/40
+               transition-all duration-300
+               hover:bg-white hover:text-black md:hover:scale-110">
+        ›
+      </button>
+
+    </div>
+  </section>
+
+</div>

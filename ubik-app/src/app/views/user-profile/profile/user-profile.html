@@ -1,0 +1,124 @@
+<section class="mx-auto w-full max-w-5xl px-4 py-6 ">
+  @if (profile$ | async; as profile) {
+    <!-- Cover -->
+    <div class="overflow-hidden">
+      <div class="relative h-48 sm:h-56">
+        <img
+          src="https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1600&q=60"
+          alt="Imagen de fondo"
+          class="h-full w-full object-cover  rounded-2xl"
+        />
+
+        <!-- Overlay -->
+        <div class="absolute inset-0 to-transparent"></div>
+
+        <!-- Actions (top-right) 
+        <div class="absolute right-4 top-4 flex gap-2">
+          <app-button-01
+            [text]="'Editar Perfil'"
+            [routerLink]="'/edit-profile'"
+          ></app-button-01>
+        </div>
+        -->
+
+        <!-- Avatar -->
+        <div class="absolute -bottom-12 left-6 flex items-end gap-4 sm:left-8">
+          <div class="h-27 w-27 overflow-hidden rounded-full">
+            <img
+              [src]="'https://ui-avatars.com/api/?name=' + profile.username + '&background=0f172a&color=fff&size=256'"
+              alt="Avatar"
+              class="h-full w-full object-cover"
+            />
+          </div>
+
+          <div class=" text-white flex flex-col pb-6 ">
+            <h1 class="text-xl font-semibold leading-tight sm:text-2xl">
+              {{ profile.username }}
+            </h1>
+            <p class="mt-1 text-sm text-white/80">
+              ID  : {{ profile.id }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="px-6 pb-8 pt-16 sm:px-8">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <!-- Left: Info -->
+          <div class="flex-1">
+
+            <!-- Informacion principal y boton -->
+            <div class="flex flex-row items-center justify-between">
+              <div>
+                <h2 class="text-base font-semibold text-white">Información</h2>
+                <p class="mt-1 text-sm text-white">
+                  Datos de contacto y detalles del usuario.
+                </p>
+              </div>
+
+              <app-button-01
+                [text]="'Editar Perfil'"
+                [routerLink]="'/edit-profile'"
+                class="text-sm"
+              ></app-button-01>
+            </div>
+
+            <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+              <!-- Email -->
+              <div class="p-4 flex flex-row items-center gap-6 border rounded-2xl">
+                <p class="text-sm font-medium text-white">Email:</p>
+                <p class="text-sm font-semibold text-white break-all">
+                  {{ profile.email }}
+                </p>
+              </div>
+
+              <!-- Phone -->
+              <div class="p-4 flex flex-row items-center gap-6 border rounded-2xl">
+                <p class="text-sm font-medium text-white">Teléfono:</p>
+                <p class="text-sm font-semibold text-white">
+                  {{ profile.phoneNumber || 'No registrado' }}
+                </p>
+              </div>
+
+              <!-- BirthDate -->
+              <div class="p-4 flex flex-row items-center gap-6 border rounded-2xl">
+                <p class="text-sm font-medium text-white">Nacimiento:</p>
+                <p class="text-sm font-semibold text-white">
+                  @if (profile.birthDate) {
+                    {{ profile.birthDate | date:'longDate' }}
+                  } @else {
+                    No registrada
+                  }
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- Empty state -->
+    <div class="rounded-3xl border-black bg-linear-to-r from-[#6E2A35] to-[#A72027] p-8 text-center shadow-sm">
+      <div class="">
+        <i class="fa-regular fa-circle-xmark fa-2xl" style="color: rgb(255, 255, 255);"></i>
+      </div>
+      <h2 class="mt-4 text-base font-semibold text-white">No hay datos de perfil</h2>
+      <p class="mt-1 text-sm text-white">
+        No pudimos cargar tu perfil. Intenta recargar o vuelve más tarde.
+      </p>
+
+      <div class="mt-6 flex justify-center">
+        <a
+          routerLink="/profile"
+          class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50"
+        >
+          Reintentar
+        </a>
+      </div>
+    </div>
+  }
+</section>

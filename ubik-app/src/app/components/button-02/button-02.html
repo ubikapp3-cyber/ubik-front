@@ -1,0 +1,17 @@
+<button
+  (click)="navigate()"
+  class="button border border-[#8B0000] text-[#cc3a3a] bg-transparent font-medium rounded-lg w-full text-center p-2.5 cursor-pointer flex items-center justify-between gap-2 text-overflow: ellipsis; text-clip"
+  [class.w-full]="fullWidth"
+>
+  @if (iconLeft) {
+    <div class="flex items-center gap-3 flex-1">
+      <i [class]="iconLeft + ' text-lg'"></i>
+    </div>
+  }
+
+  <span class="mx-auto">{{ text }}</span>
+
+  @if (iconRight) {
+    <i [class]="iconRight + ' text-lg opacity-70'"></i>
+  }
+</button>

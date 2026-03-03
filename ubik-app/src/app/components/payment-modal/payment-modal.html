@@ -1,0 +1,38 @@
+<div class="p-40 bg-[#1e2128] text-white rounded relative">
+  <button class="absolute top-2 right-2 text-xl" (click)="close()">✕</button>
+
+  <div *ngIf="loading" class="py-8 text-center">Cargando habitación...</div>
+  <div *ngIf="error" class="py-8 text-center text-red-400">Error al cargar la habitación.</div>
+
+  <div *ngIf="!loading && room">
+    <img
+      [src]="room.imageUrls"
+      [alt]="room.roomType"
+      class="w-full h-48 object-cover rounded mb-4"
+    />
+
+    <h3 class="text-xl font-bold mb-2">{{ room.roomType }}</h3>
+    <p class="text-gray-300 mb-3 line-clamp-3">{{ room.description }}</p>
+
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <p class="text-amber-400 font-semibold text-lg">$ {{ room.price | number }}</p>
+      </div>
+
+      <div class="flex gap-2">
+        <button
+          (click)="close()"
+          class="px-4 py-2 bg-transparent border border-[#8B0000] text-[#cc3a3a] rounded"
+        >
+          Cancelar
+        </button>
+        <button
+          (click)="reserve()"
+          class="px-4 py-2 bg-linear-to-r from-[#6E2A35] to-[#A72027] text-white rounded"
+        >
+          Pagar y reservar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,46 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: payment-service
+
+  r2dbc:
+    url: ${SPRING_R2DBC_URL}
+    username: ${SPRING_R2DBC_USERNAME}
+    password: ${SPRING_R2DBC_PASSWORD}
+    pool:
+      initial-size: 3
+      max-size: 10
+      max-idle-time: 30m
+
+  sql:
+    init:
+      mode: never
+
+mercadopago:
+  access-token: ${MERCADOPAGO_ACCESS_TOKEN}        # Tu token de marketplace
+  client-id: ${MERCADOPAGO_CLIENT_ID}              # Tu app ID en MP
+  client-secret: ${MERCADOPAGO_CLIENT_SECRET}      # Tu app secret en MP
+  redirect-uri: ${MERCADOPAGO_REDIRECT_URI}        # https://ubik.app/api/payments/oauth/callback
+  webhook-secret: ${MERCADOPAGO_WEBHOOK_SECRET}
+  marketplace-fee-percent: ${MP_FEE_PERCENT:10}    # % de comisión, default 10%
+
+services:
+  motel-management:
+    url: http://motel-management-service:8083
+  notification:
+    url: http://notification-service:8084
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.ubik.paymentservice: DEBUG

@@ -1,0 +1,281 @@
+<section class="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
+  <!-- Header -->
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold tracking-tight text-white">
+        Editar perfil
+      </h1>
+      <p class="mt-1 text-sm text-white">
+        Actualiza tu información pública y de contacto.
+      </p>
+    </div>
+
+  </div>
+
+  <div class="mt-6 space-y-4">
+    <!-- Loading skeleton -->
+    @if (loading) {
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="animate-pulse space-y-4">
+          <div class="h-5 w-40 rounded bg-slate-200"></div>
+          <div class="h-4 w-72 rounded bg-slate-200"></div>
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="space-y-2">
+              <div class="h-3 w-20 rounded bg-slate-200"></div>
+              <div class="h-10 w-full rounded-xl bg-slate-200"></div>
+            </div>
+            <div class="space-y-2">
+              <div class="h-3 w-20 rounded bg-slate-200"></div>
+              <div class="h-10 w-full rounded-xl bg-slate-200"></div>
+            </div>
+            <div class="space-y-2">
+              <div class="h-3 w-20 rounded bg-slate-200"></div>
+              <div class="h-10 w-full rounded-xl bg-slate-200"></div>
+            </div>
+            <div class="space-y-2">
+              <div class="h-3 w-24 rounded bg-slate-200"></div>
+              <div class="h-10 w-full rounded-xl bg-slate-200"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <!-- Error alert -->
+      @if (errorMsg) {
+        <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800">
+          <div class="flex items-start gap-3">
+            <div class="mt-0.5 h-5 w-5 rounded-full bg-red-600"></div>
+            <div>
+              <p class="text-sm font-semibold">Ocurrió un problema</p>
+              <p class="mt-1 text-sm text-red-700">{{ errorMsg }}</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      @let c = form.controls;
+
+      <!-- Form card -->
+      <form
+        id="editProfileForm"
+        class="border bg-white/10 backdrop-blur-md rounded-2xl p-8 border-white/20 shadow-sm"
+        [formGroup]="form"
+        (ngSubmit)="onSave()"
+        novalidate
+      >
+        <!-- Card header -->
+        <div class="border-b border-slate-100 p-5 sm:p-6">
+          <div class="flex flex-col gap-1">
+            <h2 class="text-base font-semibold text-white">
+              Información básica
+            </h2>
+            <p class="text-sm text-white">
+              Estos datos se reflejan en tu perfil.
+            </p>
+          </div>
+        </div>
+
+        <!-- Card body -->
+        <div class="p-5 sm:p-6">
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <!-- Username -->
+            <div class="sm:col-span-1">
+              <label for="username" class="text-sm font-medium text-white">
+                Username
+              </label>
+              <input
+                id="username"
+                type="text"
+                formControlName="username"
+                autocomplete="username"
+                class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-black shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                [class.border-red-300]="c.username.touched && c.username.invalid"
+                [class.focus:ring-red-100]="c.username.touched && c.username.invalid"
+              />
+              @if (c.username.touched && c.username.invalid) {
+                <p class="mt-2 text-xs text-red-600">
+                  @if (c.username.errors?.['required']) { El username es requerido. }
+                  @if (c.username.errors?.['minlength']) { Mínimo 3 caracteres. }
+                </p>
+              } @else {
+                <p class="mt-2 text-xs text-white">Ej: ubikapp3</p>
+              }
+            </div>
+
+            <!-- Email -->
+            <div class="sm:col-span-1">
+              <label for="email" class="text-sm font-medium text-white">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                autocomplete="email"
+                class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-black shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                [class.border-red-300]="c.email.touched && c.email.invalid"
+                [class.focus:ring-red-100]="c.email.touched && c.email.invalid"
+              />
+              @if (c.email.touched && c.email.invalid) {
+                <p class="mt-2 text-xs text-red-600">
+                  @if (c.email.errors?.['required']) { El email es requerido. }
+                  @if (c.email.errors?.['email']) { Formato de email inválido. }
+                </p>
+              } @else {
+                <p class="mt-2 text-xs text-white">Debe ser un correo válido.</p>
+              }
+            </div>
+
+            <!-- Phone -->
+            <div class="sm:col-span-1">
+              <label for="phoneNumber" class="text-sm font-medium text-white">
+                Teléfono
+              </label>
+              <input
+                id="phoneNumber"
+                type="tel"
+                formControlName="phoneNumber"
+                autocomplete="tel"
+                class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-black shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+              />
+              <p class="mt-2 text-xs text-white">Opcional.</p>
+            </div>
+
+            <!-- Birth date -->
+            <div class="sm:col-span-1">
+              <label for="birthDate" class="text-sm font-medium text-white">
+                Fecha de nacimiento
+              </label>
+
+              <!-- Manejo de Date con input date (string yyyy-MM-dd) -->
+              <input
+                id="birthDate"
+                type="date"
+                class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-black shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                [value]="form.value.birthDate ? (form.value.birthDate | date:'yyyy-MM-dd') : ''"
+                (change)="onBirthDateChange($event)"
+              />
+              <p class="mt-2 text-xs text-white">Opcional.</p>
+            </div>
+
+            <!-- Anonymous toggle -->
+            <div class="sm:col-span-2">
+              <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <div>
+                  <p class="text-sm font-medium text-black">Perfil anónimo</p>
+                  <p class="text-xs text-black">
+                    Oculta tu identidad en secciones públicas (si aplica).
+                  </p>
+                </div>
+
+                <label class="relative inline-flex cursor-pointer items-center">
+                  <input
+                    type="checkbox"
+                    class="peer sr-only"
+                    formControlName="anonymous"
+                  />
+                  <div
+                    class="h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-slate-900 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-slate-200"
+                  ></div>
+                  <div
+                    class="pointer-events-none absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition peer-checked:translate-x-5"
+                  ></div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="sm:col-span-2">
+              <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <p class="text-sm font-semibold text-black">Ubicación</p>
+                    <p class="mt-1 text-xs text-slate-500">
+                      Si tu app lo usa, puedes guardar longitud/latitud manualmente.
+                    </p>
+                  </div>
+                  <span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
+                    Opcional
+                  </span>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label for="longitude" class="text-sm font-medium text-black">
+                      Longitud
+                    </label>
+                    <input
+                      id="longitude"
+                      type="number"
+                      step="any"
+                      formControlName="longitude"
+                      class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-black shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                    />
+                  </div>
+
+                  <div>
+                    <label for="latitude" class="text-sm font-medium text-black">
+                      Latitud
+                    </label>
+                    <input
+                      id="latitude"
+                      type="number"
+                      step="any"
+                      formControlName="latitude"
+                      class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-black shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                    />
+                  </div>
+
+                  
+                </div>
+                
+              </div>
+            </div>
+            
+            </div>
+            <button
+                type="button"
+                class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                class="mt-2 w-full rounded-xl px-3 py-2.5 text-sm text-white shadow-sm outline-none transition bg-linear-to-r from-[#6E2A35] to-[#A72027] disabled:opacity-50 disabled:cursor-not-allowed"
+                (click)="onDeleteProfile()"
+                [disabled]="saving || deleting"
+              >
+                @if (deleting) {
+                  <span class="mt-2 inline-block h-4 w-1 animate-spin rounded-full border-2 border-black/30 border-t-black"></span>
+                  Eliminando…
+                } @else {
+                  Eliminar perfil
+                }
+              </button>
+            
+
+          <!-- Footer actions (mobile-friendly) -->
+          <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-black shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              (click)="onCancel()"
+              [disabled]="saving"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+              [disabled]="saving || form.invalid"
+            >
+              @if (saving) {
+                <span class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+                Guardando…
+              } @else {
+                Guardar cambios
+              }
+            </button>
+          </div>
+        </div>
+      </form>
+    }
+  </div>
+</section>

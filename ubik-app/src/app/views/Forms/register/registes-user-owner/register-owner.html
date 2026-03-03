@@ -1,0 +1,165 @@
+
+<div class="mb-28 mt-28 flex items-center justify-center ">
+
+  <!-- Card -->
+  <div class="w-full max-w-md bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-white/20">
+    
+    <div class="flex items-center justify-center px-5 text-white">
+      <div class="w-full max-w-md">
+        <h1 class="text-4xl font-bold mb-6 tracking-wider text-center">CUENTA PROPIETARIO</h1>
+
+        <!-- Progreso -->
+        <div class="mb-4">
+          <div class="flex justify-between text-xs opacity-70 mb-1">
+            <span>Progreso</span>
+            <span>{{ progress }}%</span>
+          </div>
+          <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+            <div class="h-2 bg-red-600 rounded-full" [style.width.%]="progress"></div>
+          </div>
+        </div>
+
+        <!-- Error general -->
+        @if (serverError) {
+          <div class="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {{ serverError }}
+          </div>
+        }
+
+        <form
+          [formGroup]="registerForm"
+          (ngSubmit)="onSubmit()"
+          class="flex flex-col gap-3"
+        >
+          <!-- Usuario -->
+          <app-input 
+            label="Nombre de Usuario" 
+            placeholder="Ingrese su nombre de usuario"
+            type="text"
+            formControlName="username">
+          </app-input>
+
+          @if (registerForm.get('username')?.touched && registerForm.get('username')?.hasError('usernameTaken')) {
+            <p class="text-xs text-red-300 -mt-3">
+              Este nombre de usuario ya está en uso.
+            </p>
+          }
+
+          <!-- Email -->
+          <app-input
+            label="Correo electrónico"
+            placeholder="Ingrese su correo"
+            type="email"
+            formControlName="email">
+          </app-input>
+          @if (getUiError('email')) {
+            <p class="text-red-300 text-xs -mt-1">{{ getUiError('email') }}</p>
+          }
+
+          <!-- Teléfono -->
+          <app-input
+            label="Número de teléfono"
+            placeholder="Ingrese su número de teléfono"
+            type="tel"
+            formControlName="phoneNumber">
+          </app-input>
+          @if (getUiError('phoneNumber')) {
+            <p class="text-red-300 text-xs -mt-1">{{ getUiError('phoneNumber') }}</p>
+          }
+
+          <!-- Birthdate -->
+          <label class="mb-1 text-white text-sm">Fecha de nacimiento</label>
+          <input
+            type="date"
+            formControlName="birthDate"
+            class="rounded-full p-3 text-black focus:outline-none focus:ring-2 focus:ring-red-600 w-full bg-white text-center"
+          />
+          @if (getUiError('birthDate')) {
+            <p class="text-red-300 text-xs -mt-1">{{ getUiError('birthDate') }}</p>
+          }
+
+          <!-- Password -->
+          <app-input
+            label="Contraseña"
+            formControlName="password"
+            placeholder="Ingrese su contraseña"
+            type="password">
+          </app-input>
+          @if (getUiError('password')) {
+            <p class="text-red-300 text-xs -mt-1">{{ getUiError('password') }}</p>
+          }
+
+          <!-- Confirm Password -->
+          <app-input
+            label="Confirmar contraseña"
+            formControlName="comfirmPassword"
+            placeholder="Confirme su contraseña"
+            type="password">
+          </app-input>
+          @if (getUiError('comfirmPassword')) {
+            <p class="text-red-300 text-xs -mt-1">{{ getUiError('comfirmPassword') }}</p>
+          }
+
+
+          <!-- Ubication  -->
+          <label class="mb-1 text-white text-base">Ubicación</label>
+
+          <button
+            type="button"
+            class="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-medium text-white/90 hover:bg-white/10 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="loading || gettingLocation"
+            (click)="getUserLocation()"
+          >
+            @if (gettingLocation) {
+              <span
+                class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
+              ></span>
+              Obteniendo...
+            } @else if (hasLocation) {
+              <span class="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/30">
+                ✓
+              </span>
+              Ubicación correcta
+            } @else {
+              Obtener ubicación actual
+            }
+          </button>
+
+          @if (!gettingLocation && hasLocation) {
+            <p class="mt-1 text-xs text-white/70">Coords: {{ locationText }}</p>
+          }
+
+          @if (error) {
+            <p class="mt-1 text-xs text-red-300">{{ error }}</p>
+          }
+
+
+          <!-- Submit -->
+          <button
+            type="submit"
+            [disabled]="isSubmitting || registerForm.invalid"
+            class="
+            bg-linear-to-r from-[#6E2A35] to-[#A72027]
+              text-white 
+              font-medium 
+              rounded-lg
+              text-center 
+              hover:from-[#7E3A45]
+              hover:to-[#B73037] 
+              transition-colors 
+              cursor-pointer
+              justify-between 
+              gap-2
+              p-2.5
+              text-overflow: ellipsis;
+              text-clip
+            "
+          >
+            @if (isSubmitting) { Registrando... } @else { Registrarse }
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -52,6 +52,9 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.DELETE, "/api/services/**").authenticated()
                         .pathMatchers("/api/reservations/**").authenticated()
                         .pathMatchers("/api/user/**").authenticated()
+                        .pathMatchers(HttpMethod.POST, "/api/payments/webhook").permitAll() // MercadoPago llama sin JWT
+                        .pathMatchers("/api/payments/**").authenticated()
+                        .pathMatchers(HttpMethod.POST, "/api/payments/*/refund").authenticated()
                         .anyExchange().authenticated()
                 )
                 .addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)

@@ -1,0 +1,81 @@
+<div class="p-6 text-white">
+
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6 gap-4">
+    <h1 class="text-3xl font-bold">Mis Propiedades</h1>
+
+    <button
+      class="bg-gradient-to-r from-[#6E2A35] to-[#A72027] hover:from-[#7E3A45] hover:to-[#B73037] px-4 py-2 rounded-lg transition"
+      routerLink="/create-motel">
+      + Crear Propiedad
+    </button>
+  </div>
+
+  <!-- Loading / Empty / List -->
+  @if (loading) {
+    <div class="text-center py-16 opacity-70">
+      Cargando propiedades...
+    </div>
+  } @else if (properties.length === 0) {
+    <div class="text-center py-16 opacity-60">
+      No tienes propiedades aún
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      @for (property of properties; track property.id) {
+        <div class="bg-zinc-900 rounded-xl overflow-hidden shadow-lg border border-white/5">
+
+          <!-- Imagen (array) -->
+          @if (property.imagesUrls && property.imagesUrls.length > 0) {
+            <img
+              [src]="property.imagesUrls[0]"
+              [alt]="property.name"
+              class="w-full h-48 object-cover"
+              loading="lazy"
+            />
+          } @else {
+            <div class="w-full h-48 bg-zinc-800 flex items-center justify-center text-white/50">
+              Sin imagen
+            </div>
+          }
+
+          <div class="p-4">
+            <h2 class="text-xl font-semibold">
+              {{ property.name }}
+            </h2>
+
+            <p class="opacity-70 text-sm mb-1">
+              📍 {{ property.city }}
+            </p>
+
+            <p class="opacity-70 text-sm mb-2">
+              🏠 {{ property.address }}
+            </p>
+
+            <p class="text-sm mb-3 line-clamp-2 opacity-90">
+              {{ property.description }}
+            </p>
+
+            <!-- Acciones -->
+            <div class="flex gap-2">
+              <button
+                class="bg-linear-to-r from-[#6E2A35] to-[#A72027] hover:from-[#7E3A45]hover:to-[#B73037]   px-3 py-1 rounded transition"
+                [routerLink]="['/edit-property', property.id]">
+                Editar
+              </button>
+
+              <button
+                class="bg-linear-to-r from-[#6E2A35] to-[#A72027] hover:from-[#7E3A45]hover:to-[#B73037] px-3 py-1 rounded transition"
+                (click)="deleteProperty(property.id)">
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+    </div>
+  }
+
+</div>
