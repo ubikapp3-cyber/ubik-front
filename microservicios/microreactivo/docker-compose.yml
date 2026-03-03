@@ -194,5 +194,4 @@ services:
 # ===========================================
 networks:
   ubik-network:
-    driver: bridge
-    name: ubik-network
+    external: true
