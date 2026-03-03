@@ -13,28 +13,21 @@ services:
     ports:
       - "8081:8081"
     environment:
-      # Spring Profile
       SPRING_PROFILES_ACTIVE: docker
-
-      # Database R2DBC Connection (Azure Flexible Server)
       SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
       SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
       SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
-
-      # JWT Configuration
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
-
-      # Java Options
       JAVA_OPTS: "-Xmx512m -Xms256m"
     networks:
       - ubik-network
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 90s
+      start_period: 60s
 
   # ===========================================
   # MICROSERVICIO: MOTEL MANAGEMENT
@@ -48,34 +41,28 @@ services:
     ports:
       - "8083:8083"
     environment:
-      # Spring Profile
       SPRING_PROFILES_ACTIVE: docker
-
-      # Database R2DBC Connection (Azure Flexible Server)
       SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
       SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
       SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
-
-      # Cloudinary Configuration
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
-
-      # Role IDs (requeridos por MotelController y AdminMotelController)
       ROLE_ID_ADMIN: ${ROLE_ID_ADMIN}
       ROLE_ID_PROPERTY_OWNER: ${ROLE_ID_PROPERTY_OWNER}
       ROLE_ID_USER: ${ROLE_ID_USER}
-
-      # Java Options
+      MERCADOPAGO_CLIENT_ID: ${MERCADOPAGO_CLIENT_ID}
+      MERCADOPAGO_CLIENT_SECRET: ${MERCADOPAGO_CLIENT_SECRET}
+      MERCADOPAGO_REDIRECT_URI: ${MERCADOPAGO_REDIRECT_URI}
       JAVA_OPTS: "-Xmx512m -Xms256m"
     networks:
       - ubik-network
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8083/actuator/health || exit 1"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 90s
+      start_period: 60s
 
   # ===========================================
   # MICROSERVICIO: NOTIFICATION SERVICE
@@ -89,19 +76,60 @@ services:
     ports:
       - "8084:8084"
     environment:
-      # Spring Profile
       SPRING_PROFILES_ACTIVE: docker
-
-      # Mail Configuration
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
-
-      # Java Options
       JAVA_OPTS: "-Xmx512m -Xms256m"
     networks:
       - ubik-network
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8084/actuator/health || exit 1"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # ===========================================
+  # MICROSERVICIO: PAYMENT SERVICE
+  # ===========================================
+  payment-service:
+    build:
+      context: .
+      dockerfile: paymentService/Dockerfile
+    container_name: payment-service
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
+      SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
+      SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
+      MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN}
+      MERCADOPAGO_WEBHOOK_SECRET: ${MERCADOPAGO_WEBHOOK_SECRET}
+      MERCADOPAGO_CLIENT_ID: ${MERCADOPAGO_CLIENT_ID}
+      MERCADOPAGO_CLIENT_SECRET: ${MERCADOPAGO_CLIENT_SECRET}
+      MERCADOPAGO_REDIRECT_URI: ${MERCADOPAGO_REDIRECT_URI}
+      MP_PUBLIC_KEY: ${MP_PUBLIC_KEY}
+      MP_APP_ID: ${MP_APP_ID}
+      MP_USER_ID: ${MP_USER_ID}
+      MP_FEE_PERCENT: ${MP_FEE_PERCENT:-10}
+      MP_NOTIFICATION_URL: ${MP_NOTIFICATION_URL}
+      MP_BACK_URL_SUCCESS: ${MP_BACK_URL_SUCCESS}
+      MP_BACK_URL_FAILURE: ${MP_BACK_URL_FAILURE}
+      MP_BACK_URL_PENDING: ${MP_BACK_URL_PENDING}
+      MOTEL_MANAGEMENT_URL: ${MOTEL_MANAGEMENT_URL}
+      NOTIFICATION_URL: ${NOTIFICATION_URL}
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    depends_on:
+      motel-management-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+    networks:
+      - ubik-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8085/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -119,17 +147,13 @@ services:
     ports:
       - "8080:8080"
     environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
       ROLE_ID_ADMIN: ${ROLE_ID_ADMIN}
       ROLE_ID_PROPERTY_OWNER: ${ROLE_ID_PROPERTY_OWNER}
       ROLE_ID_USER: ${ROLE_ID_USER}
-      # Spring Profile
-      SPRING_PROFILES_ACTIVE: docker
-
-      # JWT Configuration
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
-
-      # Java Options
+      FRONTEND_URL: ${FRONTEND_URL}
       JAVA_OPTS: "-Xmx512m -Xms256m"
     depends_on:
       usermanagement-service:
@@ -138,14 +162,34 @@ services:
         condition: service_healthy
       notification-service:
         condition: service_healthy
+      payment-service:
+        condition: service_healthy
     networks:
       - ubik-network
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 90s
+
+  # ===========================================
+  # NGROK - TUNNEL PARA MERCADOPAGO WEBHOOK
+  # ===========================================
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok
+    restart: unless-stopped
+    command: http gateway:8080 --domain=${NGROK_DOMAIN}
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    ports:
+      - "4040:4040"   # Dashboard ngrok → http://VM_IP:4040
+    depends_on:
+      gateway:
+        condition: service_healthy
+    networks:
+      - ubik-network
 
 # ===========================================
 # NETWORKS
