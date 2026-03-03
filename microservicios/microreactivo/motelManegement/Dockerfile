@@ -10,7 +10,7 @@ COPY . .
 ENV MAVEN_OPTS="-Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
 
 # Construimos SOLO el módulo motel-management
-RUN mvn clean package -pl motelManegement -am -DskipTests
+RUN mvn clean package -pl motelManegement -am -DskipTests -X
 
 # Etapa runtime
 FROM eclipse-temurin:17-jre-alpine

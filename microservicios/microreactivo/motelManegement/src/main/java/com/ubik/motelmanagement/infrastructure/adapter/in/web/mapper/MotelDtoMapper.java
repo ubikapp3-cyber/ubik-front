@@ -1,6 +1,8 @@
 package com.ubik.motelmanagement.infrastructure.adapter.in.web.mapper;
 
+import com.ubik.motelmanagement.domain.model.ImageRole;
 import com.ubik.motelmanagement.domain.model.Motel;
+import com.ubik.motelmanagement.domain.model.MotelImage;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.CreateMotelRequest;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.MotelResponse;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.UpdateMotelRequest;
@@ -8,24 +10,18 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class MotelDtoMapper {
 
     public Motel toDomain(CreateMotelRequest request) {
-        if (request == null) {
-            return null;
-        }
-        
-        Motel.DocumentType docType = null;
-        if (request.ownerDocumentType() != null) {
-            try {
-                docType = Motel.DocumentType.valueOf(request.ownerDocumentType().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Tipo de documento inválido: " + request.ownerDocumentType());
-            }
-        }
-        
+        if (request == null) return null;
+
+        Motel.DocumentType docType = parseDocumentTypeOrThrow(request.ownerDocumentType());
+
+        List<MotelImage> images = urlsToGalleryImages(request.imageUrls());
+
         return new Motel(
                 null,
                 request.name(),
@@ -35,7 +31,7 @@ public class MotelDtoMapper {
                 request.city(),
                 request.propertyId(),
                 LocalDateTime.now(),
-                request.imageUrls() != null ? new ArrayList<>(request.imageUrls()) : new ArrayList<>(),
+                images,
                 request.latitude(),
                 request.longitude(),
                 Motel.ApprovalStatus.PENDING,
@@ -53,19 +49,15 @@ public class MotelDtoMapper {
     }
 
     public Motel toDomain(UpdateMotelRequest request) {
-        if (request == null) {
-            return null;
-        }
-        
-        Motel.DocumentType docType = null;
-        if (request.ownerDocumentType() != null) {
-            try {
-                docType = Motel.DocumentType.valueOf(request.ownerDocumentType().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Tipo de documento inválido: " + request.ownerDocumentType());
-            }
-        }
-        
+        if (request == null) return null;
+
+        // En update el docType puede venir null (según tu DTO actual)
+        Motel.DocumentType docType = parseDocumentTypeOrNull(request.ownerDocumentType());
+
+        List<MotelImage> images = urlsToGalleryImages(request.imageUrls());
+
+        // Mantengo tu mismo patrón actual: id/propertyId/dateCreated/approval* en null
+        // porque el dominio MotelService reconstruye el objeto final usando existingMotel.*.
         return new Motel(
                 null,
                 request.name(),
@@ -75,7 +67,7 @@ public class MotelDtoMapper {
                 request.city(),
                 null,
                 null,
-                request.imageUrls() != null ? new ArrayList<>(request.imageUrls()) : new ArrayList<>(),
+                images,
                 request.latitude(),
                 request.longitude(),
                 null,
@@ -93,9 +85,8 @@ public class MotelDtoMapper {
     }
 
     public MotelResponse toResponse(Motel motel) {
-        if (motel == null) {
-            return null;
-        }
+        if (motel == null) return null;
+
         return new MotelResponse(
                 motel.id(),
                 motel.name(),
@@ -105,7 +96,7 @@ public class MotelDtoMapper {
                 motel.city(),
                 motel.propertyId(),
                 motel.dateCreated(),
-                motel.imageUrls(),
+                motel.imageUrls(), // ahora es List<MotelImage>
                 motel.latitude(),
                 motel.longitude(),
                 motel.approvalStatus() != null ? motel.approvalStatus().name() : null,
@@ -121,5 +112,45 @@ public class MotelDtoMapper {
                 motel.legalDocumentUrl(),
                 motel.hasCompleteLegalInfo()
         );
+    }
+
+    // =========================
+    // Helpers
+    // =========================
+
+    private Motel.DocumentType parseDocumentTypeOrThrow(String raw) {
+        if (raw == null || raw.isBlank()) {
+            throw new IllegalArgumentException("Tipo de documento inválido: " + raw);
+        }
+        try {
+            return Motel.DocumentType.valueOf(raw.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Tipo de documento inválido: " + raw);
+        }
+    }
+
+    private Motel.DocumentType parseDocumentTypeOrNull(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        try {
+            return Motel.DocumentType.valueOf(raw.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Tipo de documento inválido: " + raw);
+        }
+    }
+
+    /**
+     * Convierte List<String> (urls) => List<MotelImage> como GALLERY con sortOrder incremental.
+     * (PROFILE/COVER se setean por endpoints específicos, no desde estos DTOs)
+     */
+    private List<MotelImage> urlsToGalleryImages(List<String> urls) {
+        List<MotelImage> images = new ArrayList<>();
+        if (urls == null || urls.isEmpty()) return images;
+
+        int order = 1;
+        for (String url : urls) {
+            if (url == null || url.isBlank()) continue;
+            images.add(new MotelImage(null, url.trim(), ImageRole.GALLERY, order++));
+        }
+        return images;
     }
 }

@@ -53,7 +53,7 @@ spring:
 
         # 5️⃣ Notifications
         - id: notificationService
-          uri: http://notificationService:8084
+          uri: http://notification-service:8084
           predicates:
             - Path=/api/notifications/**
           filters:

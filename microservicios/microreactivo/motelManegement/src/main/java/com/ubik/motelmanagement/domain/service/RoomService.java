@@ -3,7 +3,9 @@ package com.ubik.motelmanagement.domain.service;
 import com.ubik.motelmanagement.domain.model.Room;
 import com.ubik.motelmanagement.domain.port.in.RoomUseCasePort;
 import com.ubik.motelmanagement.domain.port.out.MotelRepositoryPort;
+import com.ubik.motelmanagement.domain.port.out.NotificationPort;
 import com.ubik.motelmanagement.domain.port.out.RoomRepositoryPort;
+import com.ubik.motelmanagement.domain.port.out.UserPort;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -13,19 +15,53 @@ public class RoomService implements RoomUseCasePort {
 
     private final RoomRepositoryPort roomRepositoryPort;
     private final MotelRepositoryPort motelRepositoryPort;
+    private final NotificationPort notificationPort;
+    private final UserPort userPort;
 
-    public RoomService(RoomRepositoryPort roomRepositoryPort, MotelRepositoryPort motelRepositoryPort) {
+    public RoomService(RoomRepositoryPort roomRepositoryPort, MotelRepositoryPort motelRepositoryPort, NotificationPort notificationPort, UserPort userPort) {
         this.roomRepositoryPort = roomRepositoryPort;
         this.motelRepositoryPort = motelRepositoryPort;
+        this.notificationPort = notificationPort;
+        this.userPort = userPort;
     }
 
     @Override
     public Mono<Room> createRoom(Room room) {
-        return motelRepositoryPort.existsById(room.motelId())
-                .flatMap(exists -> {
-                    if (!exists) return Mono.error(new RuntimeException("Motel no encontrado con ID: " + room.motelId()));
-                    return validateRoom(room).then(roomRepositoryPort.save(room));
-                });
+
+        return motelRepositoryPort.findById(room.motelId())
+                .switchIfEmpty(Mono.error(
+                        new RuntimeException("Motel no encontrado con ID: " + room.motelId())
+                ))
+                .flatMap(motel ->
+
+                        validateRoom(room)
+                                .then(roomRepositoryPort.save(room))
+
+                                .flatMap(savedRoom ->
+
+                                        userPort.getUserById(motel.propertyId())
+
+                                                .flatMap(user -> {
+
+                                                    String priceFormatted =
+                                                            String.format("%,.2f", savedRoom.price());
+
+                                                    String createdAt =
+                                                            java.time.LocalDateTime.now()
+                                                                    .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+
+                                                    return notificationPort.sendRoomCreationNotification(
+                                                                    user.email(),
+                                                                    motel.name(),
+                                                                    savedRoom.roomType(),
+                                                                    savedRoom.number(),
+                                                                    priceFormatted,
+                                                                    createdAt
+                                                            )
+                                                            .thenReturn(savedRoom);
+                                                })
+                                )
+                );
     }
 
     @Override

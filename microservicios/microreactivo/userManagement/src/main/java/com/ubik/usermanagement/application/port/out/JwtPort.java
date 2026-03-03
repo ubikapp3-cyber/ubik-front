@@ -6,7 +6,7 @@ import java.util.Map;
 
 public interface JwtPort {
 
-    String generateToken(String username, Long roleId);
+    String generateToken(String username, Long roleId, Long userId);
 
     Map<String, Object> extractClaims(String token);
 

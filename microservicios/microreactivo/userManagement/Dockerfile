@@ -15,7 +15,7 @@ ENV MAVEN_OPTS="-Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allo
 RUN mvn clean package \
     -pl userManagement \
     -am \
-    -DskipTests
+    -DskipTests -e
 
 # =========================
 # RUNTIME STAGE
@@ -28,7 +28,7 @@ WORKDIR /app
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
-# Copiar el JAR correcto
+# Copiar el JAR correcto (la carpeta física es userManagement)
 COPY --from=build /app/userManagement/target/*.jar app.jar
 
 EXPOSE 8081

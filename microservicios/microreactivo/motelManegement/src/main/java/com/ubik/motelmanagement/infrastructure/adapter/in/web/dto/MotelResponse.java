@@ -15,7 +15,7 @@ public record MotelResponse(
         String city,
         Long propertyId,
         LocalDateTime dateCreated,
-        List<String> imageUrls,
+        List<com.ubik.motelmanagement.domain.model.MotelImage> imageUrls,
         Double latitude,
         Double longitude,
         String approvalStatus,

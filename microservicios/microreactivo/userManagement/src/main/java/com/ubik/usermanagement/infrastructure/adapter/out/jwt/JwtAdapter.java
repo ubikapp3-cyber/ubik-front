@@ -25,10 +25,11 @@ public class JwtAdapter implements JwtPort {
     }
 
     @Override
-    public String generateToken(String username, Long roleId) {
+    public String generateToken(String username, Long roleId, Long userId) {
         return Jwts.builder()
                 .subject(username)
                 .claim("role", roleId)
+                .claim("userId", userId)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMillis))
                 .signWith(key)

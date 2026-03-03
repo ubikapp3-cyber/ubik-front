@@ -1,6 +1,8 @@
 package com.ubik.motelmanagement.infrastructure.adapter.out.persistence;
 
+import com.ubik.motelmanagement.domain.model.ImageRole;
 import com.ubik.motelmanagement.domain.model.Motel;
+import com.ubik.motelmanagement.domain.model.MotelImage;
 import com.ubik.motelmanagement.domain.port.out.MotelRepositoryPort;
 import com.ubik.motelmanagement.infrastructure.adapter.out.persistence.entity.MotelImageEntity;
 import com.ubik.motelmanagement.infrastructure.adapter.out.persistence.mapper.MotelMapper;
@@ -12,10 +14,12 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Adaptador de persistencia para Motel con soporte de imágenes
+ * Adaptador de persistencia para Motel con soporte de imágenes (R2DBC)
+ *
  */
 @Component
 public class MotelPersistenceAdapter implements MotelRepositoryPort {
@@ -43,7 +47,7 @@ public class MotelPersistenceAdapter implements MotelRepositoryPort {
                 .flatMap(motelR2dbcRepository::save)
                 .doOnNext(entity -> log.debug("Motel guardado con ID: {}", entity.id()))
                 .flatMap(savedEntity -> saveImages(savedEntity.id(), motel.imageUrls())
-                        .then(Mono.just(savedEntity)))
+                        .thenReturn(savedEntity))
                 .flatMap(this::loadMotelWithImages);
     }
 
@@ -59,7 +63,6 @@ public class MotelPersistenceAdapter implements MotelRepositoryPort {
     public Flux<Motel> findAll() {
         log.debug("Buscando todos los moteles");
         return motelR2dbcRepository.findAll()
-                .doOnNext(entity -> log.debug("Motel: id={}, name={}", entity.id(), entity.name()))
                 .flatMap(this::loadMotelWithImages);
     }
 
@@ -67,25 +70,17 @@ public class MotelPersistenceAdapter implements MotelRepositoryPort {
     public Flux<Motel> findByCity(String city) {
         log.debug("Buscando moteles en ciudad: {}", city);
         return motelR2dbcRepository.findByCity(city)
-                .doOnNext(entity -> log.debug("Motel en {}: {}", city, entity.name()))
                 .flatMap(this::loadMotelWithImages);
     }
 
     @Override
     public Flux<Motel> findByPropertyId(Long propertyId) {
-        log.info("🔍 MotelPersistenceAdapter.findByPropertyId({})", propertyId);
+        log.info("MotelPersistenceAdapter.findByPropertyId({})", propertyId);
 
         return motelR2dbcRepository.findByPropertyId(propertyId)
-                .doOnSubscribe(subscription -> log.debug("Ejecutando query en BD para propertyId: {}", propertyId))
                 .doOnNext(entity -> log.info("  ✓ Entity encontrada en BD: id={}, name='{}', propertyId={}",
                         entity.id(), entity.name(), entity.propertyId()))
-                .doOnComplete(() -> log.info("  ✓ Query completada para propertyId: {}", propertyId))
-                .doOnError(error -> log.error("  ✗ Error en query para propertyId {}: {}",
-                        propertyId, error.getMessage(), error))
-                .flatMap(entity -> {
-                    log.debug("Cargando imágenes para motel ID: {}", entity.id());
-                    return loadMotelWithImages(entity);
-                });
+                .flatMap(this::loadMotelWithImages);
     }
 
     @Override
@@ -97,7 +92,7 @@ public class MotelPersistenceAdapter implements MotelRepositoryPort {
                 .flatMap(savedEntity ->
                         motelImageRepository.deleteByMotelId(savedEntity.id().intValue())
                                 .then(saveImages(savedEntity.id(), motel.imageUrls()))
-                                .then(Mono.just(savedEntity))
+                                .thenReturn(savedEntity)
                 )
                 .flatMap(this::loadMotelWithImages);
     }
@@ -117,38 +112,64 @@ public class MotelPersistenceAdapter implements MotelRepositoryPort {
     }
 
     /**
-     * Carga un motel con sus imágenes
+     * Carga un motel con sus imágenes (ordenadas)
      */
     private Mono<Motel> loadMotelWithImages(com.ubik.motelmanagement.infrastructure.adapter.out.persistence.entity.MotelEntity entity) {
-        return motelImageRepository.findByMotelIdOrderByOrderIndexAsc(entity.id().intValue())
-                .map(MotelImageEntity::imageUrl)
+        return motelImageRepository.findOrderedByMotelId(entity.id().intValue())
+                .map(img -> new MotelImage(
+                        img.id(),
+                        img.imageUrl(),
+                        ImageRole.valueOf(img.role().toUpperCase()),
+                        img.orderIndex()
+                ))
                 .collectList()
-                .map(imageUrls -> {
-                    Motel motel = motelMapper.toDomain(entity, imageUrls);
-                    log.debug("Motel cargado con {} imágenes: {}", imageUrls.size(), motel.name());
+                .map(images -> {
+                    Motel motel = motelMapper.toDomain(entity, images);
+                    log.debug("Motel cargado con {} imágenes: {}", images.size(), motel.name());
                     return motel;
                 });
     }
 
     /**
-     * Guarda las imágenes de un motel
+     * Guarda las imágenes de un motel.
+     *
+     * Reglas:
+     * - PROFILE y COVER: sortOrder puede ser null
+     * - GALLERY: si viene null, se asigna incremental
      */
-    private Mono<Void> saveImages(Long motelId, java.util.List<String> imageUrls) {
-        if (imageUrls == null || imageUrls.isEmpty()) {
+    private Mono<Void> saveImages(Long motelId, List<MotelImage> images) {
+        if (images == null || images.isEmpty()) {
             log.debug("No hay imágenes para guardar en motel ID: {}", motelId);
             return Mono.empty();
         }
 
-        log.debug("Guardando {} imágenes para motel ID: {}", imageUrls.size(), motelId);
-        
-        AtomicInteger order = new AtomicInteger(1);
-        return Flux.fromIterable(imageUrls)
-                .map(url -> new MotelImageEntity(
-                        null,
-                        motelId.intValue(),
-                        url,
-                        order.getAndIncrement()
-                ))
+        log.debug("Guardando {} imágenes para motel ID: {}", images.size(), motelId);
+
+        AtomicInteger fallbackOrder = new AtomicInteger(1);
+
+        return Flux.fromIterable(images)
+                .filter(mi -> mi != null && mi.url() != null && !mi.url().isBlank())
+                .map(mi -> {
+                    Integer orderIndex = mi.sortOrder();
+
+                    if (mi.role() == ImageRole.GALLERY) {
+                        // Si no viene sortOrder, asignamos uno incremental
+                        if (orderIndex == null) {
+                            orderIndex = fallbackOrder.getAndIncrement();
+                        }
+                    } else {
+                        // PROFILE/COVER: dejamos null
+                        orderIndex = null;
+                    }
+
+                    return new MotelImageEntity(
+                            null,
+                            motelId.intValue(),
+                            mi.url(),
+                            orderIndex,
+                            mi.role().name()
+                    );
+                })
                 .flatMap(motelImageRepository::save)
                 .then()
                 .doOnSuccess(v -> log.debug("Imágenes guardadas para motel ID: {}", motelId));

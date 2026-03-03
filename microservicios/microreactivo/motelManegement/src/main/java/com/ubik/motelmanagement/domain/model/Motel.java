@@ -16,7 +16,7 @@ public record Motel(
         String city,
         Long propertyId,
         LocalDateTime dateCreated,
-        List<String> imageUrls,
+        List<MotelImage> imageUrls,
         Double latitude,
         Double longitude,
         ApprovalStatus approvalStatus,
@@ -52,53 +52,6 @@ public record Motel(
     }
 
     /**
-     * Constructor para creación de nuevos moteles (sin ID, estado PENDING)
-     */
-    public static Motel createNew(
-            String name,
-            String address,
-            String phoneNumber,
-            String description,
-            String city,
-            Long propertyId,
-            List<String> imageUrls,
-            Double latitude,
-            Double longitude,
-            String rues,
-            String rnt,
-            DocumentType ownerDocumentType,
-            String ownerDocumentNumber,
-            String ownerFullName,
-            String legalRepresentativeName,
-            String legalDocumentUrl
-    ) {
-        return new Motel(
-                null,
-                name,
-                address,
-                phoneNumber,
-                description,
-                city,
-                propertyId,
-                LocalDateTime.now(),
-                imageUrls,
-                latitude,
-                longitude,
-                ApprovalStatus.PENDING,  // Nuevo motel inicia como PENDING
-                null,
-                null,
-                null,
-                rues,
-                rnt,
-                ownerDocumentType,
-                ownerDocumentNumber,
-                ownerFullName,
-                legalRepresentativeName,
-                legalDocumentUrl
-        );
-    }
-
-    /**
      * Constructor para actualización (mantiene ID, fecha de creación y estado de aprobación)
      */
     public Motel withUpdatedInfo(
@@ -107,7 +60,7 @@ public record Motel(
             String phoneNumber,
             String description,
             String city,
-            List<String> imageUrls,
+            List<MotelImage> imageUrls,
             Double latitude,
             Double longitude,
             String rues,
@@ -119,21 +72,21 @@ public record Motel(
             String legalDocumentUrl
     ) {
         return new Motel(
-                this.id,
+                this.id(),
                 name,
                 address,
                 phoneNumber,
                 description,
                 city,
-                this.propertyId,
-                this.dateCreated,
+                this.propertyId(),
+                this.dateCreated(),
                 imageUrls,
                 latitude,
                 longitude,
-                this.approvalStatus,  // Mantener estado actual
-                this.approvalDate,
-                this.approvedByUserId,
-                this.rejectionReason,
+                this.approvalStatus(),
+                this.approvalDate(),
+                this.approvedByUserId(),
+                this.rejectionReason(),
                 rues,
                 rnt,
                 ownerDocumentType,
@@ -149,28 +102,28 @@ public record Motel(
      */
     public Motel approve(Long adminUserId) {
         return new Motel(
-                this.id,
-                this.name,
-                this.address,
-                this.phoneNumber,
-                this.description,
-                this.city,
-                this.propertyId,
-                this.dateCreated,
-                this.imageUrls,
-                this.latitude,
-                this.longitude,
+                this.id(),
+                this.name(),
+                this.address(),
+                this.phoneNumber(),
+                this.description(),
+                this.city(),
+                this.propertyId(),
+                this.dateCreated(),
+                this.imageUrls(),
+                this.latitude(),
+                this.longitude(),
                 ApprovalStatus.APPROVED,
                 LocalDateTime.now(),
                 adminUserId,
-                null,  // Limpiar razón de rechazo
-                this.rues,
-                this.rnt,
-                this.ownerDocumentType,
-                this.ownerDocumentNumber,
-                this.ownerFullName,
-                this.legalRepresentativeName,
-                this.legalDocumentUrl
+                null,
+                this.rues(),
+                this.rnt(),
+                this.ownerDocumentType(),
+                this.ownerDocumentNumber(),
+                this.ownerFullName(),
+                this.legalRepresentativeName(),
+                this.legalDocumentUrl()
         );
     }
 
@@ -179,28 +132,28 @@ public record Motel(
      */
     public Motel reject(Long adminUserId, String reason) {
         return new Motel(
-                this.id,
-                this.name,
-                this.address,
-                this.phoneNumber,
-                this.description,
-                this.city,
-                this.propertyId,
-                this.dateCreated,
-                this.imageUrls,
-                this.latitude,
-                this.longitude,
+                this.id(),
+                this.name(),
+                this.address(),
+                this.phoneNumber(),
+                this.description(),
+                this.city(),
+                this.propertyId(),
+                this.dateCreated(),
+                this.imageUrls(),
+                this.latitude(),
+                this.longitude(),
                 ApprovalStatus.REJECTED,
                 LocalDateTime.now(),
                 adminUserId,
                 reason,
-                this.rues,
-                this.rnt,
-                this.ownerDocumentType,
-                this.ownerDocumentNumber,
-                this.ownerFullName,
-                this.legalRepresentativeName,
-                this.legalDocumentUrl
+                this.rues(),
+                this.rnt(),
+                this.ownerDocumentType(),
+                this.ownerDocumentNumber(),
+                this.ownerFullName(),
+                this.legalRepresentativeName(),
+                this.legalDocumentUrl()
         );
     }
 
@@ -209,28 +162,28 @@ public record Motel(
      */
     public Motel putUnderReview() {
         return new Motel(
-                this.id,
-                this.name,
-                this.address,
-                this.phoneNumber,
-                this.description,
-                this.city,
-                this.propertyId,
-                this.dateCreated,
-                this.imageUrls,
-                this.latitude,
-                this.longitude,
+                this.id(),
+                this.name(),
+                this.address(),
+                this.phoneNumber(),
+                this.description(),
+                this.city(),
+                this.propertyId(),
+                this.dateCreated(),
+                this.imageUrls(),
+                this.latitude(),
+                this.longitude(),
                 ApprovalStatus.UNDER_REVIEW,
-                this.approvalDate,
-                this.approvedByUserId,
-                this.rejectionReason,
-                this.rues,
-                this.rnt,
-                this.ownerDocumentType,
-                this.ownerDocumentNumber,
-                this.ownerFullName,
-                this.legalRepresentativeName,
-                this.legalDocumentUrl
+                this.approvalDate(),
+                this.approvedByUserId(),
+                this.rejectionReason(),
+                this.rues(),
+                this.rnt(),
+                this.ownerDocumentType(),
+                this.ownerDocumentNumber(),
+                this.ownerFullName(),
+                this.legalRepresentativeName(),
+                this.legalDocumentUrl()
         );
     }
 
@@ -238,26 +191,25 @@ public record Motel(
      * Verifica si el motel está aprobado
      */
     public boolean isApproved() {
-        return this.approvalStatus == ApprovalStatus.APPROVED;
+        return this.approvalStatus() == ApprovalStatus.APPROVED;
     }
 
     /**
      * Verifica si el motel puede ser editado
-     * Solo se puede editar si está PENDING o REJECTED
      */
     public boolean canBeEdited() {
-        return this.approvalStatus == ApprovalStatus.PENDING ||
-                this.approvalStatus == ApprovalStatus.REJECTED;
+        return this.approvalStatus() == ApprovalStatus.PENDING ||
+                this.approvalStatus() == ApprovalStatus.REJECTED;
     }
 
     /**
      * Verifica si la información legal está completa
      */
     public boolean hasCompleteLegalInfo() {
-        return rues != null && !rues.isBlank() &&
-                rnt != null && !rnt.isBlank() &&
-                ownerDocumentType != null &&
-                ownerDocumentNumber != null && !ownerDocumentNumber.isBlank() &&
-                ownerFullName != null && !ownerFullName.isBlank();
+        return rues() != null && !rues().isBlank() &&
+                rnt() != null && !rnt().isBlank() &&
+                ownerDocumentType() != null &&
+                ownerDocumentNumber() != null && !ownerDocumentNumber().isBlank() &&
+                ownerFullName() != null && !ownerFullName().isBlank();
     }
 }

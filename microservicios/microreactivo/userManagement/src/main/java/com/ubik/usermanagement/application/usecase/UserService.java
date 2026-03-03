@@ -68,7 +68,8 @@ public class UserService implements UserUseCase {
                                     return userRepository.save(user)
                                             //.map(saved -> jwtAdapter.generateToken(
                                               //      saved.username(),
-                                                //    saved.roleId()
+                                                //    saved.roleId(),
+                                                //    saved.id()
                                             //)
                                             .flatMap(saved ->
                                                     notificationPort
@@ -76,7 +77,8 @@ public class UserService implements UserUseCase {
                                                             .thenReturn(
                                                                     jwtAdapter.generateToken(
                                                                             saved.username(),
-                                                                            saved.roleId()
+                                                                            saved.roleId(),
+                                                                            saved.id()
                                                                     )
                                                             )
                                             );
@@ -91,7 +93,8 @@ public class UserService implements UserUseCase {
                 .switchIfEmpty(Mono.error(new RuntimeException("Invalid credentials")))
                 .map(user -> jwtAdapter.generateToken(
                         user.username(),
-                        user.roleId()
+                        user.roleId(),
+                        user.id()
                 ));
     }
 
@@ -118,7 +121,7 @@ public class UserService implements UserUseCase {
                 )))
                 .flatMap(user ->
                         notificationPort
-                                .sendPasswordRecoveryEmail(user.email(), resetToken)
+                                .sendPasswordRecoveryEmail(user.email(), user.username(), resetToken)
                                 .thenReturn(resetToken)
                 );
     }

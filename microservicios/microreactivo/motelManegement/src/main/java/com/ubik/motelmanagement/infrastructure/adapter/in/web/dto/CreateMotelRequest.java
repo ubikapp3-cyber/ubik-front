@@ -40,13 +40,14 @@ public record CreateMotelRequest(
         Double longitude,
 
         @NotBlank(message = "El RUES es requerido")
-        @Size(max = 100, message = "El RUES no puede exceder 100 caracteres")
+        @Size(max = 500, message = "La URL del RUES no puede exceder 500 caracteres")
         String rues,
 
         @NotBlank(message = "El RNT es requerido")
-        @Size(max = 100, message = "El RNT no puede exceder 100 caracteres")
+        @Size(max = 500, message = "La URL del RNT no puede exceder 500 caracteres")
         String rnt,
 
+        @NotBlank(message = "El tipo de documento del propietario es requerido")
         @NotNull(message = "El tipo de documento del propietario es requerido")
         String ownerDocumentType,  // CC, NIT, CE, PASAPORTE
 
