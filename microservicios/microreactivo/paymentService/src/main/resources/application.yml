@@ -25,6 +25,11 @@ mercadopago:
   redirect-uri: ${MERCADOPAGO_REDIRECT_URI}        # https://ubik.app/api/payments/oauth/callback
   webhook-secret: ${MERCADOPAGO_WEBHOOK_SECRET}
   marketplace-fee-percent: ${MP_FEE_PERCENT:10}    # % de comisión, default 10%
+  back-urls:
+    success: ${MP_BACK_URL_SUCCESS:http://localhost:4200/payment/success}
+    failure: ${MP_BACK_URL_FAILURE:http://localhost:4200/payment/failure}
+    pending: ${MP_BACK_URL_PENDING:http://localhost:4200/payment/pending}
+  notification-url: ${MP_NOTIFICATION_URL:}
 
 services:
   motel-management:
