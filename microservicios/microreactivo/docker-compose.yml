@@ -173,16 +173,16 @@ services:
 
   # ===========================================
   # NGROK - TUNNEL PARA MERCADOPAGO WEBHOOK
-  # ===========================================
+    # ===========================================
   ngrok:
     image: ngrok/ngrok:latest
     container_name: ngrok
     restart: unless-stopped
-    command: http gateway:8080 --domain=${NGROK_DOMAIN}
+    command: http gateway:8080 --url=${NGROK_DOMAIN} --pooling-enabled
     environment:
       NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
     ports:
-      - "4040:4040"   # Dashboard ngrok → http://VM_IP:4040
+      - "4040:4040"
     depends_on:
       gateway:
         condition: service_healthy
