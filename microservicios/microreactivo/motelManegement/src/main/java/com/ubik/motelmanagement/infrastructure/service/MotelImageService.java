@@ -1,4 +1,5 @@
 package com.ubik.motelmanagement.infrastructure.service;
+
 import com.ubik.motelmanagement.domain.model.ImageRole;
 import com.ubik.motelmanagement.infrastructure.adapter.out.persistence.entity.MotelImageEntity;
 import com.ubik.motelmanagement.infrastructure.adapter.out.persistence.repository.MotelImageR2dbcRepository;
@@ -7,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Mono;
+
+import java.time.LocalDateTime;
 
 @Service
 public class MotelImageService {
@@ -27,8 +30,17 @@ public class MotelImageService {
         validateUrl(url);
 
         return requireMotelExists(motelId)
-                .then(motelImageR2dbcRepository.deleteByMotelIdAndRole(motelId.intValue(), ImageRole.PROFILE.name()))
-                .then(motelImageR2dbcRepository.save(new MotelImageEntity(null, motelId.intValue(), url, null, ImageRole.PROFILE.name())))
+                .then(motelImageR2dbcRepository.deleteByMotelIdAndRole(
+                        motelId.intValue(), ImageRole.PROFILE.name()))
+                .then(motelImageR2dbcRepository.save(
+                        new MotelImageEntity(
+                                null,
+                                motelId.intValue(),
+                                url,
+                                null,
+                                ImageRole.PROFILE.name(),
+                                LocalDateTime.now()
+                        )))
                 .then()
                 .as(tx::transactional);
     }
@@ -37,8 +49,17 @@ public class MotelImageService {
         validateUrl(url);
 
         return requireMotelExists(motelId)
-                .then(motelImageR2dbcRepository.deleteByMotelIdAndRole(motelId.intValue(), ImageRole.COVER.name()))
-                .then(motelImageR2dbcRepository.save(new MotelImageEntity(null, motelId.intValue(), url, null, ImageRole.COVER.name())))
+                .then(motelImageR2dbcRepository.deleteByMotelIdAndRole(
+                        motelId.intValue(), ImageRole.COVER.name()))
+                .then(motelImageR2dbcRepository.save(
+                        new MotelImageEntity(
+                                null,
+                                motelId.intValue(),
+                                url,
+                                null,
+                                ImageRole.COVER.name(),
+                                LocalDateTime.now()
+                        )))
                 .then()
                 .as(tx::transactional);
     }
@@ -48,13 +69,20 @@ public class MotelImageService {
 
         return requireMotelExists(motelId)
                 .then(motelImageR2dbcRepository.maxGalleryOrder(motelId.intValue()).defaultIfEmpty(0))
-                .flatMap(max -> motelImageR2dbcRepository.save(new MotelImageEntity(null, motelId.intValue(), url, max + 1, ImageRole.GALLERY.name())))
+                .flatMap(max -> motelImageR2dbcRepository.save(
+                        new MotelImageEntity(
+                                null,
+                                motelId.intValue(),
+                                url,
+                                max + 1,
+                                ImageRole.GALLERY.name(),
+                                LocalDateTime.now()
+                        )))
                 .then()
                 .as(tx::transactional);
     }
 
     public Mono<Void> deleteImage(Long motelId, Long imageId) {
-        // En R2dbcRepository<MotelImageEntity, Integer> el id es Integer
         return motelImageR2dbcRepository.deleteById(imageId.intValue())
                 .then()
                 .as(tx::transactional);
@@ -62,7 +90,9 @@ public class MotelImageService {
 
     private Mono<Void> requireMotelExists(Long motelId) {
         return motelRepository.existsById(motelId)
-                .flatMap(exists -> exists ? Mono.empty() : Mono.error(new RuntimeException("Motel no existe")));
+                .flatMap(exists -> exists
+                        ? Mono.empty()
+                        : Mono.error(new RuntimeException("Motel no existe")));
     }
 
     private void validateUrl(String url) {
