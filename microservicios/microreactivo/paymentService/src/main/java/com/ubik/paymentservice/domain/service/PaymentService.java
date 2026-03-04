@@ -71,10 +71,21 @@ public class PaymentService implements PaymentUseCase {
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
         Payment draft = new Payment(
-                null, request.reservationId(), userId, request.motelId(),
-                request.amount(), request.currency() != null ? request.currency() : "COP",
-                PaymentStatus.PENDING, null, null, null, null, fee,
-                LocalDateTime.now(), LocalDateTime.now()
+                null,                                                        // id
+                request.reservationId(),                                     // reservationId
+                userId,                                                      // userId
+                request.motelId(),                                           // motelId
+                request.amount(),                                            // amount
+                request.currency() != null ? request.currency() : "COP",   // currency
+                PaymentStatus.PENDING,                                       // status
+                null,                                                        // mercadopagoPaymentId
+                null,                                                        // mercadopagoPreferenceId
+                null,                                                        // mercadopagoPublicKey
+                null,                                                        // initPoint
+                null,                                                        // failureReason
+                fee,                                                         // marketplaceFee
+                LocalDateTime.now(),                                         // createdAt
+                LocalDateTime.now()                                          // updatedAt
         );
 
         return paymentRepository.save(draft)
