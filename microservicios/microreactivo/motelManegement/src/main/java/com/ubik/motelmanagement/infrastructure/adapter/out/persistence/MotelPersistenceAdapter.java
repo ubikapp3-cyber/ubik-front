@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -167,7 +168,8 @@ public class MotelPersistenceAdapter implements MotelRepositoryPort {
                             motelId.intValue(),
                             mi.url(),
                             orderIndex,
-                            mi.role().name()
+                            mi.role().name(),
+                            LocalDateTime.now()
                     );
                 })
                 .flatMap(motelImageRepository::save)
