@@ -6,10 +6,14 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="gateway (1)" />
         <module name="paymentService" />
+        <module name="paymentService (1)" />
         <module name="notificationService" />
+        <module name="notificationService (1)" />
         <module name="orders" />
         <module name="customers" />
+        <module name="motel-management (1)" />
         <module name="motel-management" />
         <module name="gateway" />
         <module name="payments-checkout-pro" />
@@ -23,6 +27,15 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.32/lombok-1.18.32.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.32/lombok-1.18.32.jar" />
         </processorPath>
+        <module name="user-management (1)" />
+      </profile>
+      <profile name="Annotation profile for user-management" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.32/lombok-1.18.32.jar" />
+        </processorPath>
         <module name="user-management" />
       </profile>
     </annotationProcessing>
@@ -31,13 +44,18 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="customers" options="-parameters" />
       <module name="gateway" options="-parameters" />
+      <module name="gateway (1)" options="-parameters" />
       <module name="motel-management" options="-parameters" />
+      <module name="motel-management (1)" options="-parameters" />
       <module name="notificationService" options="-parameters" />
+      <module name="notificationService (1)" options="-parameters" />
       <module name="orders" options="-parameters" />
       <module name="paymentService" options="-parameters" />
+      <module name="paymentService (1)" options="-parameters" />
       <module name="payments-checkout-pro" options="-parameters" />
       <module name="products" options="-parameters" />
       <module name="user-management" options="-parameters" />
+      <module name="user-management (1)" options="-parameters" />
     </option>
   </component>
 </project>
