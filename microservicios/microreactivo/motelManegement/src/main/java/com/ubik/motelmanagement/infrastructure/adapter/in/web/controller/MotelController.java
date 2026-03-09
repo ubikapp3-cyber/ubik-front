@@ -1,6 +1,7 @@
 package com.ubik.motelmanagement.infrastructure.adapter.in.web.controller;
 
 import com.ubik.motelmanagement.domain.model.Motel;
+import com.ubik.motelmanagement.domain.model.ApprovalStatus;
 import com.ubik.motelmanagement.domain.port.in.MotelUseCasePort;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.CreateMotelRequest;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.MotelResponse;
@@ -47,18 +48,22 @@ public class MotelController {
     @GetMapping
     public Flux<MotelResponse> getAllMotels() {
         return motelUseCasePort.getAllMotels()
+                .filter(motel -> motel.approvalStatus() == ApprovalStatus.APPROVED)  
                 .map(motelDtoMapper::toResponse);
     }
 
     @GetMapping("/{id}")
     public Mono<MotelResponse> getMotelById(@PathVariable Long id) {
         return motelUseCasePort.getMotelById(id)
+                .filter(motel -> motel.approvalStatus() == ApprovalStatus.APPROVED)  
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "Motel no encontrado")))
                 .map(motelDtoMapper::toResponse);
     }
 
     @GetMapping("/city/{city}")
     public Flux<MotelResponse> getMotelsByCity(@PathVariable String city) {
         return motelUseCasePort.getMotelsByCity(city)
+                .filter(motel -> motel.approvalStatus() == ApprovalStatus.APPROVED)  
                 .map(motelDtoMapper::toResponse);
     }
 
