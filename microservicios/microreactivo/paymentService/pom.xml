@@ -44,6 +44,13 @@
             <artifactId>stripe-java</artifactId>
             <version>25.7.0</version>
         </dependency>
+        <!-- iText for PDF Generation -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itext7-core</artifactId>
+            <version>7.2.5</version>
+            <type>pom</type>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

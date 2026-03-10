@@ -9,6 +9,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -50,6 +51,10 @@ public class NotificationService {
 
             // 👇 AQUÍ ESTÁ LA CLAVE
             helper.setText(dto.getMessage(), true); // true = HTML
+
+            if (dto.getAttachment() != null && dto.getAttachmentName() != null) {
+                helper.addAttachment(dto.getAttachmentName(), new ByteArrayResource(dto.getAttachment()));
+            }
 
             helper.setFrom("ubikApp3@gmail.com");
 

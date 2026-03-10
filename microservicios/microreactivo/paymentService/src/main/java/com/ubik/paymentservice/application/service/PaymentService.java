@@ -24,15 +24,27 @@ public class PaymentService implements PaymentUseCasePort {
     private final StripePort stripePort;
     private final PaymentRepositoryPort paymentRepository;
     private final ReservationConfirmationPort reservationConfirmationPort;
+    private final InvoiceCreator invoiceCreator;
+    private final com.ubik.paymentservice.infrastructure.adapter.out.notification.NotificationAdapter notificationAdapter;
+    private final com.ubik.paymentservice.infrastructure.adapter.out.user.UserInfoAdapter userInfoAdapter;
+    private final com.ubik.paymentservice.infrastructure.adapter.out.motelmanagement.ReservationInfoAdapter reservationInfoAdapter;
 
     public PaymentService(
             StripePort stripePort,
             PaymentRepositoryPort paymentRepository,
-            ReservationConfirmationPort reservationConfirmationPort
+            ReservationConfirmationPort reservationConfirmationPort,
+            InvoiceCreator invoiceCreator,
+            com.ubik.paymentservice.infrastructure.adapter.out.notification.NotificationAdapter notificationAdapter,
+            com.ubik.paymentservice.infrastructure.adapter.out.user.UserInfoAdapter userInfoAdapter,
+            com.ubik.paymentservice.infrastructure.adapter.out.motelmanagement.ReservationInfoAdapter reservationInfoAdapter
     ) {
         this.stripePort = stripePort;
         this.paymentRepository = paymentRepository;
         this.reservationConfirmationPort = reservationConfirmationPort;
+        this.invoiceCreator = invoiceCreator;
+        this.notificationAdapter = notificationAdapter;
+        this.userInfoAdapter = userInfoAdapter;
+        this.reservationInfoAdapter = reservationInfoAdapter;
     }
 
     @Override
@@ -114,9 +126,40 @@ public class PaymentService implements PaymentUseCasePort {
                                             log.error("Error confirmando reserva {}: {}",
                                                     payment.reservationId(), e.getMessage());
                                             return Mono.empty();
-                                        });
+                                        })
+                                        .then(generateAndSendInvoice(payment));
                             });
                 });
+    }
+
+    private Mono<Void> generateAndSendInvoice(Payment payment) {
+        return Mono.zip(
+                userInfoAdapter.getUserInfo(payment.userId()),
+                reservationInfoAdapter.getReservationInfo(payment.reservationId())
+        ).flatMap(tuple -> {
+            var user = tuple.getT1();
+            var res = tuple.getT2();
+
+            String servicesDetail = String.format("Reserva Habitación #%d\nDel: %s\nAl: %s",
+                    res.roomId(), res.checkInDate(), res.checkOutDate());
+
+            byte[] pdf = invoiceCreator.generateInvoice(
+                    payment.id().toString(),
+                    user.username(),
+                    user.email(),
+                    user.phoneNumber(),
+                    servicesDetail,
+                    payment.amountCents() / 100.0
+            );
+
+            String subject = "Factura de Compra - Reserva #" + payment.reservationId();
+            String msg = "<p>Hola " + user.username() + ",</p><p>Adjunto encontrarás la factura de tu reserva.</p><p>¡Gracias por elegir UBIK!</p>";
+
+            return notificationAdapter.sendInvoiceEmail(user.email(), subject, msg, pdf, "Factura_" + payment.id() + ".pdf");
+        }).onErrorResume(e -> {
+            log.error("Error generando o enviando la factura para el pago {}: {}", payment.id(), e.getMessage());
+            return Mono.empty();
+        });
     }
 
     private Mono<Void> handlePaymentFailed(String payload) {
