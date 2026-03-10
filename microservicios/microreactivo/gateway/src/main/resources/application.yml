@@ -4,31 +4,18 @@ server:
 spring:
   cloud:
     gateway:
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOriginPatterns:
-              - "https://ubik-app.vercel.app"
-              - "https://*--ubik-app.vercel.app"
-              - "http://localhost:*"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - PATCH
-              - OPTIONS
-              - HEAD
-            allowedHeaders: "*"
-            exposedHeaders:
-              - Authorization
-              - Content-Type
-              - X-User-Username
-              - X-User-Role
-              - X-User-Id
-            allowCredentials: true
-            maxAge: 3600
       routes:
+        # ═══════════════════════════════════════════════════════
+        # ADMIN - DEBE IR PRIMERO (más específico)
+        # ═══════════════════════════════════════════════════════
+
+        - id: motel-management-admin
+          uri: http://motel-management-service:8083
+          predicates:
+            - Path=/api/admin/**
+          filters:
+            - StripPrefix=0
+
         # ═══════════════════════════════════════════════════════
         # MOTEL MANAGEMENT - RUTAS AUTENTICADAS
         # ⚠️  DEBEN IR ANTES que /api/auth/** del userManagement
@@ -77,7 +64,7 @@ spring:
 
         # 5️⃣ Notifications
         - id: notificationService
-          uri: http://notification-service:8084
+          uri: http://notificationService:8084
           predicates:
             - Path=/api/notifications/**
           filters:
@@ -118,6 +105,8 @@ spring:
             - Path=/api/reservations/**
           filters:
             - StripPrefix=0
+
+        # 🔟 Payments
         - id: payment-service
           uri: http://payment-service:8085
           predicates:
