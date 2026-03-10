@@ -29,9 +29,9 @@ services:
   motel-management:
     url: ${MOTEL_MANAGEMENT_URL:http://motel-management-service:8083}
   user-management:
-    url: ${USER_MANAGEMENT_URL:http://user-management-service:8081}
+    url: ${USER_MANAGEMENT_URL:http://usermanagement-service:8081}
   notification-service:
-    url: ${NOTIFICATION_SERVICE_URL:http://notification-service:8086}
+    url: ${NOTIFICATION_SERVICE_URL:http://notification-service:8084}
 
 # ── Actuator ──────────────────────────────────────────────────────────────────
 management:
