@@ -13,7 +13,7 @@ public class UserInfoAdapter {
     private static final Logger log = LoggerFactory.getLogger(UserInfoAdapter.class);
     private final WebClient webClient;
 
-    public UserInfoAdapter(@Value("${services.user-management.url:http://user-management:8083}") String userManagementUrl) {
+    public UserInfoAdapter(@Value("${services.user-management.url:http://usermanagement-service:8081}") String userManagementUrl) {
          this.webClient = WebClient.builder()
                  .baseUrl(userManagementUrl)
                  .build();
@@ -23,7 +23,7 @@ public class UserInfoAdapter {
         log.info("Obteniendo información del usuario {}", userId);
 
         return webClient.get()
-                .uri("/api/users/{id}", userId)
+                .uri("/api/user/{id}", userId)
                 .retrieve()
                 .bodyToMono(UserProfileDto.class)
                 .doOnError(e -> log.error("Error obteniendo usuario {}: {}", userId, e.getMessage()));

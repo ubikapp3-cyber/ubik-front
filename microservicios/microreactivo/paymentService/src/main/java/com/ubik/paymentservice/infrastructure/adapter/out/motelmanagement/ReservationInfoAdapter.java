@@ -15,7 +15,7 @@ public class ReservationInfoAdapter {
     private static final Logger log = LoggerFactory.getLogger(ReservationInfoAdapter.class);
     private final WebClient webClient;
 
-    public ReservationInfoAdapter(@Value("${services.motel-management.url:http://motel-management:8082}") String motelManagementUrl) {
+    public ReservationInfoAdapter(@Value("${services.motel-management.url:http://motel-management-service:8083}") String motelManagementUrl) {
          this.webClient = WebClient.builder()
                  .baseUrl(motelManagementUrl)
                  .build();
