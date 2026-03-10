@@ -120,11 +120,10 @@ public class MotelService implements MotelUseCasePort {
                             motel.imageUrls(),
                             motel.latitude(),
                             motel.longitude(),
-                            // ✅ Respetar el status que viene en el parámetro
                             motel.approvalStatus() != null ? motel.approvalStatus() : existingMotel.approvalStatus(),
                             motel.approvalDate() != null ? motel.approvalDate() : existingMotel.approvalDate(),
                             motel.approvedByUserId() != null ? motel.approvedByUserId() : existingMotel.approvedByUserId(),
-                            existingMotel.rejectionReason(),
+                            motel.rejectionReason(),
                             motel.rues(),
                             motel.rnt(),
                             motel.ownerDocumentType(),
