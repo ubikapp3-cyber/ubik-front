@@ -41,6 +41,7 @@ scrape_configs:
       - targets: ['gateway:8080']
         labels:
           service: 'gateway'
+          application: 'gateway'
           team: 'platform'
     relabel_configs:
       - source_labels: [__address__]
@@ -54,6 +55,7 @@ scrape_configs:
       - targets: ['usermanagement-service:8081']
         labels:
           service: 'usermanagement'
+          application: 'usermanagement'
           team: 'backend'
     relabel_configs:
       - source_labels: [__address__]
@@ -67,6 +69,7 @@ scrape_configs:
       - targets: ['motel-management-service:8083']
         labels:
           service: 'motel-management'
+          application: 'motel-management'
           team: 'backend'
 
   # ── Notification Service ───────────────────────────────────
@@ -77,6 +80,7 @@ scrape_configs:
       - targets: ['notification-service:8084']
         labels:
           service: 'notification'
+          application: 'notification'
           team: 'backend'
 
   # ── Payment Service ────────────────────────────────────────
@@ -87,6 +91,7 @@ scrape_configs:
       - targets: ['payment-service:8085']
         labels:
           service: 'payment'
+          application: 'payment'
           team: 'backend'
           critical: 'true'
 
