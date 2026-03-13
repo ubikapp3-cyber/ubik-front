@@ -118,6 +118,22 @@ services:
     networks:
       - ubik-network
 
+  # ===========================================================
+  # STRIPE CLI — Automatización de Webhooks
+  # ===========================================================
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    container_name: stripe-cli
+    restart: unless-stopped
+    environment:
+      - STRIPE_API_KEY=${STRIPE_SECRET_KEY}
+    command: >
+      listen 
+      --forward-to https://ubik-back.duckdns.org/api/payments/webhook
+      --log-level info
+    networks:
+      - ubik-network
+
 volumes:
   prometheus_data:
   grafana_data:
