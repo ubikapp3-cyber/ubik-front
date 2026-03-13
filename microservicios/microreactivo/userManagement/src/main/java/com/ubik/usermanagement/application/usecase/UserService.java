@@ -163,4 +163,67 @@ public class UserService implements UserUseCase {
                 )))
                 .map(user -> "Password reset successfully");
     }
+
+    @Override
+    public Mono<String> loginWithGoogle(String idToken) {
+        return Mono.fromCallable(() -> verifyGoogleToken(idToken))    // blocking I/O → fromCallable
+                .subscribeOn(Schedulers.boundedElastic())             // no bloquear el event loop
+                .flatMap(payload -> {
+                    String email = payload.getEmail();
+                    String name  = payload.get("name") != null
+                            ? payload.get("name").toString()
+                            : email.split("@")[0];
+
+                    return userRepository.findByEmail(email)
+                            .flatMap(existing ->
+                                    // Usuario ya existe → devolver JWT directo
+                                    Mono.just(jwtAdapter.generateToken(
+                                            existing.username(),
+                                            existing.roleId(),
+                                            existing.id()
+                                    ))
+                            )
+                            .switchIfEmpty(Mono.defer(() -> {
+                                // Usuario nuevo → crear con roleId USER por defecto
+                                User newUser = new User(
+                                        null,
+                                        name,
+                                        passwordEncoder.encode(UUID.randomUUID().toString()), // pass inutil
+                                        email,
+                                        null,
+                                        null,
+                                        false,
+                                        RoleConstants.USER,
+                                        null, null, null, null, null
+                                );
+                                return userRepository.save(newUser)
+                                        .flatMap(saved ->
+                                                notificationPort
+                                                        .sendRegisterEmail(saved.email(), saved.username())
+                                                        .thenReturn(jwtAdapter.generateToken(
+                                                                saved.username(),
+                                                                saved.roleId(),
+                                                                saved.id()
+                                                        ))
+                                        );
+                            }));
+                });
+    }
+
+    private GoogleIdToken.Payload verifyGoogleToken(String idToken) {
+        try {
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier
+                    .Builder(new NetHttpTransport(), new GsonFactory())
+                    .setAudience(Collections.singletonList(googleClientId)) // @Value
+                    .build();
+
+            GoogleIdToken token = verifier.verify(idToken);
+            if (token == null) {
+                throw new IllegalArgumentException("Invalid Google token");
+            }
+            return token.getPayload();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Google token verification failed", e);
+        }
+    }
 }
