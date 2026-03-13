@@ -17,6 +17,7 @@ services:
       SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       JAVA_OPTS: "-Xmx512m -Xms256m"
     networks:
       - ubik-network
