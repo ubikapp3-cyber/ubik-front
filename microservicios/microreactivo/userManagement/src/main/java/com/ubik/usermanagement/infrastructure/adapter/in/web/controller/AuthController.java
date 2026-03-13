@@ -4,6 +4,7 @@ import com.ubik.usermanagement.application.port.in.UserUseCase;
 import com.ubik.usermanagement.infrastructure.adapter.in.web.dto.LoginRequest;
 import com.ubik.usermanagement.infrastructure.adapter.in.web.dto.RegisterRequest;
 import com.ubik.usermanagement.infrastructure.adapter.in.web.dto.ResetPasswordRequest;
+import com.ubik.usermanagement.infrastructure.adapter.in.web.dto.GoogleAuthRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,12 @@ public class AuthController {
     @PostMapping("/login")
     public Mono<String> login(@Valid @RequestBody LoginRequest request) {
         return userUseCase.login(request);
+    }
+
+    @PostMapping("/google")
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<String> loginWithGoogle(@Valid @RequestBody GoogleAuthRequest request) {
+        return userUseCase.loginWithGoogle(request.idToken());
     }
 
     @PostMapping("/reset-password-request")

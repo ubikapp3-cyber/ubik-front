@@ -23,6 +23,9 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
 
+google:
+  client-id: ${GOOGLE_CLIENT_ID}
+
 # Logging
 logging:
   pattern:

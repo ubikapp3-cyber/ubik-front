@@ -8,9 +8,20 @@ import com.ubik.usermanagement.infrastructure.adapter.in.web.dto.LoginRequest;
 import com.ubik.usermanagement.infrastructure.adapter.in.web.dto.RegisterRequest;
 import com.ubik.usermanagement.infrastructure.adapter.in.web.dto.ResetPasswordRequest;
 import com.ubik.usermanagement.infrastructure.adapter.out.jwt.JwtAdapter;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import com.ubik.usermanagement.domain.model.RoleConstants;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+
+import java.util.Collections;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -26,6 +37,9 @@ public class UserService implements UserUseCase {
     private final PasswordEncoder passwordEncoder;
     private final JwtAdapter jwtAdapter;
     private final NotificationPort notificationPort;
+
+    @Value("${google.client-id}")
+    private String googleClientId;
 
     public UserService(
             UserRepositoryPort userRepository,

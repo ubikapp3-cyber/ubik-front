@@ -10,4 +10,5 @@ public interface UserUseCase {
     Mono<String> login(LoginRequest request);
     Mono<String> requestPasswordReset(String email);
     Mono<String> resetPassword(ResetPasswordRequest request);
+    Mono<String> loginWithGoogle(String idToken);
 }
