@@ -1,3 +1,7 @@
+app:
+  roles:
+    admin: ${ROLE_ID_ADMIN}
+    property-owner: ${ROLE_ID_PROPERTY_OWNER}
 server:
   port: 8083
 
@@ -12,6 +16,11 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 50MB
+
+services:
+  user-management:
+    url: http://usermanagement-service:8081
+
 
   # PostgreSQL R2DBC (valores inyectados desde .env o docker)
   r2dbc:
