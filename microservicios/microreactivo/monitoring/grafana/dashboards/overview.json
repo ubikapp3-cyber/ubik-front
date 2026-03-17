@@ -1,0 +1,150 @@
+{
+  "title": "Ubik — Microservicios Overview",
+  "uid": "ubik-overview",
+  "tags": ["ubik", "microservices"],
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+
+    {
+      "id": 1,
+      "title": "Estado de Servicios",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 4 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "up{job=~\"gateway|usermanagement-service|motel-management-service|notification-service|payment-service\"}",
+          "legendFormat": "{{job}}"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "orientation": "horizontal"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "red", "value": 0 }, { "color": "green", "value": 1 }]
+          }
+        }
+      }
+    },
+
+    {
+      "id": 2,
+      "title": "Request Rate (req/s)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "sum(rate(http_server_requests_seconds_count[1m])) by (service)",
+          "legendFormat": "{{service}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+
+    {
+      "id": 3,
+      "title": "Latencia p95 por servicio (s)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (service, le))",
+          "legendFormat": "{{service}} p95"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": 0 }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 2 }]
+          }
+        }
+      }
+    },
+
+    {
+      "id": 4,
+      "title": "Tasa de Errores 5xx (%)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "100 * sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[5m])) by (service) / sum(rate(http_server_requests_seconds_count[5m])) by (service)",
+          "legendFormat": "{{service}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": 0 }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 5 }]
+          }
+        }
+      }
+    },
+
+    {
+      "id": 5,
+      "title": "Heap JVM Usado (%)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "100 * jvm_memory_used_bytes{area=\"heap\"} / jvm_memory_max_bytes{area=\"heap\"}",
+          "legendFormat": "{{service}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": 0 }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 85 }]
+          }
+        }
+      }
+    },
+
+    {
+      "id": 6,
+      "title": "Logs Recientes — Errores",
+      "type": "logs",
+      "gridPos": { "x": 0, "y": 20, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Loki",
+          "expr": "{container=~\"gateway|usermanagement-service|motel-management-service|notification-service|payment-service\"} |= \"ERROR\"",
+          "maxLines": 100
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "sortOrder": "Descending"
+      }
+    }
+  ]
+}

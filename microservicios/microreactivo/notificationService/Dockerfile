@@ -8,14 +8,14 @@ WORKDIR /app
 # Copiar TODO el proyecto (incluye pom padre)
 COPY . .
 
-# Set Maven options for SSL
-ENV MAVEN_OPTS="-Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+# Actualizar certificados (frecuente problema en Alpine)
+RUN apk update && apk add --no-cache ca-certificates
 
-# Compilar SOLO el módulo notificationService
+# Compilar SOLO el módulo notificationService (con logs detallados y sin progreso de transferencia)
 RUN mvn clean package \
     -pl notificationService \
     -am \
-    -DskipTests
+    -DskipTests -ntp
 
 # =========================
 # RUNTIME STAGE

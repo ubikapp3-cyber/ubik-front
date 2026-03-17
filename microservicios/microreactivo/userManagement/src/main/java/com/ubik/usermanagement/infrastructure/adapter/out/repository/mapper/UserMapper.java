@@ -4,6 +4,8 @@ import com.ubik.usermanagement.domain.model.User;
 import com.ubik.usermanagement.infrastructure.adapter.out.repository.entity.UserEntity;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 /**
  * Mapper bidireccional entre User (dominio) y UserEntity (persistencia)
  * 
@@ -50,7 +52,7 @@ public class UserMapper {
                 user.resetTokenExpiry(),
                 user.longitude(),
                 user.latitude(),
-                user.birthDate()
-        );
+                user.birthDate(),
+                LocalDateTime.now());
     }
 }

@@ -8,14 +8,14 @@ WORKDIR /app
 # Copiamos TODO el proyecto (incluye el pom padre)
 COPY . .
 
-# Set Maven options for SSL
-ENV MAVEN_OPTS="-Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+# Actualizar certificados (frecuente problema en Alpine)
+RUN apk update && apk add --no-cache ca-certificates
 
 # Compilamos SOLO el módulo userManagement
 RUN mvn clean package \
     -pl userManagement \
     -am \
-    -DskipTests
+    -DskipTests -ntp -e
 
 # =========================
 # RUNTIME STAGE
@@ -28,7 +28,7 @@ WORKDIR /app
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
-# Copiar el JAR correcto
+# Copiar el JAR correcto (la carpeta física es userManagement)
 COPY --from=build /app/userManagement/target/*.jar app.jar
 
 EXPOSE 8081

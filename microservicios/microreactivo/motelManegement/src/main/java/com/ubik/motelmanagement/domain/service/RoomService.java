@@ -27,41 +27,35 @@ public class RoomService implements RoomUseCasePort {
 
     @Override
     public Mono<Room> createRoom(Room room) {
-
         return motelRepositoryPort.findById(room.motelId())
                 .switchIfEmpty(Mono.error(
                         new RuntimeException("Motel no encontrado con ID: " + room.motelId())
                 ))
-                .flatMap(motel ->
+                .flatMap(motel -> {
+                    if (motel.approvalStatus() != com.ubik.motelmanagement.domain.model.ApprovalStatus.APPROVED) {
+                        return Mono.error(new IllegalStateException("El motel no está aprobado. Solo se pueden crear o editar habitaciones en moteles aprobados."));
+                    }
+                    return validateRoom(room)
+                            .then(roomRepositoryPort.save(room))
+                            .flatMap(savedRoom ->
+                                userPort.getUserById(motel.propertyId())
+                                        .flatMap(user -> {
+                                            String priceFormatted = String.format("%,.2f", savedRoom.price());
+                                            String createdAt = java.time.LocalDateTime.now()
+                                                    .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
 
-                        validateRoom(room)
-                                .then(roomRepositoryPort.save(room))
-
-                                .flatMap(savedRoom ->
-
-                                        userPort.getUserById(motel.propertyId())
-
-                                                .flatMap(user -> {
-
-                                                    String priceFormatted =
-                                                            String.format("%,.2f", savedRoom.price());
-
-                                                    String createdAt =
-                                                            java.time.LocalDateTime.now()
-                                                                    .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-
-                                                    return notificationPort.sendRoomCreationNotification(
-                                                                    user.email(),
-                                                                    motel.name(),
-                                                                    savedRoom.roomType(),
-                                                                    savedRoom.number(),
-                                                                    priceFormatted,
-                                                                    createdAt
-                                                            )
-                                                            .thenReturn(savedRoom);
-                                                })
-                                )
-                );
+                                            return notificationPort.sendRoomCreationNotification(
+                                                            user.email(),
+                                                            motel.name(),
+                                                            savedRoom.roomType(),
+                                                            savedRoom.number(),
+                                                            priceFormatted,
+                                                            createdAt
+                                                    )
+                                                    .thenReturn(savedRoom);
+                                        })
+                            );
+                });
     }
 
     @Override
@@ -89,26 +83,32 @@ public class RoomService implements RoomUseCasePort {
     public Mono<Room> updateRoom(Long id, Room room) {
         return roomRepositoryPort.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Habitación no encontrada con ID: " + id)))
-                .flatMap(existingRoom -> {
-                    Room updatedRoom = new Room(
-                            id,
-                            existingRoom.motelId(),
-                            room.number(),
-                            room.roomType(),
-                            room.price(),
-                            room.description(),
-                            room.isAvailable(),
-                            room.imageUrls(),
-                            room.latitude(),
-                            room.longitude(),
-                            existingRoom.motelName(),
-                            existingRoom.motelAddress(),
-                            existingRoom.motelCity(),
-                            existingRoom.motelPhoneNumber(),
-                            room.serviceIds()
-                    );
-                    return validateRoom(updatedRoom).then(roomRepositoryPort.update(updatedRoom));
-                });
+                .flatMap(existingRoom -> 
+                    motelRepositoryPort.findById(existingRoom.motelId())
+                            .flatMap(motel -> {
+                                if (motel.approvalStatus() != com.ubik.motelmanagement.domain.model.ApprovalStatus.APPROVED) {
+                                    return Mono.error(new IllegalStateException("El motel no está aprobado. Solo se pueden crear o editar habitaciones en moteles aprobados."));
+                                }
+                                Room updatedRoom = new Room(
+                                        id,
+                                        existingRoom.motelId(),
+                                        room.number(),
+                                        room.roomType(),
+                                        room.price(),
+                                        room.description(),
+                                        room.isAvailable(),
+                                        room.imageUrls(),
+                                        room.latitude(),
+                                        room.longitude(),
+                                        existingRoom.motelName(),
+                                        existingRoom.motelAddress(),
+                                        existingRoom.motelCity(),
+                                        existingRoom.motelPhoneNumber(),
+                                        room.serviceIds()
+                                );
+                                return validateRoom(updatedRoom).then(roomRepositoryPort.update(updatedRoom));
+                            })
+                );
     }
 
     @Override

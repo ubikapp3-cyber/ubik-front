@@ -6,11 +6,11 @@ WORKDIR /app
 # Copiamos TODO el proyecto (para que exista el pom padre)
 COPY . .
 
-# Set Maven options for SSL
-ENV MAVEN_OPTS="-Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+# Actualizar certificados (frecuente problema en Alpine)
+RUN apk update && apk add --no-cache ca-certificates
 
 # Construimos SOLO el módulo motel-management
-RUN mvn clean package -pl motelManegement -am -DskipTests
+RUN mvn clean package -pl motelManegement -am -DskipTests -ntp
 
 # Etapa runtime
 FROM eclipse-temurin:17-jre-alpine

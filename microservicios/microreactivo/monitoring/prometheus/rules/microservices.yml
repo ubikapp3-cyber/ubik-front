@@ -1,0 +1,93 @@
+groups:
+  # ==========================================================
+  # DISPONIBILIDAD DE SERVICIOS
+  # ==========================================================
+  - name: service_availability
+    rules:
+
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Servicio caído: {{ $labels.service }}"
+          description: "El servicio {{ $labels.service }} ({{ $labels.instance }}) lleva más de 1 minuto sin responder."
+
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (service)
+          /
+          sum(rate(http_server_requests_seconds_count[5m])) by (service)
+          > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Tasa de errores alta en {{ $labels.service }}"
+          description: "Tasa de errores 5xx supera el 5% en {{ $labels.service }} (actual: {{ $value | humanizePercentage }})."
+
+      - alert: SlowResponseTime
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_server_requests_seconds_bucket[5m])) by (service, le)
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Respuestas lentas en {{ $labels.service }}"
+          description: "El p95 de latencia en {{ $labels.service }} supera 2 segundos (actual: {{ $value }}s)."
+
+  # ==========================================================
+  # GATEWAY
+  # ==========================================================
+  - name: gateway_alerts
+    rules:
+
+      - alert: GatewayHighRequestRate
+        expr: sum(rate(http_server_requests_seconds_count{service="gateway"}[1m])) > 1000
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Gateway bajo alta carga"
+          description: "El gateway recibe más de 1000 req/s sostenidas."
+
+      - alert: GatewayUnauthorizedSpike
+        expr: |
+          sum(rate(http_server_requests_seconds_count{service="gateway", status="401"}[5m])) > 50
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pico de peticiones no autorizadas en el Gateway"
+          description: "Más de 50 respuestas 401/s — posible ataque o bug de autenticación."
+
+  # ==========================================================
+  # PAGOS (crítico)
+  # ==========================================================
+  - name: payment_alerts
+    rules:
+
+      - alert: PaymentServiceDown
+        expr: up{service="payment"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "¡Payment Service caído!"
+          description: "El servicio de pagos no responde. Impacto inmediato en transacciones."
+
+      - alert: PaymentHighErrorRate
+        expr: |
+          sum(rate(http_server_requests_seconds_count{service="payment", status=~"5.."}[5m]))
+          /
+          sum(rate(http_server_requests_seconds_count{service="payment"}[5m]))
+          > 0.02
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Errores en Payment Service"
+          description: "Tasa de errores 5xx supera el 2% en pagos (actual: {{ $value | humanizePercentage }})."

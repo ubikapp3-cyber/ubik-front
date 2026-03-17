@@ -8,14 +8,14 @@ WORKDIR /app
 # Copiar TODO el proyecto (incluye pom padre)
 COPY . .
 
-# Set Maven options for SSL and compile
-ENV MAVEN_OPTS="-Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+# Actualizar certificados (frecuente problema en Alpine)
+RUN apk update && apk add --no-cache ca-certificates
 
 # Compilar SOLO el gateway
 RUN mvn clean package \
     -pl gateway \
     -am \
-    -DskipTests
+    -DskipTests -ntp
 
 # =========================
 # RUNTIME STAGE

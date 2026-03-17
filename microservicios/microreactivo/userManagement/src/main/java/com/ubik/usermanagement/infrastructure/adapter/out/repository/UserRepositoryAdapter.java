@@ -7,6 +7,8 @@ import com.ubik.usermanagement.infrastructure.adapter.out.repository.mapper.User
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
+
 /**
  * Adaptador del repositorio de usuarios
  * 
@@ -66,8 +68,8 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
                             user.resetTokenExpiry(),
                             user.longitude(),
                             user.latitude(),
-                            user.birthDate()
-                    );
+                            user.birthDate(),
+                            LocalDateTime.now());
                     return userRepository.save(updatedEntity);
                 })
                 .map(mapper::toDomain);
@@ -75,6 +77,27 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public Mono<Void> deleteById(Long id) {
-        return userRepository.deleteById(id);
+        // Soft delete: marcar como eliminado en lugar de borrar
+        return userRepository.findById(id)
+                .flatMap(user -> {
+                    UserEntity softDeletedUser = new UserEntity(
+                            user.id(),
+                            user.username(),
+                            user.password(),
+                            user.email(),
+                            user.phoneNumber(),
+                            user.createdAt(),
+                            user.anonymous(),
+                            user.roleId(),
+                            user.resetToken(),
+                            user.resetTokenExpiry(),
+                            user.longitude(),
+                            user.latitude(),
+                            user.birthDate(),
+                            LocalDateTime.now()  // ← deleted_at
+                    );
+                    return userRepository.save(softDeletedUser);
+                })
+                .then();
     }
 }

@@ -1,0 +1,104 @@
+global:
+  scrape_interval: 15s       # Cada cuánto recolectar métricas
+  evaluation_interval: 15s   # Cada cuánto evaluar reglas de alerta
+  scrape_timeout: 10s
+
+  external_labels:
+    environment: 'production'
+    project: 'ubik'
+
+# ===========================================================
+# ALERTMANAGER
+# ===========================================================
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# ===========================================================
+# REGLAS DE ALERTA
+# ===========================================================
+rule_files:
+  - "rules/microservices.yml"
+  - "rules/jvm.yml"
+
+# ===========================================================
+# TARGETS DE SCRAPING
+# ===========================================================
+scrape_configs:
+
+  # ── Prometheus se monitorea a sí mismo ────────────────────
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ── API Gateway ────────────────────────────────────────────
+  - job_name: 'gateway'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['gateway:8080']
+        labels:
+          service: 'gateway'
+          application: 'gateway'
+          team: 'platform'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # ── User Management ────────────────────────────────────────
+  - job_name: 'usermanagement-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['usermanagement-service:8081']
+        labels:
+          service: 'usermanagement'
+          application: 'usermanagement'
+          team: 'backend'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # ── Motel Management ──────────────────────────────────────
+  - job_name: 'motel-management-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['motel-management-service:8083']
+        labels:
+          service: 'motel-management'
+          application: 'motel-management'
+          team: 'backend'
+
+  # ── Notification Service ───────────────────────────────────
+  - job_name: 'notification-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['notification-service:8084']
+        labels:
+          service: 'notification'
+          application: 'notification'
+          team: 'backend'
+
+  # ── Payment Service ────────────────────────────────────────
+  - job_name: 'payment-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s   # Más frecuente por criticidad
+    static_configs:
+      - targets: ['payment-service:8085']
+        labels:
+          service: 'payment'
+          application: 'payment'
+          team: 'backend'
+          critical: 'true'
+
+  # ── cAdvisor — métricas de contenedores Docker ─────────────
+  - job_name: 'cadvisor'
+    scrape_interval: 20s
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          service: 'cadvisor'

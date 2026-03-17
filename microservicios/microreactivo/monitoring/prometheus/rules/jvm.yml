@@ -1,0 +1,83 @@
+groups:
+  # ==========================================================
+  # JVM / MEMORIA
+  # ==========================================================
+  - name: jvm_alerts
+    rules:
+
+      - alert: JvmHighHeapUsage
+        expr: |
+          jvm_memory_used_bytes{area="heap"}
+          /
+          jvm_memory_max_bytes{area="heap"}
+          > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Heap JVM alto en {{ $labels.service }}"
+          description: "El heap JVM de {{ $labels.service }} supera el 85% (actual: {{ $value | humanizePercentage }})."
+
+      - alert: JvmHeapCritical
+        expr: |
+          jvm_memory_used_bytes{area="heap"}
+          /
+          jvm_memory_max_bytes{area="heap"}
+          > 0.95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Heap JVM crítico en {{ $labels.service }}"
+          description: "Riesgo de OutOfMemoryError en {{ $labels.service }} ({{ $value | humanizePercentage }})."
+
+      - alert: JvmHighGcTime
+        expr: |
+          sum(rate(jvm_gc_pause_seconds_sum[5m])) by (service)
+          /
+          sum(rate(jvm_gc_pause_seconds_count[5m])) by (service)
+          > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GC lento en {{ $labels.service }}"
+          description: "Tiempo medio de GC supera 500ms en {{ $labels.service }}."
+
+      - alert: JvmThreadsHigh
+        expr: jvm_threads_live_threads > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Muchos threads en {{ $labels.service }}"
+          description: "{{ $labels.service }} tiene {{ $value }} threads activos — posible thread leak."
+
+  # ==========================================================
+  # CONTENEDORES DOCKER (cAdvisor)
+  # ==========================================================
+  - name: container_alerts
+    rules:
+
+      - alert: ContainerHighCpu
+        expr: |
+          rate(container_cpu_usage_seconds_total{name!=""}[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU alto en contenedor {{ $labels.name }}"
+          description: "El contenedor {{ $labels.name }} usa más del 80% de CPU ({{ $value }}%)."
+
+      - alert: ContainerMemoryHigh
+        expr: |
+          container_memory_usage_bytes{name!=""}
+          /
+          container_spec_memory_limit_bytes{name!=""}
+          > 0.90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Memoria alta en contenedor {{ $labels.name }}"
+          description: "El contenedor {{ $labels.name }} usa >90% de su límite de memoria."

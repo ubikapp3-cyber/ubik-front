@@ -1,0 +1,36 @@
+apiVersion: 1
+
+datasources:
+
+  # ===========================================================
+  # PROMETHEUS — Métricas
+  # ===========================================================
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      httpMethod: POST
+      exemplarTraceIdDestinations:
+        - name: traceID
+          datasourceUid: tempo
+      timeInterval: "15s"
+
+  # ===========================================================
+  # LOKI — Logs
+  # ===========================================================
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: false
+    jsonData:
+      maxLines: 1000
+      derivedFields:
+        # Link automático de traceId en logs → traces
+        - matcherRegex: "traceId=(\\w+)"
+          name: TraceID
+          url: '$${__value.raw}'
+          datasourceUid: tempo

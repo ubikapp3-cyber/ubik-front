@@ -7,13 +7,13 @@ spring:
 
 
   r2dbc:
-    url: ${SPRING_R2DBC_URL}      # Changed from DB_R2DBC_URL
-    username: ${SPRING_R2DBC_USERNAME}  # Changed from DB_USERNAME
-    password: ${SPRING_R2DBC_PASSWORD}  # Changed from DB_PASSWORD
+    url: ${SPRING_R2DBC_URL}      
+    username: ${SPRING_R2DBC_USERNAME}  
+    password: ${SPRING_R2DBC_PASSWORD}  
 
   sql:
     init:
-      mode: never  # ⚠️ CAMBIAR A 'never' para producción/Docker
+      mode: never  
 
   security:
     bcrypt:
@@ -23,25 +23,48 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
 
-# ✅ CONFIGURACIÓN DE ACTUATOR
+google:
+  client-id: ${GOOGLE_CLIENT_ID:undefined}
+
+# Logging
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - traceId=%X{traceId} spanId=%X{spanId} - %msg%n"
+  level:
+    root: INFO
+    com.ubik.usermanagement: DEBUG
+    org.springframework.r2dbc: INFO
+    io.r2dbc.postgresql: INFO
+    com.example: DEBUG
+
+# CONFIGURACIÓN DE OBSERVABILIDAD (Actuator + Micrometer)
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: "health,info,prometheus,metrics"
       base-path: /actuator
   endpoint:
     health:
       show-details: always
       probes:
         enabled: true
+    prometheus:
+      enabled: true
   health:
     r2dbc:
       enabled: true
-
-# Logging
-logging:
-  level:
-    com.ubik.usermanagement: DEBUG
-    org.springframework.r2dbc: INFO
-    io.r2dbc.postgresql: INFO
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      service: usermanagement
+      environment: ${SPRING_PROFILES_ACTIVE:local}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.75, 0.95, 0.99
+      slo:
+        http.server.requests: 100ms, 500ms, 1s, 2s

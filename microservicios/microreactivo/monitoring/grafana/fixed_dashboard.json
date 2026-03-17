@@ -1,0 +1,201 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "panels": [],
+      "title": "🚀 High-Level Summary",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "unit": "s" }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "id": 2,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "expr": "process_uptime_seconds{application=\"$application\", instance=\"$instance\"}", "refId": "A" }],
+      "title": "Uptime",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 0.8 }] }, "unit": "percentunit" }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "id": 3,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "process_cpu_usage{application=\"$application\", instance=\"$instance\"}", "refId": "A" }],
+      "title": "Process CPU",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "unit": "reqps" }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "id": 4,
+      "options": { "colorMode": "value", "reduceOptions": { "calcs": ["mean"] } },
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{application=\"$application\", instance=\"$instance\"}[1m]))", "refId": "A" }],
+      "title": "Throughput",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 10,
+      "panels": [],
+      "title": "💻 Runtime & Resources",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "bytes" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "id": 11,
+      "targets": [
+        { "expr": "jvm_memory_used_bytes{application=\"$application\", instance=\"$instance\", area=\"heap\"}", "legendFormat": "Used Heap", "refId": "A" },
+        { "expr": "jvm_memory_committed_bytes{application=\"$application\", instance=\"$instance\", area=\"heap\"}", "legendFormat": "Committed Heap", "refId": "B" },
+        { "expr": "jvm_memory_max_bytes{application=\"$application\", instance=\"$instance\", area=\"heap\"}", "legendFormat": "Max Heap", "refId": "C" }
+      ],
+      "title": "JVM Heap Memory",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "s" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "id": 12,
+      "targets": [
+        { "expr": "rate(jvm_gc_pause_seconds_sum{application=\"$application\", instance=\"$instance\"}[1m])", "legendFormat": "GC Pause Rate", "refId": "A" }
+      ],
+      "title": "GC Duration (1m Rate)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "id": 20,
+      "panels": [],
+      "title": "🌐 HTTP Performance",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "s" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "id": 21,
+      "targets": [
+        { "expr": "http_server_requests_seconds_sum{application=\"$application\", instance=\"$instance\", uri!~\"/actuator.*\"} / http_server_requests_seconds_count{application=\"$application\", instance=\"$instance\", uri!~\"/actuator.*\"}", "legendFormat": "Avg Latency {{uri}}", "refId": "A" }
+      ],
+      "title": "Average Response Time (Exc. Actuator)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "none" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "id": 22,
+      "targets": [
+        { "expr": "sum by (status) (rate(http_server_requests_seconds_count{application=\"$application\", instance=\"$instance\"}[1m]))", "legendFormat": "Status {{status}}", "refId": "A" }
+      ],
+      "title": "HTTP Status Distribution",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "id": 30,
+      "panels": [],
+      "title": "🗄️ Database (R2DBC Pool)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "none" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "id": 31,
+      "targets": [
+        { "expr": "r2dbc_pool_acquired_connections{application=\"$application\", instance=\"$instance\"}", "legendFormat": "Active Connections", "refId": "A" },
+        { "expr": "r2dbc_pool_idle_connections{application=\"$application\", instance=\"$instance\"}", "legendFormat": "Idle Connections", "refId": "B" },
+        { "expr": "r2dbc_pool_allocated_connections{application=\"$application\", instance=\"$instance\"}", "legendFormat": "Allocated Connections", "refId": "C" }
+      ],
+      "title": "R2DBC Connection Pool",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "Prometheus", "value": "Prometheus" },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Datasource",
+        "name": "DS_PROMETHEUS",
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource"
+      },
+      {
+        "definition": "label_values(up, application)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Application",
+        "name": "application",
+        "query": "label_values(up, application)",
+        "refresh": 1,
+        "sort": 1,
+        "type": "query",
+        "datasource": { "uid": "${DS_PROMETHEUS}" }
+      },
+      {
+        "definition": "label_values(up{application=\"$application\"}, instance)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Instance",
+        "name": "instance",
+        "query": "label_values(up{application=\"$application\"}, instance)",
+        "refresh": 1,
+        "sort": 1,
+        "type": "query",
+        "datasource": { "uid": "${DS_PROMETHEUS}" }
+      }
+    ]
+  },
+  "time": { "from": "now-15m", "to": "now" },
+  "title": "Ubik Microservices Master Console",
+  "uid": "ubik_master_001"
+}

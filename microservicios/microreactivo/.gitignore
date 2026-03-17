@@ -1,1 +1,10 @@
 .env
+full_config.yml
+target/
+
+
+# IntelliJ
+.idea/
+
+# Logs
+*.log

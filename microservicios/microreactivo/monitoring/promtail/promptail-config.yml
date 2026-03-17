@@ -1,0 +1,102 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+    tenant_id: ubik
+
+scrape_configs:
+  # ── Logs de todos los contenedores Docker ─────────────────
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: status
+            values: ["running"]
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+      - source_labels: ['__meta_docker_container_image']
+        target_label: 'image'
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
+        target_label: 'service'
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+            logger: logger_name
+            message: message
+            # Omitimos @timestamp si causa error de sintaxis en el parser
+            thread: thread_name
+            trace_id: traceId
+      - labels:
+          level:
+          logger:
+          trace_id:
+
+  # ── Logs específicos del Gateway ──────────────────────────
+  - job_name: gateway_detailed
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: name
+            values: ["gateway"]
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+      - target_label: 'service'
+        replacement: 'gateway'
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+            message: message
+            method: http_method
+            path: http_path
+            status: http_status
+      - labels:
+          level:
+          method:
+          status:
+
+  # ── Logs del Payment Service ──────────────────────────────
+  - job_name: payment_detailed
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: name
+            values: ["payment-service"]
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+      - target_label: 'service'
+        replacement: 'payment'
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+            message: message
+            payment_id: paymentId
+      - labels:
+          level:
+      # Etiquetado condicional para errores
+      - match:
+          selector: '{service="payment"}'
+          stages:
+            - regex:
+                expression: ".*(?P<is_error>ERROR).*"
+            - match:
+                selector: '{is_error="ERROR"}'
+                stages:
+                  - labels:
+                      alert: 'payment_error'

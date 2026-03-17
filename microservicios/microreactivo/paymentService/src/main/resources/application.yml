@@ -1,0 +1,73 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: payment-service
+
+  r2dbc:
+    url: ${SPRING_R2DBC_URL}
+    username: ${SPRING_R2DBC_USERNAME}
+    password: ${SPRING_R2DBC_PASSWORD}
+    pool:
+      initial-size: 3
+      max-size: 10
+      max-idle-time: 30m
+
+  sql:
+    init:
+      mode: never
+
+# ── Stripe ────────────────────────────────────────────────────────────────────
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY}
+  publishable-key: ${STRIPE_PUBLISHABLE_KEY}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+
+# ── URLs inter-servicio ───────────────────────────────────────────────────────
+services:
+  motel-management:
+    url: ${MOTEL_MANAGEMENT_URL:http://motel-management-service:8083}
+  user-management:
+    url: ${USER_MANAGEMENT_URL:http://usermanagement-service:8081}
+  notification-service:
+    url: ${NOTIFICATION_SERVICE_URL:http://notification-service:8084}
+
+# Logging
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - traceId=%X{traceId} spanId=%X{spanId} - %msg%n"
+  level:
+    root: INFO
+    com.ubik.paymentservice: DEBUG
+    com.example: DEBUG
+
+# CONFIGURACIÓN DE OBSERVABILIDAD (Actuator + Micrometer)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus,metrics"
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true   # Habilita /actuator/health/liveness y /readiness
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      service: payment
+      environment: ${SPRING_PROFILES_ACTIVE:local}
+    distribution:
+      # Histogramas para percentiles de latencia HTTP
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.75, 0.95, 0.99
+      slo:
+        http.server.requests: 100ms, 500ms, 1s, 2s

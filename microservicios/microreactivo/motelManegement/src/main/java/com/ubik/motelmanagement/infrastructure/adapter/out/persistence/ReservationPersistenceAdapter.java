@@ -1,6 +1,7 @@
 package com.ubik.motelmanagement.infrastructure.adapter.out.persistence;
 
 import com.ubik.motelmanagement.domain.model.Reservation;
+import com.ubik.motelmanagement.domain.model.WeeklyRevenue;
 import com.ubik.motelmanagement.domain.port.out.ReservationRepositoryPort;
 import com.ubik.motelmanagement.infrastructure.adapter.out.persistence.mapper.ReservationMapper;
 import com.ubik.motelmanagement.infrastructure.adapter.out.persistence.repository.ReservationR2dbcRepository;
@@ -133,5 +134,16 @@ public class ReservationPersistenceAdapter implements ReservationRepositoryPort 
     public Mono<Reservation> findByConfirmationCode(String confirmationCode) {
         return reservationRepository.findByConfirmationCode(confirmationCode)
                 .map(reservationMapper::toDomain);
+    }
+
+    @Override
+    public Flux<Reservation> findTodayByMotelId(Long motelId) {
+        return reservationRepository.findTodayByMotelId(motelId)
+                .map(reservationMapper::toDomain);
+    }
+
+    @Override
+    public Flux<WeeklyRevenue> findWeeklyRevenueByMotelId(Long motelId) {
+        return reservationRepository.findWeeklyRevenueByMotelId(motelId);
     }
 }

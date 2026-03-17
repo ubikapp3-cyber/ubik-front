@@ -6,6 +6,17 @@ spring:
     gateway:
       routes:
         # ═══════════════════════════════════════════════════════
+        # ADMIN - DEBE IR PRIMERO (más específico)
+        # ═══════════════════════════════════════════════════════
+
+        - id: motel-management-admin
+          uri: http://motel-management-service:8083
+          predicates:
+            - Path=/api/admin/**
+          filters:
+            - StripPrefix=0
+
+        # ═══════════════════════════════════════════════════════
         # MOTEL MANAGEMENT - RUTAS AUTENTICADAS
         # ⚠️  DEBEN IR ANTES que /api/auth/** del userManagement
         # ═══════════════════════════════════════════════════════
@@ -95,6 +106,14 @@ spring:
           filters:
             - StripPrefix=0
 
+        # 🔟 Payments
+        - id: payment-service
+          uri: http://payment-service:8085
+          predicates:
+            - Path=/api/payments/**
+          filters:
+            - StripPrefix=0
+
       trusted-proxies: '127\.0\.0\.1|::1'
 
 # JWT Configuration
@@ -104,16 +123,42 @@ jwt:
 
 # Logging
 logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - traceId=%X{traceId} spanId=%X{spanId} - %msg%n"
   level:
+    root: INFO
     com.example.gateway: DEBUG
     org.springframework.cloud.gateway: DEBUG
     org.springframework.security: DEBUG
+    com.example: DEBUG
 
+# ============================================================
+# CONFIGURACIÓN DE OBSERVABILIDAD (Actuator + Micrometer)
+# ============================================================
 management:
   endpoints:
     web:
       exposure:
-        include: "health,info,metrics,gateway"
+        include: "health,info,prometheus,metrics"
+      base-path: /actuator
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true   # Habilita /actuator/health/liveness y /readiness
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      service: gateway
+      environment: ${SPRING_PROFILES_ACTIVE:local}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.75, 0.95, 0.99
+      slo:
+        http.server.requests: 100ms, 500ms, 1s, 2s

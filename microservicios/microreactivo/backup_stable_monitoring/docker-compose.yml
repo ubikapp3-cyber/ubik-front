@@ -1,0 +1,165 @@
+services:
+  # ===========================================
+  # MICROSERVICIO: USER MANAGEMENT
+  # ===========================================
+  usermanagement-service:
+    build:
+      context: .
+      dockerfile: userManagement/Dockerfile
+    container_name: usermanagement-service
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
+      SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
+      SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    networks:
+      - ubik-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ===========================================
+  # MICROSERVICIO: MOTEL MANAGEMENT
+  # ===========================================
+  motel-management-service:
+    build:
+      context: .
+      dockerfile: motelManegement/Dockerfile
+    container_name: motel-management-service
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
+      SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
+      SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      ROLE_ID_ADMIN: ${ROLE_ID_ADMIN}
+      ROLE_ID_PROPERTY_OWNER: ${ROLE_ID_PROPERTY_OWNER}
+      ROLE_ID_USER: ${ROLE_ID_USER}
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    networks:
+      - ubik-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ===========================================
+  # MICROSERVICIO: NOTIFICATION SERVICE
+  # ===========================================
+  notification-service:
+    build:
+      context: .
+      dockerfile: notificationService/Dockerfile
+    container_name: notification-service
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    networks:
+      - ubik-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # ===========================================
+  # MICROSERVICIO: PAYMENT SERVICE
+  # ===========================================
+  payment-service:
+    build:
+      context: .
+      dockerfile: paymentService/Dockerfile
+    container_name: payment-service
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
+      SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
+      SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      MOTEL_MANAGEMENT_URL: ${MOTEL_MANAGEMENT_URL:-http://motel-management-service:8083}
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    depends_on:
+      motel-management-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+    networks:
+      - ubik-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8085/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ===========================================
+  # API GATEWAY
+  # ===========================================
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    container_name: gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      ROLE_ID_ADMIN: ${ROLE_ID_ADMIN}
+      ROLE_ID_PROPERTY_OWNER: ${ROLE_ID_PROPERTY_OWNER}
+      ROLE_ID_USER: ${ROLE_ID_USER}
+      FRONTEND_URL: ${FRONTEND_URL}
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    depends_on:
+      usermanagement-service:
+        condition: service_healthy
+      motel-management-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+      payment-service:
+        condition: service_healthy
+    networks:
+      - ubik-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+# ===========================================
+# NETWORKS
+# ===========================================
+networks:
+  ubik-network:
+    driver: bridge

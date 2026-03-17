@@ -8,9 +8,20 @@ import com.ubik.usermanagement.infrastructure.adapter.in.web.dto.LoginRequest;
 import com.ubik.usermanagement.infrastructure.adapter.in.web.dto.RegisterRequest;
 import com.ubik.usermanagement.infrastructure.adapter.in.web.dto.ResetPasswordRequest;
 import com.ubik.usermanagement.infrastructure.adapter.out.jwt.JwtAdapter;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import com.ubik.usermanagement.domain.model.RoleConstants;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+
+import java.util.Collections;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -26,6 +37,9 @@ public class UserService implements UserUseCase {
     private final PasswordEncoder passwordEncoder;
     private final JwtAdapter jwtAdapter;
     private final NotificationPort notificationPort;
+
+    @Value("${google.client-id}")
+    private String googleClientId;
 
     public UserService(
             UserRepositoryPort userRepository,
@@ -148,5 +162,68 @@ public class UserService implements UserUseCase {
                         user.birthDate()
                 )))
                 .map(user -> "Password reset successfully");
+    }
+
+    @Override
+    public Mono<String> loginWithGoogle(String idToken) {
+        return Mono.fromCallable(() -> verifyGoogleToken(idToken))    // blocking I/O → fromCallable
+                .subscribeOn(Schedulers.boundedElastic())             // no bloquear el event loop
+                .flatMap(payload -> {
+                    String email = payload.getEmail();
+                    String name  = payload.get("name") != null
+                            ? payload.get("name").toString()
+                            : email.split("@")[0];
+
+                    return userRepository.findByEmail(email)
+                            .flatMap(existing ->
+                                    // Usuario ya existe → devolver JWT directo
+                                    Mono.just(jwtAdapter.generateToken(
+                                            existing.username(),
+                                            existing.roleId(),
+                                            existing.id()
+                                    ))
+                            )
+                            .switchIfEmpty(Mono.defer(() -> {
+                                // Usuario nuevo → crear con roleId USER por defecto
+                                User newUser = new User(
+                                        null,
+                                        name,
+                                        passwordEncoder.encode(UUID.randomUUID().toString()), // pass inutil
+                                        email,
+                                        null,
+                                        null,
+                                        false,
+                                        RoleConstants.USER,
+                                        null, null, null, null, null
+                                );
+                                return userRepository.save(newUser)
+                                        .flatMap(saved ->
+                                                notificationPort
+                                                        .sendRegisterEmail(saved.email(), saved.username())
+                                                        .thenReturn(jwtAdapter.generateToken(
+                                                                saved.username(),
+                                                                saved.roleId(),
+                                                                saved.id()
+                                                        ))
+                                        );
+                            }));
+                });
+    }
+
+    private GoogleIdToken.Payload verifyGoogleToken(String idToken) {
+        try {
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier
+                    .Builder(new NetHttpTransport(), new GsonFactory())
+                    .setAudience(Collections.singletonList(googleClientId)) // @Value
+                    .build();
+
+            GoogleIdToken token = verifier.verify(idToken);
+            if (token == null) {
+                throw new IllegalArgumentException("Invalid Google token");
+            }
+            return token.getPayload();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Google token verification failed", e);
+        }
     }
 }

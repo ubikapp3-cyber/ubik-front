@@ -12,7 +12,6 @@ public record CreateReservationRequest(
         @NotNull(message = "El ID de la habitación es requerido")
         Long roomId,
 
-        @NotNull(message = "El ID del usuario es requerido")
         Long userId,
 
         @NotNull(message = "La fecha de check-in es requerida")

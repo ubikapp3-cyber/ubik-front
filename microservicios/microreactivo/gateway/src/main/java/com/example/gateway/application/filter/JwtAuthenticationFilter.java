@@ -115,6 +115,11 @@ public class JwtAuthenticationFilter implements WebFilter {
                 || path.startsWith("/api/rooms") 
                 || path.startsWith("/api/services");
         }
+
+        // Webhook de Stripe (Stripe no envía JWT)
+        if (method == HttpMethod.POST && path.equals("/api/payments/webhook")) {
+            return true;
+        }
         
         // Todo lo demás requiere autenticación
         return false;

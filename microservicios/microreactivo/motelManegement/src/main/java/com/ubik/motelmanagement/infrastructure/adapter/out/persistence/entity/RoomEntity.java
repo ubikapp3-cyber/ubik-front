@@ -17,7 +17,7 @@ public record RoomEntity(
         Double price,
         String description,
         @Column("is_available") Boolean isAvailable,
-        Double latitude,
-        Double longitude
+        @Column("latitude") Double latitude,
+        @Column("longitude") Double longitude
 ) {
 }

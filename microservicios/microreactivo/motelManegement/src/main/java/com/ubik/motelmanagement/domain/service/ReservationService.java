@@ -1,6 +1,8 @@
 package com.ubik.motelmanagement.domain.service;
 
+import com.ubik.motelmanagement.domain.model.OwnerDashboardSummary;
 import com.ubik.motelmanagement.domain.model.Reservation;
+import com.ubik.motelmanagement.domain.model.RoomStatusBoardResponse;
 import com.ubik.motelmanagement.domain.port.in.ReservationUseCasePort;
 import com.ubik.motelmanagement.domain.port.out.NotificationPort;
 import com.ubik.motelmanagement.domain.port.out.ReservationRepositoryPort;
@@ -13,9 +15,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.stream.Collectors;
 
 @Service
 public class ReservationService implements ReservationUseCasePort {
@@ -27,6 +31,9 @@ public class ReservationService implements ReservationUseCasePort {
     private final ConfirmationCodeService confirmationCodeService;
     private final NotificationClient notificationClient;
     private final UserPort userPort;
+
+    // Bus de eventos para tiempo real
+    private final Sinks.Many<Reservation> reservationSink = Sinks.many().multicast().onBackpressureBuffer();
 
     public ReservationService(
             NotificationPort notificationPort,
@@ -91,8 +98,12 @@ public class ReservationService implements ReservationUseCasePort {
                                 return reservationRepositoryPort.save(reservationWithCode);
                             });
                 })
-
+                .doOnNext(saved -> {
+                    log.info("Emitiendo evento de nueva reserva: {}", saved.id());
+                    reservationSink.tryEmitNext(saved);
+                })
                 .flatMap(savedReservation ->
+// ... rest of implementation (omitted for brevity in replace call, but I will provide the full block)
 
                         userPort.getUserById(savedReservation.userId())
 
@@ -236,7 +247,8 @@ public class ReservationService implements ReservationUseCasePort {
                     }
                     Reservation confirmedReservation = reservation.withStatus(Reservation.ReservationStatus.CONFIRMED);
                     return reservationRepositoryPort.update(confirmedReservation);
-                });
+                })
+                .doOnNext(reservationSink::tryEmitNext);
     }
 
     @Override
@@ -250,7 +262,8 @@ public class ReservationService implements ReservationUseCasePort {
                     }
                     Reservation cancelledReservation = reservation.withStatus(Reservation.ReservationStatus.CANCELLED);
                     return reservationRepositoryPort.update(cancelledReservation);
-                });
+                })
+                .doOnNext(reservationSink::tryEmitNext);
     }
 
     @Override
@@ -264,7 +277,8 @@ public class ReservationService implements ReservationUseCasePort {
                     }
                     Reservation checkedInReservation = reservation.withStatus(Reservation.ReservationStatus.CHECKED_IN);
                     return reservationRepositoryPort.update(checkedInReservation);
-                });
+                })
+                .doOnNext(reservationSink::tryEmitNext);
     }
 
     @Override
@@ -278,7 +292,8 @@ public class ReservationService implements ReservationUseCasePort {
                     }
                     Reservation checkedOutReservation = reservation.withStatus(Reservation.ReservationStatus.CHECKED_OUT);
                     return reservationRepositoryPort.update(checkedOutReservation);
-                });
+                })
+                .doOnNext(reservationSink::tryEmitNext);
     }
 
     @Override
@@ -292,6 +307,86 @@ public class ReservationService implements ReservationUseCasePort {
                     }
                     return reservationRepositoryPort.deleteById(id);
                 });
+    }
+
+    @Override
+    public Flux<Reservation> getReservationStream() {
+        return reservationSink.asFlux();
+    }
+
+    @Override
+    public Mono<OwnerDashboardSummary> getDashboardSummary(Long motelId) {
+        return Mono.zip(
+                reservationRepositoryPort.findTodayByMotelId(motelId).collectList(),
+                roomRepositoryPort.findByMotelId(motelId).collectList()
+        ).map(tuple -> {
+            var reservations = tuple.getT1();
+            var rooms = tuple.getT2();
+
+            var reservationsByStatus = reservations.stream()
+                    .collect(Collectors.groupingBy(r -> r.status().name(), Collectors.counting()));
+
+            var dailyRevenue = reservations.stream()
+                    .filter(r -> r.status() != Reservation.ReservationStatus.CANCELLED)
+                    .mapToDouble(Reservation::totalPrice)
+                    .sum();
+
+            var activeReservations = (long) reservations.size();
+            var totalRooms = (long) rooms.size();
+            var occupancyRate = totalRooms > 0 ? (double) activeReservations / totalRooms : 0.0;
+
+            return new OwnerDashboardSummary(
+                    reservationsByStatus,
+                    dailyRevenue,
+                    occupancyRate,
+                    totalRooms,
+                    activeReservations
+            );
+        });
+    }
+
+    @Override
+    public Flux<RoomStatusBoardResponse> getRoomStatusBoard(Long motelId) {
+        return roomRepositoryPort.findByMotelId(motelId)
+                .flatMap(room -> reservationRepositoryPort.findActiveReservationsByRoomId(room.id())
+                        .collectList()
+                        .map(reservations -> {
+                            RoomStatusBoardResponse.RoomStatus status = RoomStatusBoardResponse.RoomStatus.AVAILABLE;
+                            RoomStatusBoardResponse.ReservationInfo currentRes = null;
+
+                            if (!reservations.isEmpty()) {
+                                // Buscamos la reserva más relevante (ej. la que está en CHECKED_IN o la próxima CONFIRMED)
+                                var res = reservations.get(0); // Simplificación
+                                status = switch (res.status()) {
+                                    case CHECKED_IN -> RoomStatusBoardResponse.RoomStatus.OCCUPIED;
+                                    case CONFIRMED -> RoomStatusBoardResponse.RoomStatus.PENDING_CHECKIN;
+                                    default -> RoomStatusBoardResponse.RoomStatus.AVAILABLE;
+                                };
+
+                                currentRes = new RoomStatusBoardResponse.ReservationInfo(
+                                        res.id(),
+                                        "Invitado", // En el futuro podríamos cruzar con el nombre del usuario
+                                        res.confirmationCode(),
+                                        res.checkInDate(),
+                                        res.checkOutDate(),
+                                        res.status()
+                                );
+                            }
+
+                            return new RoomStatusBoardResponse(
+                                    room.id(),
+                                    room.number(),
+                                    room.roomType(),
+                                    status,
+                                    currentRes
+                            );
+                        }));
+    }
+
+    @Override
+    public Mono<Reservation> getByConfirmationCode(String code) {
+        return reservationRepositoryPort.findByConfirmationCode(code)
+                .switchIfEmpty(Mono.error(new RuntimeException("Código de confirmación no válido: " + code)));
     }
 
     /**
@@ -314,7 +409,7 @@ public class ReservationService implements ReservationUseCasePort {
             return Mono.error(new IllegalArgumentException(
                     "La fecha de check-in debe ser anterior a la fecha de check-out"));
         }
-        if (reservation.checkInDate().isBefore(LocalDateTime.now())) {
+        if (reservation.checkInDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
             return Mono.error(new IllegalArgumentException(
                     "La fecha de check-in no puede ser en el pasado"));
         }

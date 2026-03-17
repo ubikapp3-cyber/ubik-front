@@ -51,11 +51,33 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- ✅ ACTUATOR - AGREGAR ESTA DEPENDENCIA -->
+        <!-- ACTUATOR - AGREGAR ESTA DEPENDENCIA -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <!--  🆕Micrometer Prometheus Registry — NUEVO, agregar en todos -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- 🆕Micrometer Tracing (para traceId en logs) — OPCIONAL pero recomendado -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.zipkin.reporter2</groupId>
+            <artifactId>zipkin-reporter-brave</artifactId>
+        </dependency>
+        <dependency>
+         <groupId>net.logstash.logback</groupId>
+         <artifactId>logstash-logback-encoder</artifactId>
+         <version>7.4</version>
+        </dependency>
+
 
         <!-- JWT (JJWT 0.12.6) -->
         <dependency>

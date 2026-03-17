@@ -1,0 +1,63 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: notification-service
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}      # ← corregido de MAIL_USER a MAIL_USERNAME
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connection-timeout: 5000
+          timeout: 5000
+          write-timeout: 5000
+
+# Logging
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - traceId=%X{traceId} spanId=%X{spanId} - %msg%n"
+  level:
+    root: INFO
+    com.ubik.notificationservice: INFO
+    org.springframework.mail: DEBUG
+    com.example: DEBUG
+
+# CONFIGURACIÓN DE OBSERVABILIDAD (Actuator + Micrometer)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus,metrics"
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true   # Habilita /actuator/health/liveness y /readiness
+    prometheus:
+      enabled: true
+  health:
+    mail:
+      enabled: false    # ← CRÍTICO: evita que Gmail tumbe el healthcheck
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      service: notification
+      environment: ${SPRING_PROFILES_ACTIVE:local}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.75, 0.95, 0.99
+      slo:
+        http.server.requests: 100ms, 500ms, 1s, 2s

@@ -39,6 +39,7 @@
         <module>userManagement</module>
         <module>motelManegement</module>
         <module>notificationService</module>
+        <module>paymentService</module>
     </modules>
 
     <build>

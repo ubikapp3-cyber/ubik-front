@@ -118,9 +118,39 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- ACTUATOR - AGREGAR ESTA DEPENDENCIA -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <!--  🆕Micrometer Prometheus Registry — NUEVO, agregar en todos -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- 🆕Micrometer Tracing (para traceId en logs) — OPCIONAL pero recomendado -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.zipkin.reporter2</groupId>
+            <artifactId>zipkin-reporter-brave</artifactId>
+        </dependency>
+        <dependency>
+         <groupId>net.logstash.logback</groupId>
+         <artifactId>logstash-logback-encoder</artifactId>
+         <version>7.4</version>
+        </dependency>
+
+
+        <!-- Google API Client para verificar id_token -->
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>2.4.0</version>
         </dependency>
 
     </dependencies>

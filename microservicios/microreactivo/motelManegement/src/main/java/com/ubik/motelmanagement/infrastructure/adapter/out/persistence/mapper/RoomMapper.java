@@ -44,7 +44,7 @@ public class RoomMapper {
         return new RoomEntity(
                 room.id(), room.motelId(), room.number(), room.roomType(),
                 room.price(), room.description(), room.isAvailable(),
-                room.latitude(), room.longitude()
+                null, null
         );
     }
 }

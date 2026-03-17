@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <springProperty name="gateway" source="management.metrics.tags.service" defaultValue="unknown-service"/>
+    <springProperty name="ACTIVE_PROFILE" source="spring.profiles.active" defaultValue="local"/>
+
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- Campos personalizados en cada log -->
+            <customFields>{"service":"${SERVICE_NAME}","environment":"${ACTIVE_PROFILE}"}</customFields>
+            <!-- Incluir traceId y spanId de Micrometer Tracing -->
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>spanId</includeMdcKeyName>
+            <includeMdcKeyName>parentId</includeMdcKeyName>
+            <!-- Timestamp en ISO 8601 -->
+            <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSS'Z'</timestampPattern>
+            <timeZone>UTC</timeZone>
+        </encoder>
+    </appender>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}/%X{spanId}] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ═══════════════════════════════════════════════
+         PERFIL DOCKER: usar JSON
+         ═══════════════════════════════════════════════ -->
+    <springProfile name="docker,production">
+        <root level="INFO">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </root>
+        <logger name="com.example" level="DEBUG" additivity="false">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </logger>
+        <!-- Reducir ruido de frameworks -->
+        <logger name="org.springframework.cloud.gateway" level="WARN"/>
+        <logger name="reactor.netty" level="WARN"/>
+    </springProfile>
+
+    <!-- ═══════════════════════════════════════════════
+         PERFIL LOCAL: usar formato legible
+         ═══════════════════════════════════════════════ -->
+    <springProfile name="default,local">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+        <logger name="com.example" level="DEBUG"/>
+    </springProfile>
+
+</configuration>

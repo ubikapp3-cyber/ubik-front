@@ -1,0 +1,33 @@
+[Unit]
+Description=Ubik — Motel Management Platform (Docker Compose)
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=azureuser
+WorkingDirectory=/home/azureuser/ubik-front/microservicios/microreactivo
+
+# Usa el script de boot rápido (sin git pull ni build)
+ExecStart=/home/azureuser/ubik-front/microservicios/microreactivo/ubik-boot.sh
+
+# Al detener la VM, baja los contenedores limpiamente
+ExecStop=/usr/bin/docker compose \
+    -f /home/azureuser/ubik-front/microservicios/microreactivo/docker-compose.yml \
+    -f /home/azureuser/ubik-front/microservicios/microreactivo/docker-compose.monitoring.yml \
+    down
+
+# Reintentar si falla al arrancar (ej: Docker todavía no listo)
+Restart=on-failure
+RestartSec=15s
+
+# Tiempo máximo para que arranquen todos los health checks (~90s por el gateway)
+TimeoutStartSec=180s
+
+StandardOutput=append:/var/log/ubik-boot.log
+StandardError=append:/var/log/ubik-boot.log
+
+[Install]
+WantedBy=multi-user.target

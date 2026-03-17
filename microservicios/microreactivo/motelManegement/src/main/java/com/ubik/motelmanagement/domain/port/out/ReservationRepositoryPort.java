@@ -1,6 +1,7 @@
 package com.ubik.motelmanagement.domain.port.out;
 
 import com.ubik.motelmanagement.domain.model.Reservation;
+import com.ubik.motelmanagement.domain.model.WeeklyRevenue;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -42,4 +43,8 @@ public interface ReservationRepositoryPort {
     Mono<Boolean> existsActiveReservationWithCode(String confirmationCode);
 
     Mono<Reservation> findByConfirmationCode(String confirmationCode);
+
+    Flux<Reservation> findTodayByMotelId(Long motelId);
+
+    Flux<WeeklyRevenue> findWeeklyRevenueByMotelId(Long motelId);
 }

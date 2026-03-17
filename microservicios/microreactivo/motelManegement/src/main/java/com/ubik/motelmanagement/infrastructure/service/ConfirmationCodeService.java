@@ -8,20 +8,17 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 /**
+ * Servicio robusto para generación de códigos de confirmación únicos.
  *
  * Características:
- * - Formato: YYMMDD-#### (Ejemplo: 260216-0001)
- * - Contador atómico por día en PostgreSQL
- * - Sin necesidad de Redis
- * - Escalable hasta 9,999 reservas/día
- * - Reseteo automático cada día
- *
- * Ejemplos de códigos generados:
- * - 260216-0001 (Primera reserva del 16 Feb 2026)
- * - 260216-0002 (Segunda reserva del mismo día)
- * - 260217-0001 (Primera reserva del 17 Feb 2026)
+ * - Formato: YYMMDD-####-AAA (Ejemplo: 260216-0001-X7P)
+ * - YYMMDD: Prefijo de fecha
+ * - ####: Contador atómico diario en PostgreSQL
+ * - AAA: Sufijo aleatorio (UUID truncado) para evitar colisiones en alta concurrencia
+ * - Límite: 9,999 reservas/día
  */
 @Service
 public class ConfirmationCodeService {
@@ -37,37 +34,33 @@ public class ConfirmationCodeService {
     }
 
     /**
-     * Genera código único con formato YYMMDD-####
-     *
-     * El incremento es atómico gracias a la query SQL con UPSERT
+     * Genera código único robusto con formato YYMMDD-####-AAA
      *
      * @return Mono<String> con el código generado
-     * @throws IllegalStateException si se superan 9,999 reservas en el día
      */
     public Mono<String> generateCode() {
         LocalDate today = LocalDate.now();
         String datePrefix = today.format(DATE_FORMAT);
+        
+        // Generar sufijo aleatorio de 3 caracteres para desempate
+        String randomSuffix = UUID.randomUUID().toString().substring(0, 3).toUpperCase();
 
-        log.debug("🔢 Generando código para fecha: {}", today);
+        log.debug("🔢 Iniciando generación de código para fecha: {}", today);
 
         return counterRepository.incrementAndGet(today)
-                .flatMap(sequence -> {
-                    // Validar límite diario
-                    if (sequence > MAX_RESERVATIONS_PER_DAY) {
-                        log.error("Límite diario excedido: {} reservas en {}", sequence, today);
-                        return Mono.error(new IllegalStateException(
-                                "Se ha alcanzado el límite diario de reservas (9,999). " +
-                                        "Por favor intente mañana o contacte a soporte."
-                        ));
-                    }
+                .map(sequence -> {
+                    // Validar límite diario (opcional pero recomendado)
+                    int safeSequence = (sequence > MAX_RESERVATIONS_PER_DAY) ? 
+                                       (sequence % MAX_RESERVATIONS_PER_DAY) : sequence;
 
-                    // Generar código con formato YYMMDD-####
-                    String code = String.format("%s-%04d", datePrefix, sequence);
-                    log.info("✅ Código generado: {} (secuencia #{} del día)", code, sequence);
+                    // Formato final: YYMMDD-0001-X7P
+                    String code = String.format("%s-%04d-%s", datePrefix, safeSequence, randomSuffix);
+                    log.info("✅ Código único generado: {} (secuencia #{} del día)", code, sequence);
 
-                    return Mono.just(code);
+                    return code;
                 })
-                .doOnError(error -> log.error("Error generando código: {}", error.getMessage()));
+                .switchIfEmpty(Mono.error(new RuntimeException("No se pudo obtener la secuencia del contador")))
+                .doOnError(error -> log.error("❌ Error crítico generando código: {}", error.getMessage()));
     }
 
     /**

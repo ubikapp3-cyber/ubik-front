@@ -1,6 +1,9 @@
 package com.ubik.motelmanagement.infrastructure.adapter.in.web.controller;
 
+import com.ubik.motelmanagement.domain.model.ApprovalStatus;
 import com.ubik.motelmanagement.domain.model.Motel;
+import com.ubik.motelmanagement.domain.model.ApprovalStatus;
+import com.ubik.motelmanagement.domain.model.DocumentType;
 import com.ubik.motelmanagement.domain.port.in.MotelUseCasePort;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.*;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.mapper.MotelDtoMapper;
@@ -56,8 +59,8 @@ public class AdminMotelController {
 
         return motelUseCasePort.getAllMotels()
                 .filter(motel ->
-                        motel.approvalStatus() == Motel.ApprovalStatus.PENDING ||
-                                motel.approvalStatus() == Motel.ApprovalStatus.UNDER_REVIEW)
+                        motel.approvalStatus() == ApprovalStatus.PENDING ||
+                                motel.approvalStatus() == ApprovalStatus.UNDER_REVIEW)
                 .map(motelDtoMapper::toResponse);
     }
 
@@ -77,8 +80,8 @@ public class AdminMotelController {
 
         if (status != null && !status.isBlank()) {
             try {
-                Motel.ApprovalStatus approvalStatus =
-                        Motel.ApprovalStatus.valueOf(status.toUpperCase());
+                ApprovalStatus approvalStatus =
+                        ApprovalStatus.valueOf(status.toUpperCase());
                 motels = motels.filter(m -> m.approvalStatus() == approvalStatus);
             } catch (IllegalArgumentException e) {
                 return Flux.error(new ResponseStatusException(
@@ -119,16 +122,16 @@ public class AdminMotelController {
                 .collectList()
                 .map(motels -> {
                     long pending = motels.stream()
-                            .filter(m -> m.approvalStatus() == Motel.ApprovalStatus.PENDING)
+                            .filter(m -> m.approvalStatus() == ApprovalStatus.PENDING)
                             .count();
                     long underReview = motels.stream()
-                            .filter(m -> m.approvalStatus() == Motel.ApprovalStatus.UNDER_REVIEW)
+                            .filter(m -> m.approvalStatus() == ApprovalStatus.UNDER_REVIEW)
                             .count();
                     long approved = motels.stream()
-                            .filter(m -> m.approvalStatus() == Motel.ApprovalStatus.APPROVED)
+                            .filter(m -> m.approvalStatus() == ApprovalStatus.APPROVED)
                             .count();
                     long rejected = motels.stream()
-                            .filter(m -> m.approvalStatus() == Motel.ApprovalStatus.REJECTED)
+                            .filter(m -> m.approvalStatus() == ApprovalStatus.REJECTED)
                             .count();
                     long incompleteLegalInfo = motels.stream()
                             .filter(m -> !m.hasCompleteLegalInfo())
@@ -170,7 +173,7 @@ public class AdminMotelController {
                                 HttpStatus.UNPROCESSABLE_ENTITY,
                                 "El motel no tiene información legal completa. No se puede aprobar."));
                     }
-                    if (motel.approvalStatus() == Motel.ApprovalStatus.APPROVED) {
+                    if (motel.approvalStatus() == ApprovalStatus.APPROVED) {
                         return Mono.error(new ResponseStatusException(
                                 HttpStatus.CONFLICT,
                                 "El motel ya está aprobado"));
@@ -207,7 +210,7 @@ public class AdminMotelController {
 
         return motelUseCasePort.getMotelById(id)
                 .flatMap(motel -> {
-                    if (motel.approvalStatus() == Motel.ApprovalStatus.REJECTED) {
+                    if (motel.approvalStatus() == ApprovalStatus.REJECTED) {
                         return Mono.error(new ResponseStatusException(
                                 HttpStatus.CONFLICT,
                                 "El motel ya está rechazado"));
@@ -243,7 +246,7 @@ public class AdminMotelController {
 
         return motelUseCasePort.getMotelById(id)
                 .flatMap(motel -> {
-                    if (motel.approvalStatus() == Motel.ApprovalStatus.UNDER_REVIEW) {
+                    if (motel.approvalStatus() == ApprovalStatus.UNDER_REVIEW) {
                         return Mono.error(new ResponseStatusException(
                                 HttpStatus.CONFLICT,
                                 "El motel ya está en revisión"));
