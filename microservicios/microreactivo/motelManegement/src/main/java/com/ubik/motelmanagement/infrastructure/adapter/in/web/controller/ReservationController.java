@@ -46,7 +46,9 @@ public class ReservationController {
      * GET /api/reservations/stream
      */
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ReservationResponse> getReservationStream() {
+    public Flux<ReservationResponse> getReservationStream(org.springframework.http.server.reactive.ServerHttpResponse response) {
+        response.getHeaders().setCacheControl("no-cache");
+        response.getHeaders().set("X-Accel-Buffering", "no");
         return reservationUseCasePort.getReservationStream()
                 .map(reservationDtoMapper::toResponse);
     }
