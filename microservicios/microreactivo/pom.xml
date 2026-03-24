@@ -40,6 +40,7 @@
         <module>motelManegement</module>
         <module>notificationService</module>
         <module>paymentService</module>
+        <module>ai-service</module>
     </modules>
 
     <build>

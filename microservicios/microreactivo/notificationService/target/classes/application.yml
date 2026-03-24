@@ -8,8 +8,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME}      # ← corregido de MAIL_USER a MAIL_USERNAME
-    password: ${MAIL_PASSWORD}
+    username: ubikApp3@gmail.com # ${MAIL_USERNAME}      # ← corregido de MAIL_USER a MAIL_USERNAME
+    password: mvndhobznradvbba #${MAIL_PASSWORD}
     properties:
       mail:
         smtp:

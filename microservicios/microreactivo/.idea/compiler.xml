@@ -2,22 +2,24 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="gateway (1)" />
         <module name="paymentService" />
-        <module name="paymentService (1)" />
         <module name="notificationService" />
+        <module name="motel-management (1)" />
+        <module name="payments-checkout-pro" />
+        <module name="ai-service" />
+        <module name="products" />
+        <module name="gateway (1)" />
+        <module name="paymentService (1)" />
         <module name="notificationService (1)" />
         <module name="orders" />
         <module name="customers" />
-        <module name="motel-management (1)" />
         <module name="motel-management" />
         <module name="gateway" />
-        <module name="payments-checkout-pro" />
-        <module name="products" />
       </profile>
       <profile name="Annotation profile for microreactivo-2025" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -42,6 +44,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="ai-service" options="-parameters" />
       <module name="customers" options="-parameters" />
       <module name="gateway" options="-parameters" />
       <module name="gateway (1)" options="-parameters" />

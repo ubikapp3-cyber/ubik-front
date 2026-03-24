@@ -91,6 +91,10 @@
             <version>7.2.5</version>
             <type>pom</type>
         </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+        </dependency>
         <!-- Spring WebFlux WebClient (already in starter-webflux but good to be explicit if needed) -->
     </dependencies>
 

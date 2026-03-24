@@ -37,6 +37,11 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
             String path = request.getPath().toString();
             String method = request.getMethod().toString();
 
+            // BYPASS PARA AI SERVICE
+            if (path.startsWith("/api/ai")) {
+                return chain.filter(exchange);
+            }
+
             // Validate required headers
             if (userId == null || userId.isEmpty()) {
                 return unauthorized(exchange, "Missing X-User-Id header");

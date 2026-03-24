@@ -100,7 +100,13 @@ public class JwtAuthenticationFilter implements WebFilter {
     private boolean isPublicPath(String path, HttpMethod method) {
         // Rutas de autenticación (registro, login, etc.)
         // IMPORTANTE: /api/auth/motels/** NO es pública, requiere autenticación
+
         if (path.startsWith("/api/auth/") && !path.startsWith("/api/auth/motels/")) {
+            return true;
+        }
+
+        //ia consulta no logueada
+        if (path.startsWith("/api/ai")) {
             return true;
         }
         

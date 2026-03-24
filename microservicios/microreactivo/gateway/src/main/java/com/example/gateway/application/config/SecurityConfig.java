@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .pathMatchers("/api/auth/**").permitAll()
                         .pathMatchers("/actuator/**").permitAll()
+                        .pathMatchers("/api/ai/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/motels/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/rooms/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/services/**").permitAll()
