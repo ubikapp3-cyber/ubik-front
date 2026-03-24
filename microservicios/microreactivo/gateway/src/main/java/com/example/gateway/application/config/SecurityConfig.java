@@ -59,6 +59,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/api/payments/webhook").permitAll() // Stripe llama sin JWT
                         .pathMatchers("/api/payments/**").authenticated()
                         .pathMatchers(HttpMethod.POST, "/api/payments/*/refund").authenticated()
+                        .pathMatchers("/api/streaks/**").authenticated()
                         .anyExchange().authenticated()
                 )
                 .addFilterBefore(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)

@@ -114,6 +114,14 @@ spring:
           filters:
             - StripPrefix=0
 
+        # Streak Service
+        - id: streak-service
+          uri: http://streak-service:8086
+          predicates:
+            - Path=/api/streaks/**
+          filters:
+            - StripPrefix=0
+
       trusted-proxies: '127\.0\.0\.1|::1'
 
 # JWT Configuration

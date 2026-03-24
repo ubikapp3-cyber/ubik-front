@@ -10,6 +10,7 @@ import com.ubik.motelmanagement.domain.port.out.RoomRepositoryPort;
 import com.ubik.motelmanagement.domain.port.out.UserPort;
 
 import com.ubik.motelmanagement.infrastructure.service.ConfirmationCodeService;
+import com.ubik.motelmanagement.infrastructure.client.StreakRecalcTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.r2dbc.core.DatabaseClient;
@@ -36,6 +37,7 @@ public class ReservationService implements ReservationUseCasePort {
     private final UserPort userPort;
     private final DatabaseClient databaseClient;
     private final TransactionalOperator transactionalOperator;
+    private final StreakRecalcTrigger streakRecalcTrigger;
 
     // Bus de eventos para tiempo real
     private final Sinks.Many<Reservation> reservationSink = Sinks.many().multicast().onBackpressureBuffer();
@@ -47,7 +49,8 @@ public class ReservationService implements ReservationUseCasePort {
             ConfirmationCodeService confirmationCodeService,
             UserPort userPort,
             DatabaseClient databaseClient,
-            TransactionalOperator transactionalOperator
+            TransactionalOperator transactionalOperator,
+            StreakRecalcTrigger streakRecalcTrigger
     ) {
         this.notificationPort = notificationPort;
         this.reservationRepositoryPort = reservationRepositoryPort;
@@ -56,6 +59,7 @@ public class ReservationService implements ReservationUseCasePort {
         this.userPort = userPort;
         this.databaseClient = databaseClient;
         this.transactionalOperator = transactionalOperator;
+        this.streakRecalcTrigger = streakRecalcTrigger;
     }
 
     @Override
@@ -111,6 +115,15 @@ public class ReservationService implements ReservationUseCasePort {
                                 })
                                 .onErrorResume(error -> Mono.empty())
                                 .thenReturn(savedReservation)
+                )
+                .flatMap(savedReservation ->
+                    streakRecalcTrigger.triggerRecalculate(savedReservation.userId())
+                        .onErrorResume(e -> {
+                            log.warn("No se pudo recalcular streak para userId={}: {}",
+                                     savedReservation.userId(), e.getMessage());
+                            return Mono.empty();
+                        })
+                        .thenReturn(savedReservation)
                 )
         );
     }

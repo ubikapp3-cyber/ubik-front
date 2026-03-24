@@ -1,0 +1,32 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: streak-service
+  r2dbc:
+    url: ${SPRING_R2DBC_URL:r2dbc:postgresql://localhost:5432/ubik_auth}
+    username: ${SPRING_R2DBC_USERNAME:postgres}
+    password: ${SPRING_R2DBC_PASSWORD:password}
+  sql:
+    init:
+      mode: always
+  profiles:
+    active: default
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+services:
+  motel-management:
+    url: ${SERVICES_MOTEL_MANAGEMENT_URL:http://localhost:8083}
+
+logging:
+  level:
+    com.ubik: DEBUG

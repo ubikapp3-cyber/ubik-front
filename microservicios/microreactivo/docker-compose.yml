@@ -133,6 +133,38 @@ services:
       start_period: 60s
 
   # ===========================================
+  # MICROSERVICIO: STREAK SERVICE
+  # ===========================================
+  streak-service:
+    build:
+      context: .
+      dockerfile: streakService/Dockerfile
+    container_name: streak-service
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
+      SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
+      SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
+      ROLE_ID_ADMIN: ${ROLE_ID_ADMIN}
+      SERVICE_NAME: streak-service
+      TZ: America/Bogota
+      JAVA_OPTS: "-Xmx256m -Xms128m -Duser.timezone=America/Bogota"
+    depends_on:
+      motel-management-service:
+        condition: service_healthy
+    networks:
+      - ubik-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8086/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ===========================================
   # API GATEWAY
   # ===========================================
   gateway:
@@ -164,6 +196,8 @@ services:
         condition: service_healthy
       payment-service:
         condition: service_healthy
+      streak-service:
+        condition: service_healthy
     networks:
       - ubik-network
     healthcheck:
@@ -179,4 +213,4 @@ services:
 networks:
   ubik-network:
     name: ubik-network
-    driver: bridge
+    external: true
