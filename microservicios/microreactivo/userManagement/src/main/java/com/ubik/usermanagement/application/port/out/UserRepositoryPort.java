@@ -6,6 +6,7 @@ import reactor.core.publisher.Mono;
 public interface UserRepositoryPort {
     Mono<User> findByUsername(String username);
     Mono<User> findByEmail(String email);
+    Mono<User> findByEmailIncludingDeleted(String email);
     Mono<User> findByResetToken(String resetToken);
     Mono<User> save(User user);
     Mono<User> findById(Long id);

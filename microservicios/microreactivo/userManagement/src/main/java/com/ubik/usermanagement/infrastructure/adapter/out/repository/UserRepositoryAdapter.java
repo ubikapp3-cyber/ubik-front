@@ -42,6 +42,11 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public Mono<User> findByEmailIncludingDeleted(String email) {
+        return userRepository.findByEmailIncludingDeleted(email).map(mapper::toDomain);
+    }
+
+    @Override
     public Mono<User> findByResetToken(String resetToken) {
         return userRepository.findByResetToken(resetToken).map(mapper::toDomain);
     }

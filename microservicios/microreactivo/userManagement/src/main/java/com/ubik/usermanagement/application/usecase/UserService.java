@@ -120,7 +120,7 @@ public class UserService implements UserUseCase {
     public Mono<String> requestPasswordReset(String email) {
         String resetToken = UUID.randomUUID().toString();
 
-        return userRepository.findByEmail(email)
+        return userRepository.findByEmailIncludingDeleted(email)
                 .switchIfEmpty(Mono.error(new RuntimeException("Email not found")))
                 .flatMap(user -> userRepository.save(new User(
                         user.id(),
@@ -165,7 +165,7 @@ public class UserService implements UserUseCase {
                         user.longitude(),
                         user.latitude(),
                         user.birthDate(),
-                        user.deletedAt()
+                        null
                 )))
                 .map(user -> "Password reset successfully");
     }
