@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/api/rooms/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/services/**").permitAll()
                         .pathMatchers("/api/admin/motels/**").hasAuthority("ROLE_" + ROLE_ID_ADMIN)
+                        .pathMatchers("/api/streaks/admin/**").hasAuthority("ROLE_" + ROLE_ID_ADMIN)
                         .pathMatchers(HttpMethod.GET, "/api/auth/motels/**").authenticated()
                         .pathMatchers(HttpMethod.POST, "/api/motels/**").authenticated()
                         .pathMatchers(HttpMethod.PUT, "/api/motels/**").authenticated()

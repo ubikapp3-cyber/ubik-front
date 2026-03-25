@@ -1,5 +1,6 @@
 package com.ubik.motelmanagement.domain.service;
 
+import com.ubik.motelmanagement.domain.model.ApprovalStatus;
 import com.ubik.motelmanagement.domain.model.Motel;
 import com.ubik.motelmanagement.domain.port.in.MotelUseCasePort;
 import com.ubik.motelmanagement.domain.port.out.MotelRepositoryPort;
@@ -7,6 +8,7 @@ import com.ubik.motelmanagement.domain.port.out.NotificationPort;
 import com.ubik.motelmanagement.domain.port.out.UserPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.time.LocalDateTime;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.reactive.TransactionalOperator;
@@ -123,6 +125,19 @@ public class MotelService implements MotelUseCasePort {
             motelRepositoryPort.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Motel no encontrado con ID: " + id)))
                 .flatMap(existingMotel -> {
+                    ApprovalStatus targetApprovalStatus = motel.approvalStatus() != null ? motel.approvalStatus() : existingMotel.approvalStatus();
+                    LocalDateTime targetApprovalDate = motel.approvalDate() != null ? motel.approvalDate() : existingMotel.approvalDate();
+                    Long targetApprovedByUserId = motel.approvedByUserId() != null ? motel.approvedByUserId() : existingMotel.approvedByUserId();
+                    String targetRejectionReason = motel.rejectionReason() != null ? motel.rejectionReason() : existingMotel.rejectionReason();
+
+                    // Si no cambia el estado a APPROVED, mantenemos fecha/usuario aprobador actuales.
+                    // Si un admin está aprobando desde /admin/motels/{id}/approve, ya trae approvalDate y approvedByUserId.
+                    if (motel.approvalStatus() == null || motel.approvalStatus() != ApprovalStatus.APPROVED) {
+                        // para un update normal (sin aprobar) no cascamos fecha/usuario a null
+                        targetApprovalDate = existingMotel.approvalDate();
+                        targetApprovedByUserId = existingMotel.approvedByUserId();
+                    }
+
                     Motel updatedMotel = new Motel(
                             id,
                             motel.name(),
@@ -135,10 +150,10 @@ public class MotelService implements MotelUseCasePort {
                             motel.imageUrls(),
                             motel.latitude(),
                             motel.longitude(),
-                            motel.approvalStatus() != null ? motel.approvalStatus() : existingMotel.approvalStatus(),
-                            null, // null para que la BD use ubik_now() via trigger
-                            motel.approvedByUserId() != null ? motel.approvedByUserId() : existingMotel.approvedByUserId(),
-                            motel.rejectionReason(),
+                            targetApprovalStatus,
+                            targetApprovalDate,
+                            targetApprovedByUserId,
+                            targetRejectionReason,
                             motel.rues(),
                             motel.rnt(),
                             motel.ownerDocumentType(),

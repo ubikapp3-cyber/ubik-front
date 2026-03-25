@@ -6,6 +6,7 @@ import com.ubik.streakservice.domain.port.out.StreakRepositoryPort;
 import com.ubik.streakservice.infrastructure.adapter.out.persistence.entity.StreakEntity;
 import com.ubik.streakservice.infrastructure.adapter.out.persistence.repository.StreakR2dbcRepository;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -27,13 +28,26 @@ public class StreakPersistenceAdapter implements StreakRepositoryPort {
         return repository.save(toEntity(streak)).map(this::toDomain);
     }
 
+    @Override
+    public Flux<UserStreak> findAll() {
+        return repository.findAll().map(this::toDomain);
+    }
+
+    @Override
+    public Flux<UserStreak> findByEffectiveLevel(String level) {
+        return repository.findByEffectiveLevel(level).map(this::toDomain);
+    }
+
     private UserStreak toDomain(StreakEntity e) {
         return new UserStreak(
                 e.id(), e.userId(),
                 StreakLevel.valueOf(e.level()),
                 e.reservationsLast30Days(),
                 e.discountRate(),
-                e.calculatedAt(), e.updatedAt()
+                e.calculatedAt(), e.updatedAt(),
+                e.overriddenLevel() != null ? StreakLevel.valueOf(e.overriddenLevel()) : null,
+                e.overrideReason(),
+                e.updatedBy()
         );
     }
 
@@ -43,7 +57,10 @@ public class StreakPersistenceAdapter implements StreakRepositoryPort {
                 s.level().name(),
                 s.reservationsLast30Days(),
                 s.discountRate(),
-                s.calculatedAt(), s.updatedAt()
+                s.calculatedAt(), s.updatedAt(),
+                s.overriddenLevel() != null ? s.overriddenLevel().name() : null,
+                s.overrideReason(),
+                s.updatedBy()
         );
     }
 }
