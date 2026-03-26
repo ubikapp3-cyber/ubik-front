@@ -31,5 +31,5 @@ public class ReservationInfoAdapter {
                 .doOnError(e -> log.error("Error obteniendo reserva {}: {}", reservationId, e.getMessage()));
     }
 
-    public record ReservationDto(Long id, Long roomId, LocalDateTime checkInDate, LocalDateTime checkOutDate, Double totalPrice) {}
+    public record ReservationDto(Long id, Long roomId, LocalDateTime checkInDate, LocalDateTime checkOutDate, Double totalPrice, String confirmationCode) {}
 }

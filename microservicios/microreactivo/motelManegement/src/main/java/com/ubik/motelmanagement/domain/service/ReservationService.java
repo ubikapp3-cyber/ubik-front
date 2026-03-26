@@ -4,10 +4,8 @@ import com.ubik.motelmanagement.domain.model.OwnerDashboardSummary;
 import com.ubik.motelmanagement.domain.model.Reservation;
 import com.ubik.motelmanagement.domain.model.RoomStatusBoardResponse;
 import com.ubik.motelmanagement.domain.port.in.ReservationUseCasePort;
-import com.ubik.motelmanagement.domain.port.out.NotificationPort;
 import com.ubik.motelmanagement.domain.port.out.ReservationRepositoryPort;
 import com.ubik.motelmanagement.domain.port.out.RoomRepositoryPort;
-import com.ubik.motelmanagement.domain.port.out.UserPort;
 
 import com.ubik.motelmanagement.infrastructure.service.ConfirmationCodeService;
 import com.ubik.motelmanagement.infrastructure.client.StreakRecalcTrigger;
@@ -22,7 +20,6 @@ import reactor.core.publisher.Sinks;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,11 +27,9 @@ public class ReservationService implements ReservationUseCasePort {
 
     private static final Logger log = LoggerFactory.getLogger(ReservationService.class);
     private static final ZoneId BOGOTA = ZoneId.of("America/Bogota");
-    private final NotificationPort notificationPort;
     private final ReservationRepositoryPort reservationRepositoryPort;
     private final RoomRepositoryPort roomRepositoryPort;
     private final ConfirmationCodeService confirmationCodeService;
-    private final UserPort userPort;
     private final DatabaseClient databaseClient;
     private final TransactionalOperator transactionalOperator;
     private final StreakRecalcTrigger streakRecalcTrigger;
@@ -43,20 +38,16 @@ public class ReservationService implements ReservationUseCasePort {
     private final Sinks.Many<Reservation> reservationSink = Sinks.many().multicast().onBackpressureBuffer();
 
     public ReservationService(
-            NotificationPort notificationPort,
             ReservationRepositoryPort reservationRepositoryPort,
             RoomRepositoryPort roomRepositoryPort,
             ConfirmationCodeService confirmationCodeService,
-            UserPort userPort,
             DatabaseClient databaseClient,
             TransactionalOperator transactionalOperator,
             StreakRecalcTrigger streakRecalcTrigger
     ) {
-        this.notificationPort = notificationPort;
         this.reservationRepositoryPort = reservationRepositoryPort;
         this.roomRepositoryPort = roomRepositoryPort;
         this.confirmationCodeService = confirmationCodeService;
-        this.userPort = userPort;
         this.databaseClient = databaseClient;
         this.transactionalOperator = transactionalOperator;
         this.streakRecalcTrigger = streakRecalcTrigger;
@@ -100,22 +91,6 @@ public class ReservationService implements ReservationUseCasePort {
                             });
                 })
                 .doOnNext(saved -> reservationSink.tryEmitNext(saved))
-                .flatMap(savedReservation ->
-                        userPort.getUserById(savedReservation.userId())
-                                .flatMap(user -> {
-                                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-                                    return notificationPort.sendReservationConfirmation(
-                                            user.email(),
-                                            savedReservation.confirmationCode(),
-                                            savedReservation.checkInDate().format(formatter),
-                                            savedReservation.checkOutDate().format(formatter),
-                                            savedReservation.roomId().toString(),
-                                            String.format("%,.2f", savedReservation.totalPrice())
-                                    );
-                                })
-                                .onErrorResume(error -> Mono.empty())
-                                .thenReturn(savedReservation)
-                )
                 .flatMap(savedReservation ->
                     streakRecalcTrigger.triggerRecalculate(savedReservation.userId())
                         .onErrorResume(e -> {
