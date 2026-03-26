@@ -114,6 +114,8 @@ services:
       STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       MOTEL_MANAGEMENT_URL: ${MOTEL_MANAGEMENT_URL:-http://motel-management-service:8083}
+      USER_MANAGEMENT_URL: ${USER_MANAGEMENT_URL:-http://usermanagement-service:8081}
+      NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-http://notification-service:8084}
       SERVICE_NAME: payment-service
       MANAGEMENT_TRACING_ENABLED: "false"
       TZ: America/Bogota
