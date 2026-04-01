@@ -26,7 +26,7 @@ public class WebClientAdapter implements ExternalServicePort {
         }
 
         return webClient.get()
-                .uri("http://localhost:8080/api/auth/motels/my-motels") // 🔥 USA EL GATEWAY
+                .uri("http://localhost:8080/api/auth/motels/my-motels")
                 .header("Authorization", formattedToken)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {});
@@ -36,6 +36,38 @@ public class WebClientAdapter implements ExternalServicePort {
     public Mono<List<Map<String, Object>>> getPublicMotels() {
         return webClient.get()
                 .uri("http://localhost:8083/api/motels")
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {});
+    }
+
+    @Override
+    public Mono<Map<String, Object>> getMyProfile(String token) {
+        String formattedToken = token;
+
+        if (token != null && !token.startsWith("Bearer ")) {
+            formattedToken = "Bearer " + token;
+        }
+
+        return webClient.get()
+                .uri("http://localhost:8080/api/user")
+                .header("Authorization", formattedToken)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+
+    @Override
+    public Mono<List<Map<String, Object>>> getMyReservations(String token, String userId) {
+        return webClient.get()
+                .uri("http://localhost:8080/api/reservations/user/" + userId)
+                .headers(h -> h.setBearerAuth(token))
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {});
+    }
+
+    @Override
+    public Mono<List<Map<String, Object>>> getRoomsByMotel(Long motelId) {
+        return webClient.get()
+                .uri("http://localhost:8080/api/rooms/motel/" + motelId)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {});
     }

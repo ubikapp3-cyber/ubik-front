@@ -11,4 +11,10 @@ public interface ExternalServicePort {
 
     Mono<List<Map<String, Object>>> getPublicMotels();
 
+    Mono<Map<String, Object>> getMyProfile(String token);
+
+    Mono<List<Map<String, Object>>> getMyReservations(String token, String userId);
+
+    Mono<List<Map<String, Object>>> getRoomsByMotel(Long motelId);
+
 }

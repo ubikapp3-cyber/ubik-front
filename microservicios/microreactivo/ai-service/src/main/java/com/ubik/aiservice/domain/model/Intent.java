@@ -11,9 +11,12 @@ public enum Intent {
 
     TUTORIAL_LOGIN(false),
     TUTORIAL_REGISTER(false),
+    TUTORIAL_REGISTER_MOTEL(false),
+    TUTORIAL_REGISTER_ROOM(false),
 
     GENERAL_INFO(false),
-    UNKNOWN(false);
+    UNKNOWN(false),
+    LOADING(false);
 
     private final boolean requiresAuth;
 
