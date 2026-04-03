@@ -3,6 +3,37 @@
   <component name="CompilerConfiguration">
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="streakService" />
+        <module name="motel-management" />
+        <module name="paymentService" />
+        <module name="ai-service" />
+        <module name="gateway" />
+        <module name="notificationService" />
+      </profile>
+      <profile name="Annotation profile for microreactivo-2025" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.32/lombok-1.18.32.jar" />
+        </processorPath>
+        <module name="user-management" />
+      </profile>
     </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="ai-service" options="-parameters" />
+      <module name="gateway" options="-parameters" />
+      <module name="motel-management" options="-parameters" />
+      <module name="notificationService" options="-parameters" />
+      <module name="paymentService" options="-parameters" />
+      <module name="streakService" options="-parameters" />
+      <module name="user-management" options="-parameters" />
+    </option>
   </component>
 </project>
