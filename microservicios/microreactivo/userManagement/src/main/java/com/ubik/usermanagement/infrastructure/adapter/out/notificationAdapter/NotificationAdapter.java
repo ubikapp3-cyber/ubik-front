@@ -14,8 +14,8 @@ public class NotificationAdapter implements NotificationPort {
 
     public NotificationAdapter(WebClient.Builder builder) {
         this.webClient = builder
-                .baseUrl("http://notification-service:8084")
-                //.baseUrl("http://host.docker.internal:8084")
+                //.baseUrl("http://notification-service:8084")
+                .baseUrl("http://host.docker.internal:8084")
                 .build();
     }
 

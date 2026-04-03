@@ -1,23 +1,42 @@
-# ---------- BUILD ----------
-FROM maven:3.9.9-eclipse-temurin-17 AS builder
+# =========================
+# BUILD STAGE
+# =========================
+FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
 
 WORKDIR /app
 
-COPY aiService/pom.xml .
-RUN mvn dependency:go-offline
+# Copiar TODO el proyecto (incluye pom padre)
+COPY . .
 
-COPY aiService/src ./src
+# (Opcional pero recomendado en Alpine)
+RUN apk update && apk add --no-cache ca-certificates
 
-RUN mvn clean package -DskipTests
+# Compilar SOLO el módulo ai-service
+RUN mvn clean package \
+    -pl ai-service \
+    -am \
+    -DskipTests -ntp
 
-
-# ---------- RUNTIME ----------
-FROM eclipse-temurin:17-jdk-jammy
+# =========================
+# RUNTIME STAGE
+# =========================
+FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/target/ai-service-0.0.1-SNAPSHOT.jar app.jar
+# Usuario no-root
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+# Copiar el JAR del ai-service
+COPY --from=build /app/ai-service/target/*.jar app.jar
 
 EXPOSE 8086
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENV JAVA_OPTS="-Xmx512m -Xms256m"
+ENV SPRING_PROFILES_ACTIVE=docker
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8086/actuator/health || exit 1
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
