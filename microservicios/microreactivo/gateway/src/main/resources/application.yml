@@ -64,12 +64,19 @@ spring:
 
         # 5️⃣ Notifications
         - id: notificationService
-          uri: http://notificationService:8084
+          uri: http://notification-service:8084
           predicates:
             - Path=/api/notifications/**
           filters:
             - StripPrefix=0
 
+        # 1️⃣1️⃣ AI SERVICE
+        - id: ai-service
+          uri: http://ai-service:8086
+          predicates:
+            - Path=/api/ai/**
+          filters:
+            - StripPrefix=0
         # ═══════════════════════════════════════════════════════
         # MOTEL MANAGEMENT - RUTAS PÚBLICAS
         # ═══════════════════════════════════════════════════════

@@ -17,12 +17,6 @@ spring:
       max-file-size: 10MB
       max-request-size: 50MB
 
-services:
-  user-management:
-    url: http://usermanagement-service:8081
-
-
-  # PostgreSQL R2DBC (valores inyectados desde .env o docker)
   r2dbc:
     url: ${SPRING_R2DBC_URL}
     username: ${SPRING_R2DBC_USERNAME}
@@ -32,6 +26,14 @@ services:
       max-size: 15
       max-idle-time: 30m
       max-acquire-time: 3m
+
+services:
+  user-management:
+    url: http://localhost:8081
+
+
+  # PostgreSQL R2DBC (valores inyectados desde .env o docker)
+
 
   # Inicialización de esquema
   # En Azure NO ejecutamos scripts automáticamente

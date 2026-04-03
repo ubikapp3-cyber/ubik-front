@@ -1,0 +1,12 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: ai-service
+
+ollama:
+  base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+
+gateway:
+  base-url: ${GATEWAY_URL:http://localhost:8080}

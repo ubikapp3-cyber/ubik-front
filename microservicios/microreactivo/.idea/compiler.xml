@@ -7,11 +7,18 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+<<<<<<< HEAD
         <module name="streakService" />
+=======
+>>>>>>> feature-ia
         <module name="paymentService" />
         <module name="notificationService" />
         <module name="motel-management (1)" />
         <module name="payments-checkout-pro" />
+<<<<<<< HEAD
+=======
+        <module name="ai-service" />
+>>>>>>> feature-ia
         <module name="products" />
         <module name="gateway (1)" />
         <module name="paymentService (1)" />
@@ -39,6 +46,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="ai-service" options="-parameters" />
       <module name="customers" options="-parameters" />
       <module name="gateway" options="-parameters" />
       <module name="gateway (1)" options="-parameters" />

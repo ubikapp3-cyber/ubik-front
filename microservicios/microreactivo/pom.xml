@@ -40,7 +40,11 @@
         <module>motelManegement</module>
         <module>notificationService</module>
         <module>paymentService</module>
+<<<<<<< HEAD
         <module>streakService</module>
+=======
+        <module>ai-service</module>
+>>>>>>> feature-ia
     </modules>
 
     <build>

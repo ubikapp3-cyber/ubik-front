@@ -6,9 +6,9 @@ spring:
     name: payment-service
 
   r2dbc:
-    url: ${SPRING_R2DBC_URL}
-    username: ${SPRING_R2DBC_USERNAME}
-    password: ${SPRING_R2DBC_PASSWORD}
+    url: r2dbc:postgresql://dbubik.postgres.database.azure.com:5432/postgres?ssl=true #${SPRING_R2DBC_URL}
+    username: adminubik #${SPRING_R2DBC_USERNAME}
+    password: juliannicolas@1 #${SPRING_R2DBC_PASSWORD}
     pool:
       initial-size: 3
       max-size: 10
@@ -20,18 +20,18 @@ spring:
 
 # ── Stripe ────────────────────────────────────────────────────────────────────
 stripe:
-  secret-key: ${STRIPE_SECRET_KEY}
-  publishable-key: ${STRIPE_PUBLISHABLE_KEY}
-  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+  secret-key: sk_test_51Sx6ZoASBcriNpkYNLLTIxSEKessALDpW7L4mc1Yq7QDowoClCUt7UiBjOIdo0p4AyZ6AY3aQtAYjAlnVxMkoDfA00QMjyyEIf #${STRIPE_SECRET_KEY}
+  publishable-key: pk_test_51Sx6ZoASBcriNpkYgq7h7WzJgsp6KIjkHIwrZHws5DuUyjShj43y1KTG43e4AEWKAIQ6BDFalWUGCnNIDKCTpbvJ00HmH9Utrk #${STRIPE_PUBLISHABLE_KEY}
+  webhook-secret: whsec_c3aad5da824cc1dc2b4e4acbbc16f91ec3c81983c45cf10775b51e53fd9deb44 #${STRIPE_WEBHOOK_SECRET}
 
 # ── URLs inter-servicio ───────────────────────────────────────────────────────
 services:
   motel-management:
-    url: ${MOTEL_MANAGEMENT_URL:http://motel-management-service:8083}
+    url: ${MOTEL_MANAGEMENT_URL:http://localhost:8083}
   user-management:
-    url: ${USER_MANAGEMENT_URL:http://usermanagement-service:8081}
+    url: ${USER_MANAGEMENT_URL:http://localhost:8081}
   notification-service:
-    url: ${NOTIFICATION_SERVICE_URL:http://notification-service:8084}
+    url: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
 
 # Logging
 logging:
