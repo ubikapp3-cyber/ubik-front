@@ -132,13 +132,16 @@ public class ProcessMessageService implements ProcessMessageUseCase {
     public void warmUpModel() {
         log.info("🔥 Warming up LLM model...");
 
-        llmClient.generate("ping")
-                .doOnNext(res -> {
-                    modelReady.set(true);
-                    log.info("✅ LLM warm-up completed");
-                })
-                .doOnError(err -> log.error("❌ LLM warm-up failed", err))
-                .subscribe();
+        try {
+            llmClient.generate("ping")
+                    .block(); // 👈 CLAVE
+
+            modelReady.set(true);
+            log.info("✅ LLM warm-up completed");
+
+        } catch (Exception e) {
+            log.error("❌ LLM warm-up failed", e);
+        }
     }
     @Override
     public Mono<AiResponse> process(String role, String message, String token) {
