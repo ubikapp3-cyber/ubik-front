@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Servicio de aplicación que orquesta la lógica de pagos con Stripe.
@@ -117,20 +118,77 @@ public class PaymentService implements PaymentUseCasePort {
                     log.info("Pago exitoso para PaymentIntent: {}", intentId);
                     return paymentRepository.updateStatus(intentId, PaymentStatus.SUCCEEDED, null)
                             .flatMap(payment -> {
-                                log.info("Pago {} actualizado a SUCCEEDED. Confirmando reserva {}",
+                                log.info("Pago {} actualizado. Confirmando reserva {}",
                                         payment.id(), payment.reservationId());
-                                
+
                                 return reservationConfirmationPort.confirmReservation(payment.reservationId())
+                                        .doOnSuccess(v -> log.info("Reserva {} confirmada OK", payment.reservationId()))
+                                        .doOnError(e -> log.error("Error confirmando reserva: {}", e.getMessage()))
+                                        .then(Mono.delay(java.time.Duration.ofMillis(500))) // Pequeño delay para persistencia
+                                        .then(sendReservationConfirmationEmail(payment))
                                         .then(generateAndSendInvoice(payment))
                                         .onErrorResume(e -> {
-                                            // No fallar el webhook si la confirmación o factura fallan —
-                                            // el pago ya está registrado como exitoso
-                                            log.error("Error post-pago (confirmación/factura) para reserva {}: {}",
-                                                    payment.reservationId(), e.getMessage());
+                                            log.error("Error post-pago DETALLADO para reserva {}: {} - {}",
+                                                    payment.reservationId(),
+                                                    e.getClass().getSimpleName(),
+                                                    e.getMessage(), e);
                                             return Mono.empty();
-                                        })
-                                        .then(generateAndSendInvoice(payment));
+                                        });
                             });
+                });
+    }
+
+    private Mono<Void> sendReservationConfirmationEmail(Payment payment) {
+        log.info("Iniciando envío de email de confirmación para pago {}", payment.id());
+        return reservationInfoAdapter.getReservationInfo(payment.reservationId())
+                .doOnNext(res -> log.info("Reserva obtenida: {}", res.confirmationCode()))
+                .flatMap(res -> userInfoAdapter.getUserInfo(payment.userId())
+                        .doOnNext(user -> log.info("Usuario obtenido: {}", user.email()))
+                        .flatMap(user -> {
+                            DateTimeFormatter formatter =
+                                    DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+                            String htmlMessage = """
+                                <div style="font-family: Arial, Helvetica, sans-serif; background-color:#f4f6f9; padding:40px 20px;">
+                                    <div style="max-width:600px; margin:0 auto; background:#ffffff; border-radius:8px; padding:30px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+                                        <h2 style="color:#2c3e50; text-align:center;">🏨 Confirmación de Reserva</h2>
+                                        <p>Tu reserva fue confirmada y el pago procesado exitosamente.</p>
+                                        <div style="text-align:center; margin:25px 0;">
+                                            <span style="display:inline-block; padding:15px 25px; font-size:18px; letter-spacing:2px; background-color:#2c3e50; color:#ffffff; border-radius:6px; font-weight:bold;">
+                                                %s
+                                            </span>
+                                        </div>
+                                        <h3 style="color:#444;">Detalles de la reserva</h3>
+                                        <p><strong>Check-in:</strong> %s</p>
+                                        <p><strong>Check-out:</strong> %s</p>
+                                        <p><strong>Habitación:</strong> #%s</p>
+                                        <p><strong>Total pagado:</strong> %s COP</p>
+                                        <hr style="margin:25px 0;" />
+                                        <p style="font-size:13px; color:#777;">Presenta este código al momento del check-in.</p>
+                                        <p style="font-size:12px; color:#aaa; text-align:center;">Gracias por elegir UBIK</p>
+                                    </div>
+                                </div>
+                                """.formatted(
+                                    res.confirmationCode() != null ? res.confirmationCode() : "N/A",
+                                    res.checkInDate().format(formatter),
+                                    res.checkOutDate().format(formatter),
+                                    res.roomId().toString(),
+                                    String.format("%,.2f", payment.amountCents() / 100.0)
+                            );
+
+                            return notificationAdapter.sendInvoiceEmail(
+                                    user.email(),
+                                    "🏨 Confirmación de Reserva - UBIK",
+                                    htmlMessage,
+                                    null,
+                                    null
+                            );
+                        })
+                )
+                .onErrorResume(e -> {
+                    log.error("Error en sendReservationConfirmationEmail para reserva {}: {} - {}",
+                            payment.reservationId(), e.getClass().getSimpleName(), e.getMessage(), e);
+                    return Mono.empty();
                 });
     }
 
@@ -159,7 +217,8 @@ public class PaymentService implements PaymentUseCasePort {
 
             return notificationAdapter.sendInvoiceEmail(user.email(), subject, msg, pdf, "Factura_" + payment.id() + ".pdf");
         }).onErrorResume(e -> {
-            log.error("Error generando o enviando la factura para el pago {}: {}", payment.id(), e.getMessage());
+            log.error("Error detallado generando o enviando la factura para el pago {}: {} - {}",
+                    payment.id(), e.getClass().getSimpleName(), e.getMessage(), e);
             return Mono.empty();
         });
     }

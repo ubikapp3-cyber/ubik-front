@@ -48,7 +48,8 @@ public class UserProfileService implements UserProfileUseCase {
                             // Nuevos campos con lógica de actualización
                             request.longitude() != null ? request.longitude() : existingUser.longitude(),
                             request.latitude() != null ? request.latitude() : existingUser.latitude(),
-                            request.birthDate() != null ? request.birthDate() : existingUser.birthDate()
+                            request.birthDate() != null ? request.birthDate() : existingUser.birthDate(),
+                            existingUser.deletedAt()
                     );
 
                     return userRepository.save(updatedUser)

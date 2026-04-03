@@ -23,6 +23,9 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
 
+app:
+  frontend-url: ${FRONTEND_URL:https://ubik-app.vercel.app}
+
 google:
   client-id: ${GOOGLE_CLIENT_ID:undefined}
 

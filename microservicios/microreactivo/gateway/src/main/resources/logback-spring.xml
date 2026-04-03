@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <springProperty name="gateway" source="management.metrics.tags.service" defaultValue="unknown-service"/>
+    <springProperty name="SERVICE_NAME" source="spring.application.name" defaultValue="unknown-service"/>
     <springProperty name="ACTIVE_PROFILE" source="spring.profiles.active" defaultValue="local"/>
 
     <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <!-- Campos personalizados en cada log -->
-            <customFields>{"service":"${SERVICE_NAME}","environment":"${ACTIVE_PROFILE}"}</customFields>
+            <customFields>{"service":"${SERVICE_NAME:-unknown}","environment":"${SPRING_PROFILES_ACTIVE:-local}"}</customFields>
             <!-- Incluir traceId y spanId de Micrometer Tracing -->
             <includeMdcKeyName>traceId</includeMdcKeyName>
             <includeMdcKeyName>spanId</includeMdcKeyName>

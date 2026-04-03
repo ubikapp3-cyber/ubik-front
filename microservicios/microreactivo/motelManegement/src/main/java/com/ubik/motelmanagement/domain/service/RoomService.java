@@ -6,7 +6,9 @@ import com.ubik.motelmanagement.domain.port.out.MotelRepositoryPort;
 import com.ubik.motelmanagement.domain.port.out.NotificationPort;
 import com.ubik.motelmanagement.domain.port.out.RoomRepositoryPort;
 import com.ubik.motelmanagement.domain.port.out.UserPort;
+import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -17,28 +19,40 @@ public class RoomService implements RoomUseCasePort {
     private final MotelRepositoryPort motelRepositoryPort;
     private final NotificationPort notificationPort;
     private final UserPort userPort;
+    private final DatabaseClient databaseClient;
+    private final TransactionalOperator transactionalOperator;
 
-    public RoomService(RoomRepositoryPort roomRepositoryPort, MotelRepositoryPort motelRepositoryPort, NotificationPort notificationPort, UserPort userPort) {
+    public RoomService(
+            RoomRepositoryPort roomRepositoryPort, 
+            MotelRepositoryPort motelRepositoryPort, 
+            NotificationPort notificationPort, 
+            UserPort userPort,
+            DatabaseClient databaseClient,
+            TransactionalOperator transactionalOperator
+    ) {
         this.roomRepositoryPort = roomRepositoryPort;
         this.motelRepositoryPort = motelRepositoryPort;
         this.notificationPort = notificationPort;
         this.userPort = userPort;
+        this.databaseClient = databaseClient;
+        this.transactionalOperator = transactionalOperator;
     }
 
     @Override
     public Mono<Room> createRoom(Room room) {
-        return motelRepositoryPort.findById(room.motelId())
-                .switchIfEmpty(Mono.error(
-                        new RuntimeException("Motel no encontrado con ID: " + room.motelId())
-                ))
+        return transactionalOperator.transactional(
+            motelRepositoryPort.findById(room.motelId())
+                .switchIfEmpty(Mono.error(new RuntimeException("Motel no encontrado con ID: " + room.motelId())))
                 .flatMap(motel -> {
                     if (motel.approvalStatus() != com.ubik.motelmanagement.domain.model.ApprovalStatus.APPROVED) {
-                        return Mono.error(new IllegalStateException("El motel no está aprobado. Solo se pueden crear o editar habitaciones en moteles aprobados."));
+                        return Mono.error(new IllegalStateException("El motel no está aprobado."));
                     }
-                    return validateRoom(room)
+                    return setClientTimeInSession()
+                            .then(validateRoom(room))
                             .then(roomRepositoryPort.save(room))
-                            .flatMap(savedRoom ->
-                                userPort.getUserById(motel.propertyId())
+                            .flatMap(savedRoom -> {
+                                // Enviar notificación usando el tiempo del contexto si es posible
+                                return userPort.getUserById(motel.propertyId())
                                         .flatMap(user -> {
                                             String priceFormatted = String.format("%,.2f", savedRoom.price());
                                             String createdAt = java.time.LocalDateTime.now()
@@ -54,8 +68,10 @@ public class RoomService implements RoomUseCasePort {
                                                     )
                                                     .thenReturn(savedRoom);
                                         })
-                            );
-                });
+                                        .defaultIfEmpty(savedRoom);
+                            });
+                })
+        );
     }
 
     @Override
@@ -81,13 +97,14 @@ public class RoomService implements RoomUseCasePort {
 
     @Override
     public Mono<Room> updateRoom(Long id, Room room) {
-        return roomRepositoryPort.findById(id)
+        return transactionalOperator.transactional(
+            roomRepositoryPort.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Habitación no encontrada con ID: " + id)))
                 .flatMap(existingRoom -> 
                     motelRepositoryPort.findById(existingRoom.motelId())
                             .flatMap(motel -> {
                                 if (motel.approvalStatus() != com.ubik.motelmanagement.domain.model.ApprovalStatus.APPROVED) {
-                                    return Mono.error(new IllegalStateException("El motel no está aprobado. Solo se pueden crear o editar habitaciones en moteles aprobados."));
+                                    return Mono.error(new IllegalStateException("El motel no está aprobado."));
                                 }
                                 Room updatedRoom = new Room(
                                         id,
@@ -106,9 +123,24 @@ public class RoomService implements RoomUseCasePort {
                                         existingRoom.motelPhoneNumber(),
                                         room.serviceIds()
                                 );
-                                return validateRoom(updatedRoom).then(roomRepositoryPort.update(updatedRoom));
+                                return setClientTimeInSession()
+                                        .then(validateRoom(updatedRoom))
+                                        .then(roomRepositoryPort.update(updatedRoom));
                             })
-                );
+                )
+        );
+    }
+
+    private Mono<Void> setClientTimeInSession() {
+        return Mono.deferContextual(ctx -> {
+            String clientTime = ctx.getOrDefault("X-Client-Time", null);
+            if (clientTime != null && !clientTime.isBlank()) {
+                return databaseClient.sql("SELECT set_config('ubik.client_time', :time, true)")
+                        .bind("time", clientTime)
+                        .then();
+            }
+            return Mono.empty();
+        });
     }
 
     @Override

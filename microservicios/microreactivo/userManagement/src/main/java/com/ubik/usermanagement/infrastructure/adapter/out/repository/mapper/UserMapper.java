@@ -31,7 +31,8 @@ public class UserMapper {
                 entity.resetTokenExpiry(),
                 entity.longitude(),
                 entity.latitude(),
-                entity.birthDate()
+                entity.birthDate(),
+                entity.deletedAt()
         );
     }
 
@@ -53,6 +54,6 @@ public class UserMapper {
                 user.longitude(),
                 user.latitude(),
                 user.birthDate(),
-                LocalDateTime.now());
+                user.deletedAt());
     }
 }

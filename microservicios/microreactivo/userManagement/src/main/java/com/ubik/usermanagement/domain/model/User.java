@@ -34,7 +34,8 @@ public record User(
         LocalDateTime resetTokenExpiry,
         BigDecimal longitude,
         BigDecimal latitude,
-        LocalDate birthDate
+        LocalDate birthDate,
+        LocalDateTime deletedAt
 ) {
     /**
      * Validación de coordenadas geográficas
@@ -53,6 +54,13 @@ public record User(
         if (birthDate != null && birthDate.isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("Birth date cannot be in the future");
         }
+    }
+
+    /**
+     * true si el usuario NO ha sido eliminado (soft delete)
+     */
+    public boolean isActive() {
+        return deletedAt == null;
     }
     
     /**

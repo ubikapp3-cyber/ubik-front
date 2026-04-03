@@ -24,6 +24,7 @@ public class UserInfoAdapter {
 
         return webClient.get()
                 .uri("/api/user/{id}", userId)
+                .header("X-Internal-Request", "true")
                 .retrieve()
                 .bodyToMono(UserProfileDto.class)
                 .doOnError(e -> log.error("Error obteniendo usuario {}: {}", userId, e.getMessage()));

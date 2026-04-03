@@ -44,7 +44,7 @@ public interface ReservationRepositoryPort {
 
     Mono<Reservation> findByConfirmationCode(String confirmationCode);
 
-    Flux<Reservation> findTodayByMotelId(Long motelId);
+    Flux<Reservation> findTodayByMotelId(Long motelId, LocalDate today);
 
-    Flux<WeeklyRevenue> findWeeklyRevenueByMotelId(Long motelId);
+    Flux<WeeklyRevenue> findWeeklyRevenueByMotelId(Long motelId, LocalDate startDate);
 }

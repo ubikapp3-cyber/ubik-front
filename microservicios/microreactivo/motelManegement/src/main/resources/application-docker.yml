@@ -30,6 +30,8 @@ management:
       show-details: always
       probes:
         enabled: true
+    tracing:
+      enabled: false
     prometheus:
       enabled: true
   metrics:

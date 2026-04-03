@@ -19,17 +19,22 @@ public class NotificationAdapter {
                 .build();
     }
 
-    public Mono<Void> sendInvoiceEmail(String toEmail, String subject, String message, byte[] pdfAttachment, String attachmentName) {
-        log.info("Enviando correo con factura a {}", toEmail);
+    public Mono<Void> sendInvoiceEmail(String toEmail, String subject, String message,
+                                    byte[] pdfAttachment, String attachmentName) {
+        log.info("Enviando correo a {} con asunto '{}'. Datos adjuntos: {}", 
+                toEmail, subject, (pdfAttachment != null ? attachmentName : "Ninguno"));
+
+        record NotificationRequestDto(String to, String subject, String message,
+                                       byte[] attachment, String attachmentName) {}
 
         return webClient.post()
                 .uri("/notifications/email")
-                .bodyValue(new NotificationRequestDto(toEmail, subject, message, pdfAttachment, attachmentName))
+                .bodyValue(new NotificationRequestDto(toEmail, subject, message,
+                        pdfAttachment, attachmentName))
                 .retrieve()
                 .bodyToMono(Void.class)
-                .doOnSuccess(v -> log.info("Correo de factura enviado a {}", toEmail))
-                .doOnError(e -> log.error("Error enviando correo de factura a {}: {}", toEmail, e.getMessage()));
+                .doOnSuccess(v -> log.info("Petición de correo enviada exitosamente a {}", toEmail))
+                .doOnError(e -> log.error("Error enviando petición de correo a {}: {} - {}", 
+                        toEmail, e.getClass().getSimpleName(), e.getMessage(), e));
     }
-
-    record NotificationRequestDto(String to, String subject, String message, byte[] attachment, String attachmentName) {}
 }

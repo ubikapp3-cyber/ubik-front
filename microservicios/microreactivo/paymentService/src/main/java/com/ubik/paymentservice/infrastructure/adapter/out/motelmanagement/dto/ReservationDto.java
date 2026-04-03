@@ -8,5 +8,6 @@ public record ReservationDto(
         Long userId,
         LocalDateTime checkInDate,
         LocalDateTime checkOutDate,
-        Double totalPrice
+        Double totalPrice,
+        String confirmationCode
 ) {}

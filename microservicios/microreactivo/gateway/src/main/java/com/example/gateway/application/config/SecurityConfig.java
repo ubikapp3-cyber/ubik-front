@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/api/rooms/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/services/**").permitAll()
                         .pathMatchers("/api/admin/motels/**").hasAuthority("ROLE_" + ROLE_ID_ADMIN)
+                        .pathMatchers("/api/streaks/admin/**").hasAuthority("ROLE_" + ROLE_ID_ADMIN)
                         .pathMatchers(HttpMethod.GET, "/api/auth/motels/**").authenticated()
                         .pathMatchers(HttpMethod.POST, "/api/motels/**").authenticated()
                         .pathMatchers(HttpMethod.PUT, "/api/motels/**").authenticated()
@@ -59,9 +60,10 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/api/payments/webhook").permitAll() // Stripe llama sin JWT
                         .pathMatchers("/api/payments/**").authenticated()
                         .pathMatchers(HttpMethod.POST, "/api/payments/*/refund").authenticated()
+                        .pathMatchers("/api/streaks/**").authenticated()
                         .anyExchange().authenticated()
                 )
-                .addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+                .addFilterBefore(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();
     }
 

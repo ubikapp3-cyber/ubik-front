@@ -128,8 +128,9 @@ services:
     environment:
       - STRIPE_API_KEY=${STRIPE_SECRET_KEY}
     command: >
-      listen 
-      --forward-to https://ubik-back.duckdns.org/api/payments/webhook
+      listen
+      --forward-to http://gateway:8080/api/payments/webhook
+      --skip-verify
       --log-level info
     networks:
       - ubik-network

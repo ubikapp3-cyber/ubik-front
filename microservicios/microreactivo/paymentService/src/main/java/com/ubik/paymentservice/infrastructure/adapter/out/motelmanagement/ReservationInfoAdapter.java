@@ -26,10 +26,11 @@ public class ReservationInfoAdapter {
 
         return webClient.get()
                 .uri("/api/reservations/{id}", reservationId)
+                .header("X-Internal-Request", "true")
                 .retrieve()
                 .bodyToMono(ReservationDto.class)
                 .doOnError(e -> log.error("Error obteniendo reserva {}: {}", reservationId, e.getMessage()));
     }
 
-    public record ReservationDto(Long id, Long roomId, LocalDateTime checkInDate, LocalDateTime checkOutDate, Double totalPrice) {}
+    public record ReservationDto(Long id, Long roomId, LocalDateTime checkInDate, LocalDateTime checkOutDate, Double totalPrice, String confirmationCode) {}
 }

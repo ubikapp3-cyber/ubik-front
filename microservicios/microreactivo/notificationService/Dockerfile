@@ -26,6 +26,12 @@ WORKDIR /app
 
 # Usuario no-root
 RUN addgroup -S spring && adduser -S spring -G spring
+
+# tzdata necesario en Alpine para que TZ=America/Bogota funcione
+RUN apk add --no-cache wget tzdata && \
+    cp /usr/share/zoneinfo/America/Bogota /etc/localtime && \
+    echo "America/Bogota" > /etc/timezone
+
 USER spring:spring
 
 # Copiar el JAR del servicio de notificaciones
@@ -35,6 +41,7 @@ EXPOSE 8084
 
 ENV JAVA_OPTS="-Xmx512m -Xms256m"
 ENV SPRING_PROFILES_ACTIVE=docker
+ENV TZ=America/Bogota
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8084/actuator/health || exit 1

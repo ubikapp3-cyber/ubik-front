@@ -10,6 +10,11 @@ PORTS=(8080 8081 8083 8084 8085 4040 3000 9090 3100 9093 8086)
 COMPOSE_FILES="-f docker-compose.yml -f docker-compose.monitoring.yml"
 
 cd "$PROJECT_PATH" || exit 1
+echo "⏳ Esperando DNS..."
+until nslookup duckdns.org > /dev/null 2>&1; do
+    sleep 3
+done
+echo "✅ DNS listo"
 
 echo "🔍 Sincronizando código desde Git..."
 git pull origin respaldo

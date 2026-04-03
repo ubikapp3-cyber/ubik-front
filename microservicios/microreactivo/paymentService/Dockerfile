@@ -9,6 +9,12 @@ RUN mvn clean package -pl paymentService -am -DskipTests -ntp
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 RUN addgroup -S spring && adduser -S spring -G spring
+
+# tzdata necesario en Alpine para que TZ=America/Bogota funcione
+RUN apk add --no-cache wget tzdata && \
+    cp /usr/share/zoneinfo/America/Bogota /etc/localtime && \
+    echo "America/Bogota" > /etc/timezone
+
 USER spring:spring
 COPY --from=build /app/paymentService/target/*.jar app.jar
 EXPOSE 8085

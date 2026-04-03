@@ -18,7 +18,10 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      JAVA_OPTS: "-Xmx512m -Xms256m"
+      SERVICE_NAME: usermanagement-service
+      MANAGEMENT_TRACING_ENABLED: "false"
+      TZ: America/Bogota
+      JAVA_OPTS: "-Xmx512m -Xms256m -Duser.timezone=America/Bogota"
     networks:
       - ubik-network
     healthcheck:
@@ -50,7 +53,10 @@ services:
       ROLE_ID_ADMIN: ${ROLE_ID_ADMIN}
       ROLE_ID_PROPERTY_OWNER: ${ROLE_ID_PROPERTY_OWNER}
       ROLE_ID_USER: ${ROLE_ID_USER}
-      JAVA_OPTS: "-Xmx512m -Xms256m"
+      SERVICE_NAME: motel-management-service
+      MANAGEMENT_TRACING_ENABLED: "false"
+      TZ: America/Bogota
+      JAVA_OPTS: "-Xmx512m -Xms256m -Duser.timezone=America/Bogota"
     networks:
       - ubik-network
     healthcheck:
@@ -75,7 +81,10 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
-      JAVA_OPTS: "-Xmx512m -Xms256m"
+      SERVICE_NAME: notification-service
+      MANAGEMENT_TRACING_ENABLED: "false"
+      TZ: America/Bogota
+      JAVA_OPTS: "-Xmx512m -Xms256m -Duser.timezone=America/Bogota"
     networks:
       - ubik-network
     healthcheck:
@@ -105,7 +114,12 @@ services:
       STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       MOTEL_MANAGEMENT_URL: ${MOTEL_MANAGEMENT_URL:-http://motel-management-service:8083}
-      JAVA_OPTS: "-Xmx512m -Xms256m"
+      USER_MANAGEMENT_URL: ${USER_MANAGEMENT_URL:-http://usermanagement-service:8081}
+      NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-http://notification-service:8084}
+      SERVICE_NAME: payment-service
+      MANAGEMENT_TRACING_ENABLED: "false"
+      TZ: America/Bogota
+      JAVA_OPTS: "-Xmx512m -Xms256m -Duser.timezone=America/Bogota"
     depends_on:
       motel-management-service:
         condition: service_healthy
@@ -115,6 +129,38 @@ services:
       - ubik-network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8085/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ===========================================
+  # MICROSERVICIO: STREAK SERVICE
+  # ===========================================
+  streak-service:
+    build:
+      context: .
+      dockerfile: streakService/Dockerfile
+    container_name: streak-service
+    restart: unless-stopped
+    ports:
+      - "8087:8086"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
+      SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
+      SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
+      ROLE_ID_ADMIN: ${ROLE_ID_ADMIN}
+      SERVICE_NAME: streak-service
+      TZ: America/Bogota
+      JAVA_OPTS: "-Xmx256m -Xms128m -Duser.timezone=America/Bogota"
+    depends_on:
+      motel-management-service:
+        condition: service_healthy
+    networks:
+      - ubik-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8086/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -139,7 +185,10 @@ services:
       ROLE_ID_PROPERTY_OWNER: ${ROLE_ID_PROPERTY_OWNER}
       ROLE_ID_USER: ${ROLE_ID_USER}
       FRONTEND_URL: ${FRONTEND_URL}
-      JAVA_OPTS: "-Xmx512m -Xms256m"
+      SERVICE_NAME: gateway
+      MANAGEMENT_TRACING_ENABLED: "false"
+      TZ: America/Bogota
+      JAVA_OPTS: "-Xmx512m -Xms256m -Duser.timezone=America/Bogota"
     depends_on:
       usermanagement-service:
         condition: service_healthy
@@ -148,6 +197,8 @@ services:
       notification-service:
         condition: service_healthy
       payment-service:
+        condition: service_healthy
+      streak-service:
         condition: service_healthy
     networks:
       - ubik-network
@@ -164,4 +215,4 @@ services:
 networks:
   ubik-network:
     name: ubik-network
-    driver: bridge
+    external: true

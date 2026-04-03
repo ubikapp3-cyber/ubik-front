@@ -4,6 +4,8 @@ import com.ubik.motelmanagement.domain.model.Service;
 import com.ubik.motelmanagement.domain.port.in.ServiceUseCasePort;
 import com.ubik.motelmanagement.domain.port.out.RoomRepositoryPort;
 import com.ubik.motelmanagement.domain.port.out.ServiceRepositoryPort;
+import org.springframework.r2dbc.core.DatabaseClient;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -16,22 +18,34 @@ public class ServiceService implements ServiceUseCasePort {
 
     private final ServiceRepositoryPort serviceRepositoryPort;
     private final RoomRepositoryPort roomRepositoryPort;
+    private final DatabaseClient databaseClient;
+    private final TransactionalOperator transactionalOperator;
 
-    public ServiceService(ServiceRepositoryPort serviceRepositoryPort, RoomRepositoryPort roomRepositoryPort) {
+    public ServiceService(
+            ServiceRepositoryPort serviceRepositoryPort, 
+            RoomRepositoryPort roomRepositoryPort,
+            DatabaseClient databaseClient,
+            TransactionalOperator transactionalOperator
+    ) {
         this.serviceRepositoryPort = serviceRepositoryPort;
         this.roomRepositoryPort = roomRepositoryPort;
+        this.databaseClient = databaseClient;
+        this.transactionalOperator = transactionalOperator;
     }
 
     @Override
     public Mono<Service> createService(Service service) {
-        return validateService(service)
+        return transactionalOperator.transactional(
+            setClientTimeInSession()
+                .then(validateService(service))
                 .then(serviceRepositoryPort.existsByName(service.name()))
                 .flatMap(exists -> {
                     if (exists) {
                         return Mono.error(new IllegalArgumentException("Ya existe un servicio con el nombre: " + service.name()));
                     }
                     return serviceRepositoryPort.save(service);
-                });
+                })
+        );
     }
 
     @Override
@@ -53,38 +67,43 @@ public class ServiceService implements ServiceUseCasePort {
 
     @Override
     public Mono<Service> updateService(Long id, Service service) {
-        return serviceRepositoryPort.findById(id)
+        return transactionalOperator.transactional(
+            serviceRepositoryPort.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Servicio no encontrado con ID: " + id)))
                 .flatMap(existingService -> {
-                    // Verificar si el nuevo nombre ya existe (excepto si es el mismo servicio)
-                    if (!existingService.name().equals(service.name())) {
-                        return serviceRepositoryPort.existsByName(service.name())
-                                .flatMap(exists -> {
-                                    if (exists) {
-                                        return Mono.error(new IllegalArgumentException("Ya existe un servicio con el nombre: " + service.name()));
-                                    }
-                                    Service updatedService = new Service(
-                                            id,
-                                            service.name(),
-                                            service.description(),
-                                            service.icon(),
-                                            existingService.createdAt() // Mantener la fecha de creación original
-                                    );
-                                    return validateService(updatedService)
-                                            .then(serviceRepositoryPort.update(updatedService));
-                                });
-                    } else {
-                        Service updatedService = new Service(
-                                id,
-                                service.name(),
-                                service.description(),
-                                service.icon(),
-                                existingService.createdAt()
-                        );
-                        return validateService(updatedService)
-                                .then(serviceRepositoryPort.update(updatedService));
-                    }
-                });
+                    Service updatedService = new Service(
+                            id,
+                            service.name(),
+                            service.description(),
+                            service.icon(),
+                            existingService.createdAt()
+                    );
+
+                    return setClientTimeInSession()
+                            .then(validateService(updatedService))
+                            .then(existingService.name().equals(service.name()) ? 
+                                Mono.just(false) : 
+                                serviceRepositoryPort.existsByName(service.name()))
+                            .flatMap(exists -> {
+                                if (exists) {
+                                    return Mono.error(new IllegalArgumentException("Ya existe un servicio con el nombre: " + service.name()));
+                                }
+                                return serviceRepositoryPort.update(updatedService);
+                            });
+                })
+        );
+    }
+
+    private Mono<Void> setClientTimeInSession() {
+        return Mono.deferContextual(ctx -> {
+            String clientTime = ctx.getOrDefault("X-Client-Time", null);
+            if (clientTime != null && !clientTime.isBlank()) {
+                return databaseClient.sql("SELECT set_config('ubik.client_time', :time, true)")
+                        .bind("time", clientTime)
+                        .then();
+            }
+            return Mono.empty();
+        });
     }
 
     @Override

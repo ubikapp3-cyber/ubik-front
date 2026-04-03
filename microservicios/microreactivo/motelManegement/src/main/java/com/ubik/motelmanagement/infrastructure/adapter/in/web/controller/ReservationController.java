@@ -15,10 +15,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;  // ✅ AGREGAR
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 @RestController
 @RequestMapping("/api/reservations")
@@ -42,7 +46,9 @@ public class ReservationController {
      * GET /api/reservations/stream
      */
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ReservationResponse> getReservationStream() {
+    public Flux<ReservationResponse> getReservationStream(org.springframework.http.server.reactive.ServerHttpResponse response) {
+        response.getHeaders().setCacheControl("no-cache");
+        response.getHeaders().set("X-Accel-Buffering", "no");
         return reservationUseCasePort.getReservationStream()
                 .map(reservationDtoMapper::toResponse);
     }
@@ -132,6 +138,26 @@ public class ReservationController {
     public Flux<ReservationResponse> getReservationsByUserId(@PathVariable Long userId) {
         return reservationUseCasePort.getReservationsByUserId(userId)
                 .map(reservationDtoMapper::toResponse);
+    }
+
+    /**
+     * GET /api/reservations/user/{userId}/count-last-30-days
+     * INTERNO: usado por streak-service para calcular el nivel del usuario.
+     */
+    @GetMapping("/user/{userId}/count-last-30-days")
+    public Mono<Integer> countLast30DaysForUser(
+            @PathVariable Long userId,
+            @RequestHeader(value = "X-Internal-Request", required = false) String internal) {
+
+        if (!"true".equals(internal)) {
+            return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN));
+        }
+        return reservationUseCasePort.getReservationsByUserId(userId)
+                .filter(r -> r.status() != Reservation.ReservationStatus.CANCELLED
+                          && r.createdAt() != null
+                          && r.createdAt().isAfter(LocalDateTime.now().minusDays(30)))
+                .count()
+                .map(Long::intValue);
     }
 
     /**
@@ -243,7 +269,20 @@ public class ReservationController {
      */
     @GetMapping("/owner/dashboard")
     public Mono<OwnerDashboardSummary> getDashboardSummary(@RequestParam Long motelId) {
-        return reservationUseCasePort.getDashboardSummary(motelId);
+        return Mono.deferContextual(ctx -> {
+            String clientTime = ctx.getOrDefault("X-Client-Time", null);
+            LocalDate today;
+            if (clientTime != null) {
+                try {
+                    today = ZonedDateTime.parse(clientTime).toLocalDate();
+                } catch (Exception e) {
+                    today = LocalDate.now();
+                }
+            } else {
+                today = LocalDate.now();
+            }
+            return reservationUseCasePort.getDashboardSummary(motelId, today);
+        });
     }
 
     /**

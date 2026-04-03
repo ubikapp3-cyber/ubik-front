@@ -5,6 +5,7 @@ import com.ubik.usermanagement.infrastructure.adapter.in.web.dto.LoginRequest;
 import com.ubik.usermanagement.infrastructure.adapter.in.web.dto.RegisterRequest;
 import com.ubik.usermanagement.infrastructure.adapter.in.web.dto.ResetPasswordRequest;
 import com.ubik.usermanagement.infrastructure.adapter.in.web.dto.GoogleAuthRequest;
+import com.ubik.usermanagement.domain.exception.AccountDeletedException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -55,6 +56,12 @@ public class AuthController {
     @GetMapping("/user/test")
     public Mono<String> userTest() {
         return Mono.just("User or Client access granted");
+    }
+
+    @ExceptionHandler(AccountDeletedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Mono<String> handleAccountDeleted(AccountDeletedException ex) {
+        return Mono.just(ex.getMessage());
     }
 
     @ExceptionHandler(RuntimeException.class)

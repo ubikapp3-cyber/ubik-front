@@ -17,10 +17,17 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
 RUN addgroup -S spring && adduser -S spring -G spring
+
+# tzdata necesario en Alpine para que TZ=America/Bogota funcione
+RUN apk add --no-cache wget tzdata && \
+    cp /usr/share/zoneinfo/America/Bogota /etc/localtime && \
+    echo "America/Bogota" > /etc/timezone
+
 USER spring:spring
 
 COPY --from=build /app/motelManegement/target/*.jar app.jar
 
 EXPOSE 8083
 ENV SPRING_PROFILES_ACTIVE=docker
-ENTRYPOINT ["java","-jar","app.jar"]
+ENV TZ=America/Bogota
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

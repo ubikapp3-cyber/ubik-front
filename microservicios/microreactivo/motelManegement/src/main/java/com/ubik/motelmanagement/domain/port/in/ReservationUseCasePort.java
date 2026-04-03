@@ -6,6 +6,7 @@ import com.ubik.motelmanagement.domain.model.RoomStatusBoardResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -120,7 +121,7 @@ public interface ReservationUseCasePort {
      */
     Flux<Reservation> getReservationStream();
 
-    Mono<OwnerDashboardSummary> getDashboardSummary(Long motelId);
+    Mono<OwnerDashboardSummary> getDashboardSummary(Long motelId, LocalDate today);
 
     Flux<RoomStatusBoardResponse> getRoomStatusBoard(Long motelId);
 

@@ -14,11 +14,14 @@ import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.UpdateMotelReq
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class MotelDtoMapper {
+
+    private static final ZoneId BOGOTA = ZoneId.of("America/Bogota");
 
     public Motel toDomain(CreateMotelRequest request) {
         if (request == null) return null;
@@ -35,7 +38,7 @@ public class MotelDtoMapper {
                 request.description(),
                 request.city(),
                 request.propertyId(),
-                LocalDateTime.now(),
+                LocalDateTime.now(BOGOTA),
                 images,
                 request.latitude(),
                 request.longitude(),

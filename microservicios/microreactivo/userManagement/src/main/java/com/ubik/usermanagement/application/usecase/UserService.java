@@ -12,6 +12,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import com.ubik.usermanagement.domain.exception.AccountDeletedException;
 import com.ubik.usermanagement.domain.model.RoleConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -76,7 +77,8 @@ public class UserService implements UserUseCase {
                                             null,                    // resetTokenExpiry
                                             request.longitude(),
                                             request.latitude(),
-                                            request.birthDate()
+                                            request.birthDate(),
+                                            null                     // deletedAt
                                     );
 
                                     return userRepository.save(user)
@@ -105,6 +107,8 @@ public class UserService implements UserUseCase {
         return userRepository.findByUsername(request.username())
                 .filter(user -> passwordEncoder.matches(request.password(), user.password()))
                 .switchIfEmpty(Mono.error(new RuntimeException("Invalid credentials")))
+                .filter(User::isActive)
+                .switchIfEmpty(Mono.error(new AccountDeletedException("Account is deactivated")))
                 .map(user -> jwtAdapter.generateToken(
                         user.username(),
                         user.roleId(),
@@ -116,7 +120,7 @@ public class UserService implements UserUseCase {
     public Mono<String> requestPasswordReset(String email) {
         String resetToken = UUID.randomUUID().toString();
 
-        return userRepository.findByEmail(email)
+        return userRepository.findByEmailIncludingDeleted(email)
                 .switchIfEmpty(Mono.error(new RuntimeException("Email not found")))
                 .flatMap(user -> userRepository.save(new User(
                         user.id(),
@@ -131,7 +135,8 @@ public class UserService implements UserUseCase {
                         LocalDateTime.now().plusHours(1),
                         user.longitude(),
                         user.latitude(),
-                        user.birthDate()
+                        user.birthDate(),
+                        user.deletedAt()
                 )))
                 .flatMap(user ->
                         notificationPort
@@ -159,7 +164,8 @@ public class UserService implements UserUseCase {
                         null,
                         user.longitude(),
                         user.latitude(),
-                        user.birthDate()
+                        user.birthDate(),
+                        null
                 )))
                 .map(user -> "Password reset successfully");
     }
@@ -175,14 +181,16 @@ public class UserService implements UserUseCase {
                             : email.split("@")[0];
 
                     return userRepository.findByEmail(email)
-                            .flatMap(existing ->
-                                    // Usuario ya existe → devolver JWT directo
-                                    Mono.just(jwtAdapter.generateToken(
-                                            existing.username(),
-                                            existing.roleId(),
-                                            existing.id()
-                                    ))
-                            )
+                            .flatMap(existing -> {
+                                if (!existing.isActive()) {
+                                    return Mono.error(new AccountDeletedException("Account is deactivated"));
+                                }
+                                return Mono.just(jwtAdapter.generateToken(
+                                        existing.username(),
+                                        existing.roleId(),
+                                        existing.id()
+                                ));
+                            })
                             .switchIfEmpty(Mono.defer(() -> {
                                 // Usuario nuevo → crear con roleId USER por defecto
                                 User newUser = new User(
@@ -194,7 +202,8 @@ public class UserService implements UserUseCase {
                                         null,
                                         false,
                                         RoleConstants.USER,
-                                        null, null, null, null, null
+                                        null, null, null, null, null,
+                                        null // deletedAt
                                 );
                                 return userRepository.save(newUser)
                                         .flatMap(saved ->

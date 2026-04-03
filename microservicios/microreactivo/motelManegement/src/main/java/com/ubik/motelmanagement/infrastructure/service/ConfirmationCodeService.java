@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
@@ -26,6 +27,7 @@ public class ConfirmationCodeService {
     private static final Logger log = LoggerFactory.getLogger(ConfirmationCodeService.class);
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyMMdd");
     private static final int MAX_RESERVATIONS_PER_DAY = 9999;
+    private static final ZoneId BOGOTA = ZoneId.of("America/Bogota");
 
     private final ReservationCounterRepository counterRepository;
 
@@ -39,7 +41,7 @@ public class ConfirmationCodeService {
      * @return Mono<String> con el código generado
      */
     public Mono<String> generateCode() {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(BOGOTA);
         String datePrefix = today.format(DATE_FORMAT);
         
         // Generar sufijo aleatorio de 3 caracteres para desempate
@@ -68,7 +70,7 @@ public class ConfirmationCodeService {
      * Útil para monitoreo y dashboards
      */
     public Mono<DayStats> getTodayStats() {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(BOGOTA);
 
         return counterRepository.getCurrentCounter(today)
                 .defaultIfEmpty(0)

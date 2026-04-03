@@ -1,6 +1,7 @@
 package com.ubik.usermanagement.infrastructure.adapter.out.notificationAdapter;
 
 import com.ubik.usermanagement.application.port.out.NotificationPort;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -11,6 +12,9 @@ import java.util.Map;
 public class NotificationAdapter implements NotificationPort {
 
     private final WebClient webClient;
+    
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     public NotificationAdapter(WebClient.Builder builder) {
         this.webClient = builder
@@ -21,6 +25,8 @@ public class NotificationAdapter implements NotificationPort {
 
     @Override
     public Mono<Void> sendPasswordRecoveryEmail(String email, String username, String token) {
+
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
 
         String htmlMessage = """
         <div style="font-family: Arial, Helvetica, sans-serif; background-color:#f4f6f9; padding:40px 20px;">
@@ -39,22 +45,27 @@ public class NotificationAdapter implements NotificationPort {
                 </p>
 
                 <p style="font-size:15px; color:#333;">
-                    Usa el siguiente token para completar el proceso:
+                    Haz clic en el siguiente botón para restablecer tu contraseña:
                 </p>
 
                 <div style="text-align:center; margin:30px 0;">
-                    <span style="
+                    <a href="%s" style="
                         display:inline-block;
-                        padding:15px 25px;
-                        font-size:18px;
-                        letter-spacing:2px;
+                        padding:15px 30px;
+                        font-size:16px;
                         background-color:#2c3e50;
                         color:#ffffff;
                         border-radius:6px;
+                        text-decoration:none;
                         font-weight:bold;">
-                        %s
-                    </span>
+                        Restablecer contraseña
+                    </a>
                 </div>
+
+                <p style="font-size:14px; color:#555;">
+                    O copia este enlace en tu navegador:<br/>
+                    <a href="%s" style="color:#2c3e50;">%s</a>
+                </p>
 
                 <p style="font-size:14px; color:#555;">
                     Este token expirará en 1 hora.
@@ -71,7 +82,7 @@ public class NotificationAdapter implements NotificationPort {
                 </p>
             </div>
         </div>
-        """.formatted(username, token);
+        """.formatted(username, resetLink, resetLink, resetLink);
 
         Map<String, String> body = Map.of(
                 "to", email,

@@ -137,13 +137,13 @@ public class ReservationPersistenceAdapter implements ReservationRepositoryPort 
     }
 
     @Override
-    public Flux<Reservation> findTodayByMotelId(Long motelId) {
-        return reservationRepository.findTodayByMotelId(motelId)
+    public Flux<Reservation> findTodayByMotelId(Long motelId, LocalDate today) {
+        return reservationRepository.findByMotelIdAndDate(motelId, today)
                 .map(reservationMapper::toDomain);
     }
 
     @Override
-    public Flux<WeeklyRevenue> findWeeklyRevenueByMotelId(Long motelId) {
-        return reservationRepository.findWeeklyRevenueByMotelId(motelId);
+    public Flux<WeeklyRevenue> findWeeklyRevenueByMotelId(Long motelId, LocalDate startDate) {
+        return reservationRepository.findWeeklyRevenueByMotelId(motelId, startDate);
     }
 }

@@ -47,17 +47,17 @@ public interface ReservationR2dbcRepository extends R2dbcRepository<ReservationE
     @Query("SELECT r.* FROM reservations r " +
             "JOIN room rm ON rm.id = r.room_id " +
             "WHERE rm.motel_id = :motelId " +
-            "AND (CAST(r.check_in_date AS DATE) = CURRENT_DATE OR CAST(r.check_out_date AS DATE) = CURRENT_DATE) " +
-            "AND r.status NOT IN ('CANCELLED')")
-    Flux<ReservationEntity> findTodayByMotelId(Long motelId);
+            "AND r.status NOT IN ('CANCELLED') " +
+            "AND (CAST(r.check_in_date AS DATE) <= :today AND CAST(r.check_out_date AS DATE) >= :today)")
+    Flux<ReservationEntity> findByMotelIdAndDate(Long motelId, java.time.LocalDate today);
 
     @Query("SELECT CAST(r.check_in_date AS DATE) AS day, SUM(r.total_price) AS revenue " +
             "FROM reservations r " +
             "JOIN room rm ON rm.id = r.room_id " +
             "WHERE rm.motel_id = :motelId " +
-            "AND r.check_in_date >= CURRENT_DATE - INTERVAL '6 days' " +
+            "AND r.check_in_date >= :startDate " +
             "AND r.status != 'CANCELLED' " +
             "GROUP BY CAST(r.check_in_date AS DATE) " +
             "ORDER BY day")
-    Flux<WeeklyRevenue> findWeeklyRevenueByMotelId(Long motelId);
+    Flux<WeeklyRevenue> findWeeklyRevenueByMotelId(Long motelId, java.time.LocalDate startDate);
 }
