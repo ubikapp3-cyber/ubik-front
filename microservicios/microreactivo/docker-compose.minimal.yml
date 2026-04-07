@@ -205,6 +205,22 @@ services:
       timeout: 10s
       retries: 5
       start_period: 90s
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    container_name: stripe-cli
+    restart: unless-stopped
+    environment:
+      - STRIPE_API_KEY=${STRIPE_SECRET_KEY}
+    command: >
+      listen
+      --forward-to http://gateway:8080/api/payments/webhook
+      --skip-verify
+      --log-level info
+  networks:
+    - ubik-network
+  depends_on:
+    gateway:
+      condition: service_healthy
 
 networks:
   ubik-network:
