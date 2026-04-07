@@ -57,25 +57,27 @@ public class ProcessMessageService implements ProcessMessageUseCase {
     }*/
     private String buildPrompt(String message) {
         return """
-                Clasifica la intención. Responde SOLO JSON válido sin explicaciones.
+                Clasifica la intención del usuario. Responde SOLO con JSON.
 
-                Intenciones: GET_MY_PROFILE, GET_MY_MOTELS, GET_MY_RESERVATIONS,
-                GET_PUBLIC_MOTELS, GET_ROOMS_BY_MOTEL, TUTORIAL_LOGIN, TUTORIAL_REGISTER,
-                TUTORIAL_REGISTER_MOTEL, TUTORIAL_REGISTER_ROOM, GENERAL_INFO, UNKNOWN
+                INTENCIONES:
+                GET_MY_PROFILE, GET_MY_MOTELS, GET_MY_RESERVATIONS,
+                GET_PUBLIC_MOTELS, GET_ROOMS_BY_MOTEL,
+                TUTORIAL_LOGIN, TUTORIAL_REGISTER, TUTORIAL_REGISTER_MOTEL,
+                TUTORIAL_REGISTER_ROOM, GENERAL_INFO, UNKNOWN
 
-                Reglas:
-                "registrar" solo → TUTORIAL_REGISTER
-                "registrar motel" → TUTORIAL_REGISTER_MOTEL
-                "registrar habitación/cuarto/room" → TUTORIAL_REGISTER_ROOM
-
-                Ejemplos:
-                "ver moteles" → {"intent":"GET_PUBLIC_MOTELS"}
-                "mis reservas" → {"intent":"GET_MY_RESERVATIONS"}
-                "registrarme" → {"intent":"TUTORIAL_REGISTER"}
-                "hola" → {"intent":"GENERAL_INFO"}
+                REGLAS:
+                - "registrar" solo → TUTORIAL_REGISTER
+                - "registrar motel" → TUTORIAL_REGISTER_MOTEL
+                - "registrar habitación/cuarto/room" → TUTORIAL_REGISTER_ROOM
+                - "iniciar sesion" / "login" / "ingresar" → TUTORIAL_LOGIN
+                - "mis reservas" / "reservaciones" → GET_MY_RESERVATIONS
+                - "mis moteles" / "mis establecimientos" → GET_MY_MOTELS
+                - "ver moteles" / "moteles disponibles" → GET_PUBLIC_MOTELS
+                - "mi perfil" / "mi cuenta" → GET_MY_PROFILE
 
                 Mensaje: "%s"
-                Responde SOLO: {"intent":"NOMBRE"}
+
+                Responde exactamente: {"intent":"NOMBRE_INTENCION"}
                 """.formatted(message);
     }
 
@@ -106,17 +108,18 @@ public class ProcessMessageService implements ProcessMessageUseCase {
     private AtomicBoolean modelReady = new AtomicBoolean(false);
     @PostConstruct
     public void warmUpModel() {
-        log.info("🔥 Warming up LLM model...");
+        log.info("🔥 Warming up LLM model qwen2.5:1.5b...");
 
         try {
-            llmClient.generate("ping")
-                    .block(); // 👈 CLAVE
+            llmClient.generate("hola")
+                    .timeout(Duration.ofSeconds(60)) // primera carga puede ser lenta
+                    .block();
 
             modelReady.set(true);
             log.info("✅ LLM warm-up completed");
 
         } catch (Exception e) {
-            log.error("❌ LLM warm-up failed", e);
+            log.error("❌ LLM warm-up failed: {}", e.getMessage());
         }
     }
     @Override
