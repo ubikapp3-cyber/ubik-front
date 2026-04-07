@@ -36,11 +36,18 @@ if ! systemctl is-active --quiet ollama; then
     sleep 5
 fi
 
-if ! ollama list | grep -q "smollm2:135m"; then
-    echo "📥 Descargando modelo smollm2:135m..."
-    ollama pull smollm2:135m
+if ! ollama list | grep -q "qwen2.5:1.5b"; then
+    echo "📥 Descargando modelo qwen2.5:1.5b (~934 MB)..."
+    ollama pull qwen2.5:1.5b
 fi
-echo "✅ Ollama listo con smollm2:135m"
+
+# Eliminar modelo viejo para liberar espacio en disco
+if ollama list | grep -q "smollm2:135m"; then
+    echo "🗑️  Eliminando modelo antiguo smollm2:135m..."
+    ollama rm smollm2:135m
+fi
+
+echo "✅ Ollama listo con qwen2.5:1.5b"
 
 echo ""
 echo "💳 Verificando Stripe CLI..."
