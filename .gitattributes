@@ -1,0 +1,10 @@
+# Auto-detect text files and normalize line endings
+* text=auto
+
+# Force LF for shell scripts (deployed to Linux servers)
+*.sh text eol=lf
+
+# Force LF for docker and config files
+*.yml text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
