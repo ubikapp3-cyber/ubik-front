@@ -23,7 +23,7 @@ public class OllamaClientAdapter implements LlmClientPort {
     public Mono<String> generate(String prompt) {
 
         Map<String, Object> request = Map.of(
-                "model", "llama3:8b",
+                "model", "smollm2:135m",
                 "prompt", prompt,
                 "stream", false
         );

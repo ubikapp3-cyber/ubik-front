@@ -57,49 +57,25 @@ public class ProcessMessageService implements ProcessMessageUseCase {
     }*/
     private String buildPrompt(String message) {
         return """
-                Eres un sistema que clasifica intenciones de usuarios en una aplicación de moteles.
-                
-                Devuelve SOLO un JSON válido:
-                { "intent": "NOMBRE_INTENCION" }
-                
-                REGLAS:
-                - Solo una intención
-                - Sin explicaciones
-                - Si no entiendes → UNKNOWN
-                
-                INTENCIONES:
-                
-                GET_MY_PROFILE → ver perfil
-                GET_MY_MOTELS → ver mis moteles
-                GET_MY_RESERVATIONS → ver mis reservas
-                GET_PUBLIC_MOTELS → explorar moteles
-                GET_ROOMS_BY_MOTEL → ver habitaciones de un motel
-                
-                TUTORIAL_LOGIN → ayuda para iniciar sesión
-                TUTORIAL_REGISTER → crear cuenta (registrarme, signup)
-                
-                TUTORIAL_REGISTER_MOTEL → registrar motel
-                TUTORIAL_REGISTER_ROOM → registrar habitación (cuarto, room)
-                
-                GENERAL_INFO → información general
-                UNKNOWN → no entendido
-                
-                REGLAS CLAVE:
-                - "registrar" solo → TUTORIAL_REGISTER
-                - "registrar motel" → TUTORIAL_REGISTER_MOTEL
-                - "registrar habitación/cuarto/room" → TUTORIAL_REGISTER_ROOM
-                
-                EJEMPLOS:
-                
-                "quiero registrarme" → TUTORIAL_REGISTER
+                Clasifica la intención. Responde SOLO JSON válido sin explicaciones.
+
+                Intenciones: GET_MY_PROFILE, GET_MY_MOTELS, GET_MY_RESERVATIONS,
+                GET_PUBLIC_MOTELS, GET_ROOMS_BY_MOTEL, TUTORIAL_LOGIN, TUTORIAL_REGISTER,
+                TUTORIAL_REGISTER_MOTEL, TUTORIAL_REGISTER_ROOM, GENERAL_INFO, UNKNOWN
+
+                Reglas:
+                "registrar" solo → TUTORIAL_REGISTER
                 "registrar motel" → TUTORIAL_REGISTER_MOTEL
-                "registrar habitacion" → TUTORIAL_REGISTER_ROOM
-                "ver mis reservas" → GET_MY_RESERVATIONS
-                "hola" → GENERAL_INFO
-                "asdfgh" → UNKNOWN
-                
-                Mensaje:
-                "%s"
+                "registrar habitación/cuarto/room" → TUTORIAL_REGISTER_ROOM
+
+                Ejemplos:
+                "ver moteles" → {"intent":"GET_PUBLIC_MOTELS"}
+                "mis reservas" → {"intent":"GET_MY_RESERVATIONS"}
+                "registrarme" → {"intent":"TUTORIAL_REGISTER"}
+                "hola" → {"intent":"GENERAL_INFO"}
+
+                Mensaje: "%s"
+                Responde SOLO: {"intent":"NOMBRE"}
                 """.formatted(message);
     }
 
