@@ -42,6 +42,16 @@ if ! ollama list | grep -q "smollm2:135m"; then
 fi
 echo "✅ Ollama listo con smollm2:135m"
 
+echo ""
+echo "💳 Verificando Stripe CLI..."
+if [ -z "${STRIPE_SECRET_KEY}" ]; then
+    echo "⚠️  STRIPE_SECRET_KEY no está definida — stripe-cli no podrá autenticarse"
+else
+    echo "✅ STRIPE_SECRET_KEY presente"
+fi
+docker pull stripe/stripe-cli:latest
+echo "✅ Imagen stripe/stripe-cli:latest lista"
+
 if [[ "$1" == "--build" ]]; then
     echo ""
     echo "🏗️ Construyendo imágenes UNA POR UNA (evita timeout en 2 vCPUs)..."
@@ -104,8 +114,9 @@ docker compose -f docker-compose.minimal.yml ps
 echo ""
 echo "✅ Deploy completado"
 echo "-------------------------------------------------------"
-echo "🌐 Gateway:  http://localhost:8080"
-echo "🤖 AI Svc:   http://localhost:8088"
+echo "🌐 Gateway:    http://localhost:8080"
+echo "🤖 AI Svc:     http://localhost:8088"
+echo "💳 Stripe CLI: $(docker inspect --format='{{.State.Status}}' stripe-cli 2>/dev/null || echo 'no iniciado')"
 echo ""
 echo "📊 RAM actual:"
 free -h | awk 'NR<=2'

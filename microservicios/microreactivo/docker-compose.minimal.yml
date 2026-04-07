@@ -216,11 +216,11 @@ services:
       --forward-to http://gateway:8080/api/payments/webhook
       --skip-verify
       --log-level info
-  networks:
-    - ubik-network
-  depends_on:
-    gateway:
-      condition: service_healthy
+    networks:
+      - ubik-network
+    depends_on:
+      gateway:
+        condition: service_healthy
 
 networks:
   ubik-network:
