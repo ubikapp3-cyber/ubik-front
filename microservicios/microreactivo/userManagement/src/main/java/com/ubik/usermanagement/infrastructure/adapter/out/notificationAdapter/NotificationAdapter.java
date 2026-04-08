@@ -16,10 +16,11 @@ public class NotificationAdapter implements NotificationPort {
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
-    public NotificationAdapter(WebClient.Builder builder) {
+    public NotificationAdapter(
+            @Value("${services.notification-service.url}") String notificationUrl,
+            WebClient.Builder builder) {
         this.webClient = builder
-                //.baseUrl("http://notification-service:8084")
-                .baseUrl("http://host.docker.internal:8084")
+                .baseUrl(notificationUrl)
                 .build();
     }
 

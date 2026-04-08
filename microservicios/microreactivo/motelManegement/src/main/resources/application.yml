@@ -29,7 +29,9 @@ spring:
 
 services:
   user-management:
-    url: http://localhost:8081
+    url: ${USER_MANAGEMENT_URL:http://usermanagement-service:8081}
+  notification-service:
+    url: ${NOTIFICATION_SERVICE_URL:http://notification-service:8084}
 
 
   # PostgreSQL R2DBC (valores inyectados desde .env o docker)
